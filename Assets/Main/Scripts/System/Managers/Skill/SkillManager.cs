@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SkillManager : SingletonManager<SkillManager>, IInitializable
+public class SkillManager : Singleton<SkillManager>, IInitializable
 {
     private List<SkillData> availableSkills = new List<SkillData>();
     private List<Skill> activeSkills = new List<Skill>();
@@ -240,7 +240,7 @@ public class SkillManager : SingletonManager<SkillManager>, IInitializable
             newObj.transform.localRotation = Quaternion.identity;
             newObj.transform.localScale = Vector3.one;
 
-            skillData.GetCurrentTypeStat().baseStat.skillLevel = targetLevel;
+            skillData.GetSkillStats().baseStat.skillLevel = targetLevel;
             newSkill.SetSkillData(skillData);
 
             if (playerStat != null)

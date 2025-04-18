@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using Newtonsoft.Json;
+using UnityEngine;
 
 [Serializable]
 public class SkillData : ICloneable
@@ -15,26 +15,36 @@ public class SkillData : ICloneable
     public ElementType Element { get; set; }
     public int Tier { get; set; }
     public string[] Tags { get; set; }
+
     [JsonIgnore]
     public GameObject Prefab { get; set; }
     public string PrefabPath { get; set; }
+
     [JsonIgnore]
     private Dictionary<int, ISkillStat> StatsByLevel { get; set; }
+
     [JsonIgnore]
     public Sprite Icon { get; set; }
     public string IconPath { get; set; }
+
     [JsonIgnore]
     public GameObject ProjectilePrefab { get; set; }
     public string ProjectilePath { get; set; }
+
     [JsonIgnore]
     public GameObject[] PrefabsByLevel { get; set; }
+
     public string[] PrefabsByLevelPaths { get; set; }
+
     [JsonIgnore]
     public BaseSkillStat BaseStats { get; set; }
+
     [JsonIgnore]
     public ProjectileSkillStat ProjectileStat { get; set; }
+
     [JsonIgnore]
     public AreaSkillStat AreaStat { get; set; }
+
     [JsonIgnore]
     public PassiveSkillStat PassiveStat { get; set; }
     #endregion
@@ -97,7 +107,8 @@ public class SkillData : ICloneable
                     break;
             }
 
-            if (StatsByLevel == null) StatsByLevel = new Dictionary<int, ISkillStat>();
+            if (StatsByLevel == null)
+                StatsByLevel = new Dictionary<int, ISkillStat>();
             StatsByLevel[level] = stats;
 
             Debug.Log($"Successfully set stats for level {level}");
@@ -108,7 +119,7 @@ public class SkillData : ICloneable
         }
     }
 
-    public ISkillStat GetCurrentTypeStat()
+    public ISkillStat GetSkillStats()
     {
         switch (Type)
         {
@@ -155,7 +166,7 @@ public class SkillData : ICloneable
             PrefabPath = this.PrefabPath,
             IconPath = this.IconPath,
             ProjectilePath = this.ProjectilePath,
-            PrefabsByLevelPaths = (string[])this.PrefabsByLevelPaths?.Clone()
+            PrefabsByLevelPaths = (string[])this.PrefabsByLevelPaths?.Clone(),
         };
     }
     #endregion

@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class ItemManager : SingletonManager<ItemManager>, IInitializable
+public class ItemManager : Singleton<ItemManager>, IInitializable
 {
     [SerializeField]
     private GameObject worldDropItemPrefab;

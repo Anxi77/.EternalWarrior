@@ -11,7 +11,8 @@ public class SkillStatAmplifierEffect : SkillInteractionEffectBase
     public List<SkillType> applicableSkillTypes { get; private set; }
     public List<ElementType> applicableElements { get; private set; }
 
-    public SkillStatAmplifierEffect(ItemEffectData effectData) : base(effectData)
+    public SkillStatAmplifierEffect(ItemEffectData effectData)
+        : base(effectData)
     {
         switch (effectData.effectType)
         {
@@ -39,17 +40,25 @@ public class SkillStatAmplifierEffect : SkillInteractionEffectBase
 
     public bool CanApplyTo(SkillType skillType, ElementType elementType = ElementType.None)
     {
-        if (applicableSkillTypes.Any() && !applicableSkillTypes.Contains(skillType)) return false;
-        if (elementType != ElementType.None && applicableElements.Any() && !applicableElements.Contains(elementType)) return false;
+        if (applicableSkillTypes.Any() && !applicableSkillTypes.Contains(skillType))
+            return false;
+        if (
+            elementType != ElementType.None
+            && applicableElements.Any()
+            && !applicableElements.Contains(elementType)
+        )
+            return false;
         return true;
     }
 
     public override void ModifySkillStats(Skill skill)
     {
-        if (!CanApplyTo(skill.skillData.Type, skill.skillData.Element)) return;
+        if (!CanApplyTo(skill.skillData.Type, skill.skillData.Element))
+            return;
 
-        var stats = skill.skillData.GetCurrentTypeStat();
-        if (stats == null) return;
+        var stats = skill.skillData.GetSkillStats();
+        if (stats == null)
+            return;
 
         stats.baseStat.damage *= damageMultiplier;
 

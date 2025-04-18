@@ -21,13 +21,14 @@ public class ExplodingShot : ProjectileSkills
     public override string GetDetailedDescription()
     {
         string baseDesc = skillData?.Description ?? "ExplodingShot description";
-        if (skillData?.GetCurrentTypeStat() != null)
+        if (skillData?.GetSkillStats() != null)
         {
-            baseDesc += $"\n\nCurrent Effects:" +
-                       $"\nDirect Damage: {Damage:F1}" +
-                       $"\nExplosion Radius: {ExplosionRadius:F1}" +
-                       $"\nFire Rate: {1 / ShotInterval:F1} shots/s" +
-                       $"\nRange: {AttackRange:F1}";
+            baseDesc +=
+                $"\n\nCurrent Effects:"
+                + $"\nDirect Damage: {Damage:F1}"
+                + $"\nExplosion Radius: {ExplosionRadius:F1}"
+                + $"\nFire Rate: {1 / ShotInterval:F1} shots/s"
+                + $"\nRange: {AttackRange:F1}";
 
             if (IsHoming)
             {

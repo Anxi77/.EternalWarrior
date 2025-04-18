@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using static StageManager;
 
 public class TownStateHandler : BaseStateHandler
 {
@@ -14,7 +13,7 @@ public class TownStateHandler : BaseStateHandler
         }
         else if (Game != null && Game.player == null)
         {
-            Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Town);
+            Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Main_Town);
             PlayerUnit.SpawnPlayer(spawnPos);
         }
 
@@ -29,7 +28,7 @@ public class TownStateHandler : BaseStateHandler
             Game.player = null;
         }
 
-        Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Town);
+        Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Main_Town);
         PlayerUnit.SpawnPlayer(spawnPos);
 
         if (Game.player != null)
@@ -57,7 +56,7 @@ public class TownStateHandler : BaseStateHandler
             return;
         }
 
-        CameraManager.Instance.SetupCamera(SceneType.Town);
+        CameraManager.Instance.SetupCamera(SceneType.Main_Town);
 
         if (PathFindingManager.Instance != null)
         {

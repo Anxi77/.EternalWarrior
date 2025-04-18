@@ -11,7 +11,7 @@ public class Bind : AreaSkills
     public override void Initialize()
     {
         base.Initialize();
-        playerTransform = GameObject.FindGameObjectWithTag("Player")?.transform;
+        playerTransform = GameManager.Instance.player?.transform;
         if (playerTransform == null)
         {
             Debug.LogError("Player not found for Bind skill!");
@@ -31,7 +31,8 @@ public class Bind : AreaSkills
         {
             yield return new WaitForSeconds(TickRate);
 
-            if (playerTransform == null) continue;
+            if (playerTransform == null)
+                continue;
 
             List<Enemy> affectedEnemies = new List<Enemy>();
 
@@ -41,7 +42,10 @@ public class Bind : AreaSkills
                 {
                     if (enemy != null)
                     {
-                        float distanceToPlayer = Vector2.Distance(playerTransform.position, enemy.transform.position);
+                        float distanceToPlayer = Vector2.Distance(
+                            playerTransform.position,
+                            enemy.transform.position
+                        );
                         if (distanceToPlayer <= Radius)
                         {
                             affectedEnemies.Add(enemy);
@@ -65,7 +69,9 @@ public class Bind : AreaSkills
 
                                 spawnedBindEffects.Add(bindEffect);
 
-                                Debug.Log($"Bind effect spawned at {effectPosition}, parent: {enemy.name}");
+                                Debug.Log(
+                                    $"Bind effect spawned at {effectPosition}, parent: {enemy.name}"
+                                );
                             }
                             else
                             {

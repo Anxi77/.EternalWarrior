@@ -4,13 +4,13 @@ using UnityEngine.SceneManagement;
 
 public enum SceneType
 {
-    MainMenu,
-    Town,
-    Game,
+    Main_Title,
+    Main_Town,
+    Main_Stage,
     Test,
 }
 
-public class StageManager : SingletonManager<StageManager>
+public class StageManager : Singleton<StageManager>
 {
     [Header("Portal Settings")]
     [SerializeField]
@@ -22,25 +22,25 @@ public class StageManager : SingletonManager<StageManager>
     #region Scene Loading
     public void LoadMainMenu()
     {
-        StartCoroutine(LoadSceneCoroutine("MainMenu", SceneType.MainMenu));
+        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Title));
     }
 
     public void LoadTownScene()
     {
-        StartCoroutine(LoadSceneCoroutine("TownScene", SceneType.Town));
+        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Town));
     }
 
     public void LoadGameScene()
     {
-        StartCoroutine(LoadSceneCoroutine("GameScene", SceneType.Game));
+        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Stage));
     }
 
     public void LoadTestScene()
     {
-        StartCoroutine(LoadSceneCoroutine("TestScene", SceneType.Test));
+        StartCoroutine(LoadSceneCoroutine(SceneType.Test));
     }
 
-    private IEnumerator LoadSceneCoroutine(string sceneName, SceneType sceneType)
+    private IEnumerator LoadSceneCoroutine(SceneType sceneType)
     {
         UIManager.Instance.ShowLoadingScreen();
         UIManager.Instance.UpdateLoadingProgress(0f);
@@ -56,7 +56,7 @@ public class StageManager : SingletonManager<StageManager>
 
         CleanupCurrentScene();
 
-        if (sceneName.Contains("Test"))
+        if (sceneType.ToString().Contains("Test"))
         {
             progress = 10f;
             while (progress < 70f)
@@ -66,13 +66,13 @@ public class StageManager : SingletonManager<StageManager>
                 yield return null;
             }
 
-            SceneManager.LoadScene(sceneName);
+            SceneManager.LoadScene(sceneType.ToString());
 
             yield return new WaitForSeconds(0.5f);
         }
         else
         {
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneType.ToString());
             asyncLoad.allowSceneActivation = false;
 
             while (asyncLoad.progress < 0.9f)
@@ -91,7 +91,7 @@ public class StageManager : SingletonManager<StageManager>
 
         switch (sceneType)
         {
-            case SceneType.MainMenu:
+            case SceneType.Main_Title:
                 UIManager.Instance.SetupMainMenuUI();
                 break;
             default:
@@ -101,13 +101,13 @@ public class StageManager : SingletonManager<StageManager>
 
         switch (sceneType)
         {
-            case SceneType.MainMenu:
-                GameLoopManager.Instance.ChangeState(GameState.MainMenu);
+            case SceneType.Main_Title:
+                GameLoopManager.Instance.ChangeState(GameState.Title);
                 break;
-            case SceneType.Town:
+            case SceneType.Main_Town:
                 GameLoopManager.Instance.ChangeState(GameState.Town);
                 break;
-            case SceneType.Game:
+            case SceneType.Main_Stage:
             case SceneType.Test:
                 GameLoopManager.Instance.ChangeState(GameState.Stage);
                 break;
@@ -135,16 +135,16 @@ public class StageManager : SingletonManager<StageManager>
     {
         switch (sceneType)
         {
-            case SceneType.MainMenu:
+            case SceneType.Main_Title:
                 return UIManager.Instance != null && UIManager.Instance.IsMainMenuActive();
 
-            case SceneType.Town:
+            case SceneType.Main_Town:
                 return GameManager.Instance?.player != null
                     && CameraManager.Instance?.IsInitialized == true
                     && UIManager.Instance?.playerUIPanel != null
                     && UIManager.Instance.IsGameUIReady();
 
-            case SceneType.Game:
+            case SceneType.Main_Stage:
             case SceneType.Test:
                 bool isReady =
                     GameManager.Instance?.player != null
@@ -185,12 +185,12 @@ public class StageManager : SingletonManager<StageManager>
     #region Portal Management
     public void SpawnGameStagePortal()
     {
-        SpawnPortal(townPortalPosition, SceneType.Game);
+        SpawnPortal(townPortalPosition, SceneType.Main_Stage);
     }
 
     public void SpawnTownPortal(Vector3 position)
     {
-        SpawnPortal(position, SceneType.Town);
+        SpawnPortal(position, SceneType.Main_Town);
     }
 
     private void SpawnPortal(Vector3 position, SceneType destinationType)
@@ -211,11 +211,11 @@ public class StageManager : SingletonManager<StageManager>
     {
         switch (destinationType)
         {
-            case SceneType.Town:
+            case SceneType.Main_Town:
                 PlayerUnitManager.Instance.SaveGameState();
                 LoadTownScene();
                 break;
-            case SceneType.Game:
+            case SceneType.Main_Stage:
                 LoadGameScene();
                 break;
         }

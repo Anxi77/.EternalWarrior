@@ -1,7 +1,8 @@
-using UnityEngine;
+using System;
 using System.Collections;
+using UnityEngine;
 
-public class PoolManager : SingletonManager<PoolManager>, IInitializable
+public class PoolManager : Singleton<PoolManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -19,7 +20,7 @@ public class PoolManager : SingletonManager<PoolManager>, IInitializable
             InitializePool();
             IsInitialized = true;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error initializing PoolManager: {e.Message}");
             IsInitialized = false;
@@ -44,7 +45,8 @@ public class PoolManager : SingletonManager<PoolManager>, IInitializable
         }
     }
 
-    public T Spawn<T>(GameObject prefab, Vector3 position, Quaternion rotation) where T : Component
+    public T Spawn<T>(GameObject prefab, Vector3 position, Quaternion rotation)
+        where T : Component
     {
         string originalName = prefab.name;
 
@@ -57,17 +59,20 @@ public class PoolManager : SingletonManager<PoolManager>, IInitializable
         return spawnedObj;
     }
 
-    public void Despawn<T>(T obj) where T : Component
+    public void Despawn<T>(T obj)
+        where T : Component
     {
         objectPool.Despawn(obj);
     }
 
-    public void Despawn<T>(T obj, float delay) where T : Component
+    public void Despawn<T>(T obj, float delay)
+        where T : Component
     {
         StartCoroutine(DespawnCoroutine(obj, delay));
     }
 
-    private IEnumerator DespawnCoroutine<T>(T obj, float delay) where T : Component
+    private IEnumerator DespawnCoroutine<T>(T obj, float delay)
+        where T : Component
     {
         yield return new WaitForSeconds(delay);
         if (obj != null)

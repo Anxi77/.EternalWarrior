@@ -19,10 +19,10 @@ public class StatModifier
     {
         if (obj is StatModifier other)
         {
-            return Type == other.Type &&
-                   Source == other.Source &&
-                   IncreaseType == other.IncreaseType &&
-                   Math.Abs(Value - other.Value) < float.Epsilon;
+            return Type == other.Type
+                && Source == other.Source
+                && IncreaseType == other.IncreaseType
+                && Math.Abs(Value - other.Value) < float.Epsilon;
         }
         return false;
     }

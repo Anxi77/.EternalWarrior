@@ -7,7 +7,6 @@ using UnityEngine;
 public class SkillDataManager : DataManager<SkillDataManager>, IInitializable
 {
     #region Constants
-    private const string RESOURCE_PATH = "SkillData";
     private const string PREFAB_PATH = "SkillData/Prefabs";
     private const string ICON_PATH = "SkillData/Icons";
     private const string STAT_PATH = "SkillData/Stats";
@@ -22,19 +21,17 @@ public class SkillDataManager : DataManager<SkillDataManager>, IInitializable
         new Dictionary<SkillID, Dictionary<int, GameObject>>();
     #endregion
 
-    public new bool IsInitialized { get; private set; }
-
     public override void Initialize()
     {
         try
         {
             LoadAllSkillData();
-            IsInitialized = true;
+            isInitialized = true;
         }
         catch (Exception e)
         {
             Debug.LogError($"Error initializing SkillDataManager: {e.Message}");
-            IsInitialized = false;
+            isInitialized = false;
         }
     }
 
@@ -51,7 +48,7 @@ public class SkillDataManager : DataManager<SkillDataManager>, IInitializable
                     string fileName = jsonAsset.name;
                     string skillIdStr = fileName.Replace("_Data", "");
 
-                    if (Enum.TryParse<SkillID>(skillIdStr, out SkillID skillId))
+                    if (Enum.TryParse(skillIdStr, out SkillID skillId))
                     {
                         var skillData = JsonConvert.DeserializeObject<SkillData>(jsonAsset.text);
                         if (skillData != null)
@@ -111,37 +108,15 @@ public class SkillDataManager : DataManager<SkillDataManager>, IInitializable
             };
 
             if (statsFileName == null)
-                return;
-
-            var textAsset = Resources.Load<TextAsset>($"{STAT_PATH}/{statsFileName}");
-            if (textAsset == null)
-                return;
-
-            var stats = new Dictionary<int, SkillStatData>();
-            var lines = textAsset.text.Split('\n');
-            var headers = lines[0].Trim().Split(',');
-
-            for (int i = 1; i < lines.Length; i++)
             {
-                var line = lines[i].Trim();
-                if (string.IsNullOrEmpty(line))
-                    continue;
-
-                var values = line.Split(',');
-                if (values.Length != headers.Length)
-                    continue;
-
-                var statData = new SkillStatData();
-                for (int j = 0; j < headers.Length; j++)
-                {
-                    SetStatValue(statData, headers[j].ToLower(), values[j]);
-                }
-
-                if (statData.SkillID == skillId)
-                {
-                    stats[statData.Level] = statData;
-                }
+                Debug.LogError($"Invalid skill type: {type}");
+                return;
             }
+
+            var loadedStats = CSVIO<SkillStatData>.LoadBulkData(statsFileName);
+            var stats = loadedStats
+                .Where(stat => stat.SkillID == skillId)
+                .ToDictionary(stat => stat.Level, stat => stat);
 
             if (stats.Any())
             {
@@ -206,13 +181,13 @@ public class SkillDataManager : DataManager<SkillDataManager>, IInitializable
                 }
                 else if (property.PropertyType == typeof(SkillID))
                 {
-                    if (!Enum.TryParse<SkillID>(value, out var skillId))
+                    if (!Enum.TryParse(value, out SkillID skillId))
                         throw new Exception($"Failed to parse SkillID: {value}");
                     convertedValue = skillId;
                 }
                 else if (property.PropertyType == typeof(ElementType))
                 {
-                    if (!Enum.TryParse<ElementType>(value, out var elementType))
+                    if (!Enum.TryParse(value, out ElementType elementType))
                         throw new Exception($"Failed to parse ElementType: {value}");
                     convertedValue = elementType;
                 }

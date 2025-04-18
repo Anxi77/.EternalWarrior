@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathFindingManager : SingletonManager<PathFindingManager>, IInitializable
+public class PathFindingManager : Singleton<PathFindingManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 

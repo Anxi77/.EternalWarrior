@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -31,36 +33,44 @@ public static class ResourceIO<T>
             return false;
         }
 
-        try
+        if (typeof(T) == typeof(GameObject))
         {
-            string directory = Path.GetDirectoryName(path);
-            if (!Directory.Exists(directory))
+            SavePrefab(path, data as GameObject);
+        }
+        else
+        {
+            try
             {
-                Directory.CreateDirectory(directory);
-            }
+                string directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
 
 #if UNITY_EDITOR
 
-            if (data is Sprite sprite)
-            {
-                SaveSprite(path, sprite);
-            }
-            else if (data is GameObject prefab)
-            {
-                SavePrefab(path, prefab);
-            }
+                if (data is Sprite sprite)
+                {
+                    SaveSprite(path, sprite);
+                }
+                else if (data is GameObject prefab)
+                {
+                    SavePrefab(path, prefab);
+                }
 
-            AssetDatabase.Refresh();
+                AssetDatabase.Refresh();
 #endif
-            cache[path] = data;
-            Debug.Log($"{LOG_PREFIX}Saved resource to: {path}");
-            return true;
+                cache[path] = data;
+                Debug.Log($"{LOG_PREFIX}Saved resource to: {path}");
+                return true;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"{LOG_PREFIX}Error saving resource: {e.Message}\n{e.StackTrace}");
+                return false;
+            }
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"{LOG_PREFIX}Error saving resource: {e.Message}\n{e.StackTrace}");
-            return false;
-        }
+        return false;
     }
 
     public static T LoadData(string key)
@@ -96,7 +106,7 @@ public static class ResourceIO<T>
             Debug.LogWarning($"Failed to load resource: {key}");
             return null;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error loading resource: {e.Message}\n{e.StackTrace}");
             return null;
@@ -120,7 +130,7 @@ public static class ResourceIO<T>
             cache.Remove(key);
             return true;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error deleting resource: {e.Message}");
             return false;
@@ -175,7 +185,7 @@ public static class ResourceIO<T>
                 Debug.LogError($"Failed to copy sprite from {sourcePath} to {targetPath}");
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error saving sprite: {e.Message}\n{e.StackTrace}");
         }
@@ -183,39 +193,34 @@ public static class ResourceIO<T>
 
     private static void SavePrefab(string path, GameObject prefab)
     {
+        if (prefab == null)
+        {
+            Debug.LogError($"Cannot save null prefab to path: {path}");
+            return;
+        }
+
         try
         {
-            string targetPath = $"Assets/Resources/{path}.prefab";
-            string directory = Path.GetDirectoryName(targetPath);
+            if (PrefabUtility.GetPrefabAssetType(prefab) == PrefabAssetType.NotAPrefab)
+            {
+                Debug.LogError(
+                    "Cannot save an instance of a prefab. Please use the original prefab from the Project window."
+                );
+                return;
+            }
+
+            string fullPath = Path.Combine(Application.dataPath, "Resources", path + ".prefab");
+            string directory = Path.GetDirectoryName(fullPath);
 
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
 
-            if (File.Exists(targetPath))
-            {
-                AssetDatabase.DeleteAsset(targetPath);
-            }
-
-            GameObject prefabInstance = Object.Instantiate(prefab);
-            bool success = PrefabUtility.SaveAsPrefabAsset(
-                prefabInstance,
-                targetPath,
-                out bool prefabSuccess
-            );
-            Object.DestroyImmediate(prefabInstance);
-
-            if (success)
-            {
-                Debug.Log($"Saved prefab to: {targetPath}");
-            }
-            else
-            {
-                Debug.LogError($"Failed to save prefab to: {targetPath}");
-            }
+            PrefabUtility.SaveAsPrefabAsset(prefab, fullPath);
+            AssetDatabase.Refresh();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error saving prefab: {e.Message}");
         }

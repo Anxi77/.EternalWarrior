@@ -3,13 +3,26 @@
 public class GravityProjectileSkill : ProjectileSkills
 {
     [Header("Gravity Projectile Settings")]
-    [SerializeField] private float _gravityForce = 10f;
-    [SerializeField] private float _gravityDamageInterval = 0.5f;
-    [SerializeField] private float _startSize = 1f;
-    [SerializeField] private float _endSize = 3f;
-    [SerializeField] private float _growthDuration = 2f;
-    [SerializeField] private GravityProjectile gravityProjectilePrefab;
-    [SerializeField] private KeyCode homingTriggerKey = KeyCode.LeftShift;
+    [SerializeField]
+    private float _gravityForce = 10f;
+
+    [SerializeField]
+    private float _gravityDamageInterval = 0.5f;
+
+    [SerializeField]
+    private float _startSize = 1f;
+
+    [SerializeField]
+    private float _endSize = 3f;
+
+    [SerializeField]
+    private float _growthDuration = 2f;
+
+    [SerializeField]
+    private GravityProjectile gravityProjectilePrefab;
+
+    [SerializeField]
+    private KeyCode homingTriggerKey = KeyCode.LeftShift;
 
     public override void Initialize()
     {
@@ -19,7 +32,8 @@ public class GravityProjectileSkill : ProjectileSkills
 
     protected override void Update()
     {
-        if (!isInitialized || !canFire) return;
+        if (!isInitialized || !canFire)
+            return;
 
         CalcDirection();
 
@@ -64,7 +78,9 @@ public class GravityProjectileSkill : ProjectileSkills
             {
                 proj.SetTarget(target);
                 proj.SetHoming(true);
-                Vector2 dirToTarget = (target.transform.position - proj.transform.position).normalized;
+                Vector2 dirToTarget = (
+                    target.transform.position - proj.transform.position
+                ).normalized;
                 proj.SetDirection(dirToTarget);
             }
         }
@@ -80,7 +96,8 @@ public class GravityProjectileSkill : ProjectileSkills
         float nearestDistance = AttackRange;
 
         Enemy[] enemies = FindObjectsOfType<Enemy>();
-        if (enemies.Length == 0) return null;
+        if (enemies.Length == 0)
+            return null;
 
         foreach (var enemy in enemies)
         {
@@ -119,16 +136,17 @@ public class GravityProjectileSkill : ProjectileSkills
     public override string GetDetailedDescription()
     {
         string baseDesc = "Creates gravity wells that pull and damage enemies";
-        if (skillData?.GetCurrentTypeStat() != null)
+        if (skillData?.GetSkillStats() != null)
         {
-            baseDesc += $"\n\nCurrent Effects:" +
-                       $"\nDamage per Tick: {Damage:F1}" +
-                       $"\nGravity Force: {_gravityForce:F1}" +
-                       $"\nDamage Interval: {_gravityDamageInterval:F1}s" +
-                       $"\nInitial Size: {_startSize:F1}" +
-                       $"\nFinal Size: {_endSize:F1}" +
-                       $"\nGrowth Duration: {_growthDuration:F1}s" +
-                       $"\nRange: {AttackRange:F1}";
+            baseDesc +=
+                $"\n\nCurrent Effects:"
+                + $"\nDamage per Tick: {Damage:F1}"
+                + $"\nGravity Force: {_gravityForce:F1}"
+                + $"\nDamage Interval: {_gravityDamageInterval:F1}s"
+                + $"\nInitial Size: {_startSize:F1}"
+                + $"\nFinal Size: {_endSize:F1}"
+                + $"\nGrowth Duration: {_growthDuration:F1}s"
+                + $"\nRange: {AttackRange:F1}";
 
             if (IsHoming)
             {

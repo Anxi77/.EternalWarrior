@@ -1,18 +1,30 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
+using UnityEngine;
 
 public abstract class AreaSkills : Skill
 {
     [Header("Base Stats")]
-    [SerializeField] protected float _damage = 10f;
-    [SerializeField] protected float _elementalPower = 1f;
+    [SerializeField]
+    protected float _damage = 10f;
+
+    [SerializeField]
+    protected float _elementalPower = 1f;
 
     [Header("Area Stats")]
-    [SerializeField] protected float _radius = 5f;
-    [SerializeField] protected float _duration = 5f;
-    [SerializeField] protected float _tickRate = 0.1f;
-    [SerializeField] protected bool _isPersistent = true;
-    [SerializeField] protected float _moveSpeed = 180f;
+    [SerializeField]
+    protected float _radius = 5f;
+
+    [SerializeField]
+    protected float _duration = 5f;
+
+    [SerializeField]
+    protected float _tickRate = 0.1f;
+
+    [SerializeField]
+    protected bool _isPersistent = true;
+
+    [SerializeField]
+    protected float _moveSpeed = 180f;
 
     public float Damage => _damage;
     public float ElementalPower => _elementalPower;
@@ -21,41 +33,27 @@ public abstract class AreaSkills : Skill
     public float TickRate => _tickRate;
     public bool IsPersistent => _isPersistent;
     public float MoveSpeed => _moveSpeed;
+
     protected override void InitializeSkillData()
     {
-        if (skillData == null) return;
+        if (skillData == null)
+            return;
 
-        var csvStats = SkillDataManager.Instance.GetSkillStatsForLevel(
-            skillData.ID,
-            skillData.GetCurrentTypeStat().baseStat.skillLevel,
-            SkillType.Area
-        ) as AreaSkillStat;
+        var skillStats =
+            SkillDataManager.Instance.GetSkillStatsForLevel(
+                skillData.ID,
+                skillData.GetSkillStats().baseStat.skillLevel,
+                SkillType.Area
+            ) as AreaSkillStat;
 
-        if (csvStats != null)
+        if (skillStats != null)
         {
-            UpdateInspectorValues(csvStats);
-            skillData.SetStatsForLevel(skillData.GetCurrentTypeStat().baseStat.skillLevel, csvStats);
+            UpdateInspectorValues(skillStats);
+            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, skillStats);
         }
         else
         {
-            Debug.LogWarning($"No CSV data found for {skillData.Name}, using default values");
-            var defaultStats = new AreaSkillStat
-            {
-                baseStat = new BaseSkillStat
-                {
-                    damage = _damage,
-                    skillLevel = currentLevel,
-                    maxSkillLevel = 5,
-                    element = skillData?.Element ?? ElementType.None,
-                    elementalPower = _elementalPower
-                },
-                radius = _radius,
-                duration = _duration,
-                tickRate = _tickRate,
-                isPersistent = _isPersistent,
-                moveSpeed = _moveSpeed
-            };
-            skillData.SetStatsForLevel(currentLevel, defaultStats);
+            Debug.LogWarning($"No Stat data found for Skill : {skillData.Name}");
         }
     }
 
@@ -74,13 +72,13 @@ public abstract class AreaSkills : Skill
                         skillLevel = 1,
                         maxSkillLevel = 5,
                         element = skillData?.Element ?? ElementType.None,
-                        elementalPower = 1f
+                        elementalPower = 1f,
                     },
                     radius = _radius,
                     duration = _duration,
                     tickRate = _tickRate,
                     isPersistent = _isPersistent,
-                    moveSpeed = _moveSpeed
+                    moveSpeed = _moveSpeed,
                 };
                 skillData?.SetStatsForLevel(1, stats);
             }
@@ -122,14 +120,15 @@ public abstract class AreaSkills : Skill
     public override string GetDetailedDescription()
     {
         string baseDesc = skillData?.Description ?? "Area skill description";
-        if (skillData?.GetCurrentTypeStat() != null)
+        if (skillData?.GetSkillStats() != null)
         {
-            baseDesc += $"\n\nCurrent Effects:" +
-                       $"\nDamage: {Damage:F1}" +
-                       $"\nRadius: {Radius:F1}" +
-                       $"\nDuration: {Duration:F1}s" +
-                       $"\nTick Rate: {TickRate:F1}s" +
-                       $"\nMove Speed: {MoveSpeed:F1}";
+            baseDesc +=
+                $"\n\nCurrent Effects:"
+                + $"\nDamage: {Damage:F1}"
+                + $"\nRadius: {Radius:F1}"
+                + $"\nDuration: {Duration:F1}s"
+                + $"\nTick Rate: {TickRate:F1}s"
+                + $"\nMove Speed: {MoveSpeed:F1}";
         }
         return baseDesc;
     }
@@ -191,7 +190,7 @@ public abstract class AreaSkills : Skill
     public void ModifyRadius(float multiplier)
     {
         _radius *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as AreaSkillStat;
+        var currentStats = skillData?.GetSkillStats() as AreaSkillStat;
         if (currentStats != null)
         {
             currentStats.radius = _radius;
@@ -201,7 +200,7 @@ public abstract class AreaSkills : Skill
     public void ModifyDuration(float multiplier)
     {
         _duration *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as AreaSkillStat;
+        var currentStats = skillData?.GetSkillStats() as AreaSkillStat;
         if (currentStats != null)
         {
             currentStats.duration = _duration;
@@ -211,7 +210,7 @@ public abstract class AreaSkills : Skill
     public override void ModifyDamage(float multiplier)
     {
         _damage *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat();
+        var currentStats = skillData?.GetSkillStats();
         if (currentStats?.baseStat != null)
         {
             currentStats.baseStat.damage = _damage;
@@ -221,7 +220,7 @@ public abstract class AreaSkills : Skill
     public override void ModifyCooldown(float multiplier)
     {
         _tickRate *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as AreaSkillStat;
+        var currentStats = skillData?.GetSkillStats() as AreaSkillStat;
         if (currentStats != null)
         {
             currentStats.tickRate = _tickRate;

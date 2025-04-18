@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : SingletonManager<GameManager>, IInitializable
+public class GameManager : Singleton<GameManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -125,7 +125,7 @@ public class GameManager : SingletonManager<GameManager>, IInitializable
     }
     #endregion
 
-    private void OnApplicationQuit()
+    protected override void OnApplicationQuit()
     {
         try
         {
@@ -135,5 +135,7 @@ public class GameManager : SingletonManager<GameManager>, IInitializable
         {
             Debug.LogError($"Error during application quit: {e.Message}");
         }
+
+        base.OnApplicationQuit();
     }
 }

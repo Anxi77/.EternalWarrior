@@ -153,7 +153,7 @@ public enum IncreaseType
 
 public enum GameState
 {
-    MainMenu,
+    Title,
     Town,
     Stage,
     Paused,

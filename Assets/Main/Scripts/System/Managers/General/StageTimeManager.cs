@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class StageTimeManager : SingletonManager<StageTimeManager>, IInitializable
+public class StageTimeManager : Singleton<StageTimeManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 

@@ -3,12 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
+public class GameLoopManager : Singleton<GameLoopManager>, IInitializable
 {
-    private GameState currentState = GameState.MainMenu;
+    private GameState currentState = GameState.Title;
     public bool IsInitialized { get; private set; }
 
-    private Dictionary<GameState, IGameStateHandler> stateHandlers;
+    private Dictionary<GameState, IGameState> stateHandlers;
 
     private bool isStateTransitioning = false;
 
@@ -64,7 +64,7 @@ public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
 
         if (CreateStateHandlers())
         {
-            ChangeState(GameState.MainMenu);
+            ChangeState(GameState.Title);
         }
         else
         {
@@ -72,7 +72,7 @@ public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
         }
     }
 
-    private IEnumerator InitializeDataManagers(System.Action<bool> onComplete)
+    private IEnumerator InitializeDataManagers(Action<bool> onComplete)
     {
         bool success = true;
 
@@ -268,11 +268,11 @@ public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
 
     private bool CreateStateHandlers()
     {
-        stateHandlers = new Dictionary<GameState, IGameStateHandler>();
+        stateHandlers = new Dictionary<GameState, IGameState>();
 
         try
         {
-            stateHandlers[GameState.MainMenu] = new MainMenuStateHandler();
+            stateHandlers[GameState.Title] = new MainMenuStateHandler();
             stateHandlers[GameState.Town] = new TownStateHandler();
             stateHandlers[GameState.Stage] = new StageStateHandler();
             stateHandlers[GameState.Paused] = new PausedStateHandler();
@@ -374,7 +374,7 @@ public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
     }
 
     public T GetCurrentHandler<T>()
-        where T : class, IGameStateHandler
+        where T : class, IGameState
     {
         if (!IsInitialized || stateHandlers == null)
             return null;
@@ -386,15 +386,17 @@ public class GameLoopManager : SingletonManager<GameLoopManager>, IInitializable
         return null;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         IsInitialized = false;
         stateHandlers?.Clear();
         StopAllCoroutines();
+
+        base.OnDestroy();
     }
 }
 
-public interface IGameStateHandler
+public interface IGameState
 {
     void OnEnter();
     void OnUpdate();

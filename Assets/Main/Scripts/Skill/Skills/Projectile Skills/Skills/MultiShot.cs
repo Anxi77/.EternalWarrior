@@ -25,14 +25,15 @@ public class MultiShot : ProjectileSkills
     public override string GetDetailedDescription()
     {
         string baseDesc = "Fires multiple projectiles simultaneously";
-        if (skillData?.GetCurrentTypeStat() != null)
+        if (skillData?.GetSkillStats() != null)
         {
-            baseDesc += $"\n\nCurrent Effects:" +
-                       $"\nDamage per Shot: {Damage:F1}" +
-                       $"\nNumber of Shots: {shotPoints.Length}" +
-                       $"\nFire Rate: {1 / ShotInterval:F1} volleys/s" +
-                       $"\nRange: {AttackRange:F1}" +
-                       $"\nPierce: {PierceCount}";
+            baseDesc +=
+                $"\n\nCurrent Effects:"
+                + $"\nDamage per Shot: {Damage:F1}"
+                + $"\nNumber of Shots: {shotPoints.Length}"
+                + $"\nFire Rate: {1 / ShotInterval:F1} volleys/s"
+                + $"\nRange: {AttackRange:F1}"
+                + $"\nPierce: {PierceCount}";
 
             if (IsHoming)
             {
@@ -42,4 +43,3 @@ public class MultiShot : ProjectileSkills
         return baseDesc;
     }
 }
-

@@ -1,13 +1,14 @@
-using UnityEngine;
-using System.IO;
-using System.Collections.Generic;
-using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-public static class JSONIO<T> where T : class
+public static class JSONIO<T>
+    where T : class
 {
     private static readonly string defaultPath;
     private static string customPath;
@@ -35,7 +36,12 @@ public static class JSONIO<T> where T : class
             }
 
             string savePath = customPath ?? defaultPath;
-            string fullPath = Path.Combine(Application.dataPath, "Resources", savePath, $"{key}.json");
+            string fullPath = Path.Combine(
+                Application.dataPath,
+                "Resources",
+                savePath,
+                $"{key}.json"
+            );
             string directory = Path.GetDirectoryName(fullPath);
 
             if (!Directory.Exists(directory))
@@ -50,7 +56,7 @@ public static class JSONIO<T> where T : class
 #endif
             Debug.Log($"[{typeof(T)}] JSON saved successfully: {fullPath}");
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error saving JSON data: {e.Message}\n{e.StackTrace}");
         }
@@ -86,7 +92,12 @@ public static class JSONIO<T> where T : class
     {
         try
         {
-            string fullPath = Path.Combine(Application.dataPath, "Resources", defaultPath, $"{key}.json");
+            string fullPath = Path.Combine(
+                Application.dataPath,
+                "Resources",
+                defaultPath,
+                $"{key}.json"
+            );
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);

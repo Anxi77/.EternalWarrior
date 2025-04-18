@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public abstract class BaseStateHandler : IGameStateHandler
+public abstract class BaseStateHandler : IGameState
 {
     protected readonly GameManager Game;
     protected readonly GameLoopManager GameLoop;

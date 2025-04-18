@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 
 [Serializable]
 public class SkillStatData
@@ -50,39 +49,171 @@ public class SkillStatData
     #endregion
 
     #region Getters and Setters
-    public SkillID skillID { get => SkillID; set => SkillID = value; }
-    public int level { get => Level; set => Level = value; }
-    public float damage { get => Damage; set => Damage = value; }
-    public int maxSkillLevel { get => MaxSkillLevel; set => MaxSkillLevel = value; }
-    public ElementType element { get => Element; set => Element = value; }
-    public float elementalPower { get => ElementalPower; set => ElementalPower = value; }
-    public float projectileSpeed { get => ProjectileSpeed; set => ProjectileSpeed = value; }
-    public float projectileScale { get => ProjectileScale; set => ProjectileScale = value; }
-    public float shotInterval { get => ShotInterval; set => ShotInterval = value; }
-    public int pierceCount { get => PierceCount; set => PierceCount = value; }
-    public float attackRange { get => AttackRange; set => AttackRange = value; }
-    public float homingRange { get => HomingRange; set => HomingRange = value; }
-    public bool isHoming { get => IsHoming; set => IsHoming = value; }
-    public float explosionRad { get => ExplosionRad; set => ExplosionRad = value; }
-    public int projectileCount { get => ProjectileCount; set => ProjectileCount = value; }
-    public float innerInterval { get => InnerInterval; set => InnerInterval = value; }
-    public float radius { get => Radius; set => Radius = value; }
-    public float duration { get => Duration; set => Duration = value; }
-    public float tickRate { get => TickRate; set => TickRate = value; }
-    public bool isPersistent { get => IsPersistent; set => IsPersistent = value; }
-    public float moveSpeed { get => MoveSpeed; set => MoveSpeed = value; }
-    public float effectDuration { get => EffectDuration; set => EffectDuration = value; }
-    public float cooldown { get => Cooldown; set => Cooldown = value; }
-    public float triggerChance { get => TriggerChance; set => TriggerChance = value; }
-    public float damageIncrease { get => DamageIncrease; set => DamageIncrease = value; }
-    public float defenseIncrease { get => DefenseIncrease; set => DefenseIncrease = value; }
-    public float expAreaIncrease { get => ExpAreaIncrease; set => ExpAreaIncrease = value; }
-    public bool homingActivate { get => HomingActivate; set => HomingActivate = value; }
-    public float hpIncrease { get => HpIncrease; set => HpIncrease = value; }
-    public float moveSpeedIncrease { get => MoveSpeedIncrease; set => MoveSpeedIncrease = value; }
-    public float attackSpeedIncrease { get => AttackSpeedIncrease; set => AttackSpeedIncrease = value; }
-    public float attackRangeIncrease { get => AttackRangeIncrease; set => AttackRangeIncrease = value; }
-    public float hpRegenIncrease { get => HpRegenIncrease; set => HpRegenIncrease = value; }
+    public SkillID skillID
+    {
+        get => SkillID;
+        set => SkillID = value;
+    }
+    public int level
+    {
+        get => Level;
+        set => Level = value;
+    }
+    public float damage
+    {
+        get => Damage;
+        set => Damage = value;
+    }
+    public int maxSkillLevel
+    {
+        get => MaxSkillLevel;
+        set => MaxSkillLevel = value;
+    }
+    public ElementType element
+    {
+        get => Element;
+        set => Element = value;
+    }
+    public float elementalPower
+    {
+        get => ElementalPower;
+        set => ElementalPower = value;
+    }
+    public float projectileSpeed
+    {
+        get => ProjectileSpeed;
+        set => ProjectileSpeed = value;
+    }
+    public float projectileScale
+    {
+        get => ProjectileScale;
+        set => ProjectileScale = value;
+    }
+    public float shotInterval
+    {
+        get => ShotInterval;
+        set => ShotInterval = value;
+    }
+    public int pierceCount
+    {
+        get => PierceCount;
+        set => PierceCount = value;
+    }
+    public float attackRange
+    {
+        get => AttackRange;
+        set => AttackRange = value;
+    }
+    public float homingRange
+    {
+        get => HomingRange;
+        set => HomingRange = value;
+    }
+    public bool isHoming
+    {
+        get => IsHoming;
+        set => IsHoming = value;
+    }
+    public float explosionRad
+    {
+        get => ExplosionRad;
+        set => ExplosionRad = value;
+    }
+    public int projectileCount
+    {
+        get => ProjectileCount;
+        set => ProjectileCount = value;
+    }
+    public float innerInterval
+    {
+        get => InnerInterval;
+        set => InnerInterval = value;
+    }
+    public float radius
+    {
+        get => Radius;
+        set => Radius = value;
+    }
+    public float duration
+    {
+        get => Duration;
+        set => Duration = value;
+    }
+    public float tickRate
+    {
+        get => TickRate;
+        set => TickRate = value;
+    }
+    public bool isPersistent
+    {
+        get => IsPersistent;
+        set => IsPersistent = value;
+    }
+    public float moveSpeed
+    {
+        get => MoveSpeed;
+        set => MoveSpeed = value;
+    }
+    public float effectDuration
+    {
+        get => EffectDuration;
+        set => EffectDuration = value;
+    }
+    public float cooldown
+    {
+        get => Cooldown;
+        set => Cooldown = value;
+    }
+    public float triggerChance
+    {
+        get => TriggerChance;
+        set => TriggerChance = value;
+    }
+    public float damageIncrease
+    {
+        get => DamageIncrease;
+        set => DamageIncrease = value;
+    }
+    public float defenseIncrease
+    {
+        get => DefenseIncrease;
+        set => DefenseIncrease = value;
+    }
+    public float expAreaIncrease
+    {
+        get => ExpAreaIncrease;
+        set => ExpAreaIncrease = value;
+    }
+    public bool homingActivate
+    {
+        get => HomingActivate;
+        set => HomingActivate = value;
+    }
+    public float hpIncrease
+    {
+        get => HpIncrease;
+        set => HpIncrease = value;
+    }
+    public float moveSpeedIncrease
+    {
+        get => MoveSpeedIncrease;
+        set => MoveSpeedIncrease = value;
+    }
+    public float attackSpeedIncrease
+    {
+        get => AttackSpeedIncrease;
+        set => AttackSpeedIncrease = value;
+    }
+    public float attackRangeIncrease
+    {
+        get => AttackRangeIncrease;
+        set => AttackRangeIncrease = value;
+    }
+    public float hpRegenIncrease
+    {
+        get => HpRegenIncrease;
+        set => HpRegenIncrease = value;
+    }
     #endregion
 
     public SkillStatData()
@@ -133,7 +264,7 @@ public class SkillStatData
             maxSkillLevel = this.maxSkillLevel,
             skillLevel = this.level,
             element = this.element,
-            elementalPower = this.elementalPower
+            elementalPower = this.elementalPower,
         };
 
         switch (skillType)
@@ -151,7 +282,7 @@ public class SkillStatData
                     isHoming = isHoming,
                     explosionRad = explosionRad,
                     projectileCount = projectileCount,
-                    innerInterval = innerInterval
+                    innerInterval = innerInterval,
                 };
 
             case SkillType.Area:
@@ -162,7 +293,7 @@ public class SkillStatData
                     duration = duration,
                     tickRate = tickRate,
                     isPersistent = isPersistent,
-                    moveSpeed = moveSpeed
+                    moveSpeed = moveSpeed,
                 };
 
             case SkillType.Passive:
@@ -180,7 +311,7 @@ public class SkillStatData
                     moveSpeedIncrease = moveSpeedIncrease,
                     attackSpeedIncrease = attackSpeedIncrease,
                     attackRangeIncrease = attackRangeIncrease,
-                    hpRegenIncrease = hpRegenIncrease
+                    hpRegenIncrease = hpRegenIncrease,
                 };
 
             default:

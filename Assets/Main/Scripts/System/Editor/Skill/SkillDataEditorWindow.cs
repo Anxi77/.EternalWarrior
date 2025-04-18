@@ -455,19 +455,34 @@ public class SkillDataEditorWindow : EditorWindow
 
             if (EditorGUI.EndChangeCheck() && newPrefab != null)
             {
-                string resourcePath = $"SkillData/Prefabs/{CurrentSkill.ID}_Prefab";
-                ResourceIO<GameObject>.SaveData(resourcePath, newPrefab);
-                CurrentSkill.PrefabPath = resourcePath;
-                CurrentSkill.Prefab = ResourceIO<GameObject>.LoadData(resourcePath);
-                SaveCurrentSkill();
-
-                var currentId = selectedSkillId;
-                EditorApplication.delayCall += () =>
+                if (PrefabUtility.GetPrefabAssetType(newPrefab) == PrefabAssetType.NotAPrefab)
                 {
-                    RefreshData();
-                    selectedSkillId = currentId;
-                    Repaint();
-                };
+                    Debug.LogError(
+                        "Please select a prefab from the Project window, not a scene object."
+                    );
+                    return;
+                }
+
+                string resourcePath = $"SkillData/Prefabs/{CurrentSkill.ID}_Prefab";
+                try
+                {
+                    ResourceIO<GameObject>.SaveData(resourcePath, newPrefab);
+                    CurrentSkill.PrefabPath = resourcePath;
+                    CurrentSkill.Prefab = ResourceIO<GameObject>.LoadData(resourcePath);
+                    SaveCurrentSkill();
+
+                    var currentId = selectedSkillId;
+                    EditorApplication.delayCall += () =>
+                    {
+                        RefreshData();
+                        selectedSkillId = currentId;
+                        Repaint();
+                    };
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Failed to save prefab: {e.Message}");
+                }
             }
 
             if (CurrentSkill.Type == SkillType.Projectile)

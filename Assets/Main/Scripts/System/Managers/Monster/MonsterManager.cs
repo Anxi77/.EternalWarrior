@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MonsterManager : SingletonManager<MonsterManager>, IInitializable
+public class MonsterManager : Singleton<MonsterManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 

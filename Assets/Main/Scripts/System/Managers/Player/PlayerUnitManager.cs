@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-public class PlayerUnitManager : SingletonManager<PlayerUnitManager>, IInitializable
+public class PlayerUnitManager : Singleton<PlayerUnitManager>, IInitializable
 {
     [SerializeField]
     private GameObject playerPrefab;
@@ -92,9 +92,9 @@ public class PlayerUnitManager : SingletonManager<PlayerUnitManager>, IInitializ
     {
         switch (sceneType)
         {
-            case SceneType.Town:
+            case SceneType.Main_Town:
                 return new Vector3(0, 0, 0);
-            case SceneType.Game:
+            case SceneType.Main_Stage:
             case SceneType.Test:
                 return defaultSpawnPosition;
             default:

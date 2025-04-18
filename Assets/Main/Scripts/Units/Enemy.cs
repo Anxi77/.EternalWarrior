@@ -948,11 +948,7 @@ public class Enemy : MonoBehaviour
         preDamageTime = Time.time;
     }
 
-    protected virtual void PerformRangedAttack()
-    {
-        // 기본 Enemy 클래스에서는 아무것도 하지 않음
-        // RangedEnemy에서 오버라이드하여 구현
-    }
+    protected virtual void PerformRangedAttack() { }
 
     public virtual void ApplyDefenseDebuff(float amount, float duration)
     {

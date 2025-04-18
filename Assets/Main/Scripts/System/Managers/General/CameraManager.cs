@@ -1,8 +1,8 @@
 using System;
+using Cinemachine;
 using UnityEngine;
-using static StageManager;
 
-public class CameraManager : SingletonManager<CameraManager>, IInitializable
+public class CameraManager : Singleton<CameraManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -15,7 +15,7 @@ public class CameraManager : SingletonManager<CameraManager>, IInitializable
 
     [SerializeField]
     private float gameCameraSize = 6f;
-    private Cinemachine.CinemachineVirtualCamera virtualCamera;
+    private CinemachineVirtualCamera virtualCamera;
 
     protected override void Awake()
     {
@@ -50,10 +50,10 @@ public class CameraManager : SingletonManager<CameraManager>, IInitializable
             }
         }
 
-        var brain = mainCamera.GetComponent<Cinemachine.CinemachineBrain>();
+        var brain = mainCamera.GetComponent<CinemachineBrain>();
         if (brain == null)
         {
-            brain = mainCamera.gameObject.AddComponent<Cinemachine.CinemachineBrain>();
+            brain = mainCamera.gameObject.AddComponent<CinemachineBrain>();
         }
 
         if (virtualCameraPrefab == null)
@@ -71,7 +71,7 @@ public class CameraManager : SingletonManager<CameraManager>, IInitializable
 
             GameObject camObj = Instantiate(virtualCameraPrefab, mainCamera.transform);
             camObj.transform.localPosition = Vector3.zero;
-            virtualCamera = camObj.GetComponent<Cinemachine.CinemachineVirtualCamera>();
+            virtualCamera = camObj.GetComponent<CinemachineVirtualCamera>();
 
             if (virtualCamera == null)
             {
@@ -81,10 +81,10 @@ public class CameraManager : SingletonManager<CameraManager>, IInitializable
 
             switch (sceneType)
             {
-                case SceneType.Town:
+                case SceneType.Main_Town:
                     virtualCamera.m_Lens.OrthographicSize = townCameraSize;
                     break;
-                case SceneType.Game:
+                case SceneType.Main_Stage:
                     virtualCamera.m_Lens.OrthographicSize = gameCameraSize;
                     break;
             }

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public partial class UIManager : SingletonManager<UIManager>, IInitializable
+public partial class UIManager : Singleton<UIManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 

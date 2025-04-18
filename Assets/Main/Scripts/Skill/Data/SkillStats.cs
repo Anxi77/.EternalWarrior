@@ -115,6 +115,7 @@ public class PassiveSkillStat : ISkillStat
     public float attackRangeIncrease;
     public float hpRegenIncrease;
     public bool isPermanent;
+
     public PassiveSkillStat()
     {
         baseStat = new BaseSkillStat();

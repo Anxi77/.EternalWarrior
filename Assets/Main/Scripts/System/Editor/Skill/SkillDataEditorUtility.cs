@@ -1,9 +1,9 @@
-using UnityEngine;
-using UnityEditor;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System;
+using UnityEditor;
+using UnityEngine;
 
 public static class SkillDataEditorUtility
 {
@@ -50,38 +50,44 @@ public static class SkillDataEditorUtility
             skillDatabase.Clear();
             foreach (SkillID skillId in Enum.GetValues(typeof(SkillID)))
             {
-                if (skillId == SkillID.None) continue;
+                if (skillId == SkillID.None)
+                    continue;
 
                 var skillData = JSONIO<SkillData>.LoadData(skillId.ToString());
                 if (skillData != null)
                 {
-                    // 아이콘 로드
                     if (!string.IsNullOrEmpty(skillData.IconPath))
                     {
                         skillData.Icon = ResourceIO<Sprite>.LoadData(skillData.IconPath);
                     }
 
-                    // 기본 프리팹 로드
                     if (!string.IsNullOrEmpty(skillData.PrefabPath))
                     {
                         skillData.Prefab = ResourceIO<GameObject>.LoadData(skillData.PrefabPath);
                     }
 
-                    // 프로젝타일 프리팹 로드 (해당하는 경우)
-                    if (skillData.Type == SkillType.Projectile && !string.IsNullOrEmpty(skillData.ProjectilePath))
+                    if (
+                        skillData.Type == SkillType.Projectile
+                        && !string.IsNullOrEmpty(skillData.ProjectilePath)
+                    )
                     {
-                        skillData.ProjectilePrefab = ResourceIO<GameObject>.LoadData(skillData.ProjectilePath);
+                        skillData.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
+                            skillData.ProjectilePath
+                        );
                     }
 
-                    // 레벨별 프리팹 로드
                     if (skillData.PrefabsByLevelPaths != null)
                     {
-                        skillData.PrefabsByLevel = new GameObject[skillData.PrefabsByLevelPaths.Length];
+                        skillData.PrefabsByLevel = new GameObject[
+                            skillData.PrefabsByLevelPaths.Length
+                        ];
                         for (int i = 0; i < skillData.PrefabsByLevelPaths.Length; i++)
                         {
                             if (!string.IsNullOrEmpty(skillData.PrefabsByLevelPaths[i]))
                             {
-                                skillData.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(skillData.PrefabsByLevelPaths[i]);
+                                skillData.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
+                                    skillData.PrefabsByLevelPaths[i]
+                                );
                             }
                         }
                     }
@@ -103,7 +109,6 @@ public static class SkillDataEditorUtility
         {
             statDatabase.Clear();
 
-            // 각 스킬 타입별로 CSV 파일 로드
             LoadStatsFromCSV("ProjectileSkillStats", SkillType.Projectile);
             LoadStatsFromCSV("AreaSkillStats", SkillType.Area);
             LoadStatsFromCSV("PassiveSkillStats", SkillType.Passive);
@@ -130,7 +135,8 @@ public static class SkillDataEditorUtility
 
     public static void SaveSkillData(SkillData skillData)
     {
-        if (skillData == null) return;
+        if (skillData == null)
+            return;
         if (skillData.ID == SkillID.None || skillData.Type == SkillType.None)
         {
             Debug.LogError("Cannot save skill data with None ID or Type");
@@ -139,14 +145,11 @@ public static class SkillDataEditorUtility
 
         try
         {
-            // 리소스 저장
             SaveSkillResources(skillData);
 
-            // JSON 데이터 저장
             JSONIO<SkillData>.SaveData(skillData.ID.ToString(), skillData);
             skillDatabase[skillData.ID] = skillData.Clone() as SkillData;
 
-            // 스탯 데이터 저장
             SaveStatData(skillData);
         }
         catch (Exception e)
@@ -157,7 +160,8 @@ public static class SkillDataEditorUtility
 
     private static void SaveStatData(SkillData skillData)
     {
-        if (skillData.ID == SkillID.None || skillData.Type == SkillType.None) return;
+        if (skillData.ID == SkillID.None || skillData.Type == SkillType.None)
+            return;
 
         if (!statDatabase.ContainsKey(skillData.ID))
         {
@@ -171,25 +175,27 @@ public static class SkillDataEditorUtility
 
     private static void SaveSkillResources(SkillData skillData)
     {
-        // 아이콘 경로 설정 (실제 저장은 이미 EditorWindow에서 수행됨)
         if (skillData.Icon != null && string.IsNullOrEmpty(skillData.IconPath))
         {
             skillData.IconPath = $"{SKILL_ICON_PATH}/{skillData.ID}_Icon";
         }
 
-        // 프리팹 저장
         if (skillData.Prefab != null)
         {
-            ResourceIO<GameObject>.SaveData($"{SKILL_PREFAB_PATH}/{skillData.ID}_Prefab", skillData.Prefab);
+            ResourceIO<GameObject>.SaveData(
+                $"{SKILL_PREFAB_PATH}/{skillData.ID}_Prefab",
+                skillData.Prefab
+            );
         }
 
-        // 프로젝타일 프리팹 저장
         if (skillData.Type == SkillType.Projectile && skillData.ProjectilePrefab != null)
         {
-            ResourceIO<GameObject>.SaveData($"{SKILL_PREFAB_PATH}/{skillData.ID}_Projectile", skillData.ProjectilePrefab);
+            ResourceIO<GameObject>.SaveData(
+                $"{SKILL_PREFAB_PATH}/{skillData.ID}_Projectile",
+                skillData.ProjectilePrefab
+            );
         }
 
-        // 레벨별 프리팹 저장
         if (skillData.PrefabsByLevel != null)
         {
             for (int i = 0; i < skillData.PrefabsByLevel.Length; i++)
@@ -215,7 +221,8 @@ public static class SkillDataEditorUtility
         {
             foreach (var stat in skillStats.Values)
             {
-                if (!skillDatabase.ContainsKey(stat.SkillID)) continue;
+                if (!skillDatabase.ContainsKey(stat.SkillID))
+                    continue;
 
                 var skill = skillDatabase[stat.SkillID];
                 switch (skill.Type)
@@ -337,7 +344,13 @@ public static class SkillDataEditorUtility
             string resourceRoot = Path.Combine(Application.dataPath, "Resources");
             if (Directory.Exists(resourceRoot))
             {
-                string[] paths = new[] { SKILL_DB_PATH, SKILL_ICON_PATH, SKILL_PREFAB_PATH, SKILL_STAT_PATH };
+                string[] paths = new[]
+                {
+                    SKILL_DB_PATH,
+                    SKILL_ICON_PATH,
+                    SKILL_PREFAB_PATH,
+                    SKILL_STAT_PATH,
+                };
                 foreach (var path in paths)
                 {
                     CleanDirectory(Path.Combine(resourceRoot, path));
@@ -391,10 +404,13 @@ public static class SkillDataEditorUtility
     private static void CreateDefaultCSVFiles()
     {
         var headers = new List<string> { "skillname", "skilltype", "skillid", "description" };
-        headers.AddRange(typeof(SkillStatData).GetProperties()
-            .Where(p => p.CanRead && p.CanWrite && p.Name != "SkillID")
-            .OrderBy(p => p.Name)
-            .Select(p => p.Name.ToLower()));
+        headers.AddRange(
+            typeof(SkillStatData)
+                .GetProperties()
+                .Where(p => p.CanRead && p.CanWrite && p.Name != "SkillID")
+                .OrderBy(p => p.Name)
+                .Select(p => p.Name.ToLower())
+        );
 
         string headerLine = string.Join(",", headers);
 
@@ -406,7 +422,9 @@ public static class SkillDataEditorUtility
     private static SkillStatData CreateDefaultStatData(SkillData skillData)
     {
         if (skillData.ID == SkillID.None || skillData.Type == SkillType.None)
-            throw new ArgumentException("Cannot create default stats for skill with None ID or Type");
+            throw new ArgumentException(
+                "Cannot create default stats for skill with None ID or Type"
+            );
 
         var defaultStat = new SkillStatData
         {
@@ -415,7 +433,7 @@ public static class SkillDataEditorUtility
             MaxSkillLevel = 5,
             Damage = 10f,
             ElementalPower = 1f,
-            Element = skillData.Element
+            Element = skillData.Element,
         };
 
         switch (skillData.Type)
@@ -476,7 +494,8 @@ public static class SkillDataEditorUtility
         {
             foreach (var stat in skillStats.Values)
             {
-                if (!skillDatabase.ContainsKey(stat.SkillID)) continue;
+                if (!skillDatabase.ContainsKey(stat.SkillID))
+                    continue;
 
                 var skill = skillDatabase[stat.SkillID];
                 switch (skill.Type)

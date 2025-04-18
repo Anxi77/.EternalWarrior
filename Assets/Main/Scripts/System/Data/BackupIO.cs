@@ -1,19 +1,15 @@
-using UnityEngine;
-using UnityEditor;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
 
 public static class BackupIO
 {
     private const string BACKUP_PATH = "Backups";
     private const int MAX_BACKUPS = 5;
 
-    private static readonly string[] BACKUP_EXTENSIONS = new string[]
-    {
-        ".json",
-        ".csv",
-    };
+    private static readonly string[] BACKUP_EXTENSIONS = new string[] { ".json", ".csv" };
 
     public static void CreateBackup(string sourcePath)
     {
@@ -38,14 +34,20 @@ public static class BackupIO
 
     private static void CopyDirectory(string source, string target)
     {
-        foreach (string dirPath in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+        foreach (
+            string dirPath in Directory.GetDirectories(source, "*", SearchOption.AllDirectories)
+        )
         {
             Directory.CreateDirectory(dirPath.Replace(source, target));
         }
 
         foreach (string filePath in Directory.GetFiles(source, "*.*", SearchOption.AllDirectories))
         {
-            if (BACKUP_EXTENSIONS.Any(ext => filePath.EndsWith(ext, System.StringComparison.OrdinalIgnoreCase)))
+            if (
+                BACKUP_EXTENSIONS.Any(ext =>
+                    filePath.EndsWith(ext, System.StringComparison.OrdinalIgnoreCase)
+                )
+            )
             {
                 string newPath = filePath.Replace(source, target);
                 File.Copy(filePath, newPath, true);
@@ -83,7 +85,8 @@ public static class BackupIO
     {
         string backupRoot = Path.Combine(Application.dataPath, BACKUP_PATH);
 
-        var backups = Directory.GetDirectories(backupRoot)
+        var backups = Directory
+            .GetDirectories(backupRoot)
             .OrderByDescending(d => d)
             .Skip(MAX_BACKUPS);
 

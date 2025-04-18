@@ -93,7 +93,7 @@ public class PassiveSkill : Skill
             playerStat.SetCurrentHp(newCurrentHp);
 
             Debug.Log($"After Initialize - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})");
-            if (skillData.GetCurrentTypeStat() is PassiveSkillStat passiveSkillStat)
+            if (skillData.GetSkillStats() is PassiveSkillStat passiveSkillStat)
             {
                 if (!passiveSkillStat.isPermanent)
                 {
@@ -126,10 +126,7 @@ public class PassiveSkill : Skill
         if (csvStats != null)
         {
             UpdateInspectorValues(csvStats);
-            skillData.SetStatsForLevel(
-                skillData.GetCurrentTypeStat().baseStat.skillLevel,
-                csvStats
-            );
+            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, csvStats);
         }
         else
         {
@@ -154,10 +151,7 @@ public class PassiveSkill : Skill
                 homingActivate = _homingActivate,
                 hpIncrease = _hpIncrease,
             };
-            skillData.SetStatsForLevel(
-                skillData.GetCurrentTypeStat().baseStat.skillLevel,
-                defaultStats
-            );
+            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, defaultStats);
         }
     }
 

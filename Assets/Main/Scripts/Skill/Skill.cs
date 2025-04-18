@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
 
 public abstract class Skill : MonoBehaviour
 {
-    [SerializeField] public SkillData skillData;
+    [SerializeField]
+    public SkillData skillData;
     public MonoBehaviour Owner { get; private set; }
     protected bool isInitialized = false;
     public int currentLevel = 1;
@@ -15,11 +16,13 @@ public abstract class Skill : MonoBehaviour
 
     protected virtual IEnumerator WaitForInitialization()
     {
-        yield return new WaitUntil(() =>
-            GameManager.Instance != null &&
-            SkillDataManager.Instance != null &&
-            SkillDataManager.Instance.IsInitialized &&
-            skillData != null);
+        yield return new WaitUntil(
+            () =>
+                GameManager.Instance != null
+                && SkillDataManager.Instance != null
+                && SkillDataManager.Instance.IsInitialized
+                && skillData != null
+        );
 
         Initialize();
     }
@@ -34,31 +37,58 @@ public abstract class Skill : MonoBehaviour
         if (skillData == null || !IsValidSkillData(skillData))
         {
             skillData = new SkillData();
-            Debug.Log($"Created default skill data for {gameObject.name}");
+            Debug.Log($"Skill data is null or invalid for {gameObject.name}");
         }
-
     }
 
     protected bool IsValidSkillData(SkillData data)
     {
-        if (data.Name == null) return false;
-        if (data.Type == SkillType.None) return false;
-        if (string.IsNullOrEmpty(data.Name)) return false;
-        if (data.ID == SkillID.None) return false;
+        if (data.Name == null)
+        {
+            Debug.LogError($"Skill data is null for {gameObject.name}");
+            return false;
+        }
+        if (data.Type == SkillType.None)
+        {
+            Debug.LogError($"Skill type is None for {gameObject.name}");
+            return false;
+        }
+        if (string.IsNullOrEmpty(data.Name))
+        {
+            Debug.LogError($"Skill name is null or empty for {gameObject.name}");
+            return false;
+        }
+        if (data.ID == SkillID.None)
+        {
+            Debug.LogError($"Skill ID is None for {gameObject.name}");
+            return false;
+        }
 
-        var currentStats = data.GetCurrentTypeStat();
-        if (currentStats == null) return false;
-        if (currentStats.baseStat == null) return false;
+        var currentStats = data.GetSkillStats();
+        print(currentStats);
+        if (currentStats == null)
+        {
+            Debug.LogError($"Current stats are null for {gameObject.name}");
+            return false;
+        }
+        if (currentStats.baseStat == null)
+        {
+            Debug.LogError($"Base stat is null for {gameObject.name}");
+            return false;
+        }
 
         return true;
     }
 
-    protected T GetTypeStats<T>() where T : ISkillStat
+    protected T GetTypeStats<T>()
+        where T : ISkillStat
     {
-        if (skillData == null) return default(T);
+        if (skillData == null)
+            return default(T);
 
-        var currentStats = skillData.GetCurrentTypeStat();
-        if (currentStats == null) return default(T);
+        var currentStats = skillData.GetSkillStats();
+        if (currentStats == null)
+            return default(T);
 
         if (currentStats is T typedStats)
         {
@@ -81,7 +111,9 @@ public abstract class Skill : MonoBehaviour
     public virtual bool SkillLevelUpdate(int newLevel)
     {
         Debug.Log($"=== Starting SkillLevelUpdate for {skillData.Name} ===");
-        Debug.Log($"Current Level: {skillData.GetCurrentTypeStat().baseStat.skillLevel}, Attempting to upgrade to: {newLevel}");
+        Debug.Log(
+            $"Current Level: {skillData.GetSkillStats().baseStat.skillLevel}, Attempting to upgrade to: {newLevel}"
+        );
 
         if (newLevel <= 0)
         {
@@ -89,27 +121,34 @@ public abstract class Skill : MonoBehaviour
             return false;
         }
 
-        if (newLevel > skillData.GetCurrentTypeStat().baseStat.maxSkillLevel)
+        if (newLevel > skillData.GetSkillStats().baseStat.maxSkillLevel)
         {
-            Debug.LogError($"Attempted to upgrade {skillData.Name} beyond max level ({skillData.GetCurrentTypeStat().baseStat.maxSkillLevel})");
+            Debug.LogError(
+                $"Attempted to upgrade {skillData.Name} beyond max level ({skillData.GetSkillStats().baseStat.maxSkillLevel})"
+            );
             return false;
         }
 
-        if (newLevel < skillData.GetCurrentTypeStat().baseStat.skillLevel)
+        if (newLevel < skillData.GetSkillStats().baseStat.skillLevel)
         {
-            Debug.LogError($"Cannot downgrade skill level. Current: {skillData.GetCurrentTypeStat().baseStat.skillLevel}, Attempted: {newLevel}");
+            Debug.LogError(
+                $"Cannot downgrade skill level. Current: {skillData.GetSkillStats().baseStat.skillLevel}, Attempted: {newLevel}"
+            );
             return false;
         }
 
         try
         {
-            var currentStats = GetSkillData()?.GetCurrentTypeStat();
-            Debug.Log($"Current stats - Level: {currentStats?.baseStat?.skillLevel}, Damage: {currentStats?.baseStat?.damage}");
+            var currentStats = GetSkillData()?.GetSkillStats();
+            Debug.Log(
+                $"Current stats - Level: {currentStats?.baseStat?.skillLevel}, Damage: {currentStats?.baseStat?.damage}"
+            );
 
             var newStats = SkillDataManager.Instance.GetSkillStatsForLevel(
                 skillData.ID,
                 newLevel,
-                skillData.Type);
+                skillData.Type
+            );
 
             if (newStats == null)
             {
@@ -117,10 +156,12 @@ public abstract class Skill : MonoBehaviour
                 return false;
             }
 
-            Debug.Log($"New stats received - Level: {newStats.baseStat?.skillLevel}, Damage: {newStats.baseStat?.damage}");
+            Debug.Log(
+                $"New stats received - Level: {newStats.baseStat?.skillLevel}, Damage: {newStats.baseStat?.damage}"
+            );
 
             newStats.baseStat.skillLevel = newLevel;
-            skillData.GetCurrentTypeStat().baseStat.skillLevel = newLevel;
+            skillData.GetSkillStats().baseStat.skillLevel = newLevel;
 
             Debug.Log("Setting new stats...");
             skillData.SetStatsForLevel(newLevel, newStats);
@@ -138,9 +179,7 @@ public abstract class Skill : MonoBehaviour
         }
     }
 
-    protected virtual void UpdateSkillTypeStats(ISkillStat newStats)
-    {
-    }
+    protected virtual void UpdateSkillTypeStats(ISkillStat newStats) { }
 
     public virtual string GetDetailedDescription()
     {
@@ -149,7 +188,8 @@ public abstract class Skill : MonoBehaviour
 
     protected virtual void OnValidate()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+            return;
 
         if (skillData == null)
         {
@@ -178,13 +218,11 @@ public abstract class Skill : MonoBehaviour
 
     public virtual void ModifyDamage(float multiplier)
     {
-        if (skillData?.GetCurrentTypeStat()?.baseStat != null)
+        if (skillData?.GetSkillStats()?.baseStat != null)
         {
-            skillData.GetCurrentTypeStat().baseStat.damage *= multiplier;
+            skillData.GetSkillStats().baseStat.damage *= multiplier;
         }
     }
 
-    public virtual void ModifyCooldown(float multiplier)
-    {
-    }
+    public virtual void ModifyCooldown(float multiplier) { }
 }

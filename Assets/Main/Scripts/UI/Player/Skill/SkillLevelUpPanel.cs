@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using UnityEngine;
-using TMPro;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using TMPro;
+using UnityEngine;
 
 public class SkillLevelUpPanel : MonoBehaviour
 {
@@ -16,12 +16,16 @@ public class SkillLevelUpPanel : MonoBehaviour
     private const int SKILL_CHOICES = 3;
 
     [Header("Error Handling")]
-    [SerializeField] private GameObject errorPopup;
-    [SerializeField] private TextMeshProUGUI errorText;
+    [SerializeField]
+    private GameObject errorPopup;
+
+    [SerializeField]
+    private TextMeshProUGUI errorText;
 
     private Action<Skill> skillSelectedCallback;
 
     private void OnEnable() => Time.timeScale = 0f;
+
     private void OnDisable() => Time.timeScale = 1f;
 
     public void LevelUpPanelOpen(List<Skill> playerSkills, Action<Skill> onSkillSelected)
@@ -55,17 +59,21 @@ public class SkillLevelUpPanel : MonoBehaviour
 
     private List<SkillData> GetAvailableSkills(List<Skill> playerSkills)
     {
-        return SkillManager.Instance.GetRandomSkills(SKILL_CHOICES)
+        return SkillManager
+            .Instance.GetRandomSkills(SKILL_CHOICES)
             .Where(skillData => IsSkillAvailable(skillData, playerSkills))
             .ToList();
     }
 
     private bool IsSkillAvailable(SkillData skillData, List<Skill> playerSkills)
     {
-        if (!ValidateSkillData(skillData)) return false;
+        if (!ValidateSkillData(skillData))
+            return false;
 
         var existingSkill = playerSkills.Find(s => s.skillData.ID == skillData.ID);
-        return existingSkill == null || existingSkill.skillData.GetCurrentTypeStat().baseStat.skillLevel < existingSkill.skillData.GetCurrentTypeStat().baseStat.maxSkillLevel;
+        return existingSkill == null
+            || existingSkill.skillData.GetSkillStats().baseStat.skillLevel
+                < existingSkill.skillData.GetSkillStats().baseStat.maxSkillLevel;
     }
 
     private void CreateSkillUpgradeButton(SkillData skillData, List<Skill> playerSkills)
@@ -87,13 +95,16 @@ public class SkillLevelUpPanel : MonoBehaviour
         return new Action(() => OnSkillButtonClicked(skillData, existingSkill));
     }
 
-    private (string levelText, ISkillStat currentStats) GetUpgradeInfo(Skill existingSkill, SkillData skillData)
+    private (string levelText, ISkillStat currentStats) GetUpgradeInfo(
+        Skill existingSkill,
+        SkillData skillData
+    )
     {
         if (existingSkill != null)
         {
             return (
-                $"Lv.{existingSkill.skillData.GetCurrentTypeStat().baseStat.skillLevel} → {existingSkill.skillData.GetCurrentTypeStat().baseStat.skillLevel + 1}",
-                existingSkill.skillData.GetCurrentTypeStat()
+                $"Lv.{existingSkill.skillData.GetSkillStats().baseStat.skillLevel} → {existingSkill.skillData.GetSkillStats().baseStat.skillLevel + 1}",
+                existingSkill.skillData.GetSkillStats()
             );
         }
         return ("New!", null);
@@ -106,14 +117,18 @@ public class SkillLevelUpPanel : MonoBehaviour
             if (existingSkill != null)
             {
                 GameManager.Instance.player.AddOrUpgradeSkill(skillData);
-                var updatedSkill = GameManager.Instance.player.skills.Find(s => s.skillData.ID == skillData.ID);
+                var updatedSkill = GameManager.Instance.player.skills.Find(s =>
+                    s.skillData.ID == skillData.ID
+                );
                 skillSelectedCallback?.Invoke(updatedSkill);
             }
             else
             {
                 if (GameManager.Instance.player.AddOrUpgradeSkill(skillData))
                 {
-                    var newSkill = GameManager.Instance.player.skills.Find(s => s.skillData.ID == skillData.ID);
+                    var newSkill = GameManager.Instance.player.skills.Find(s =>
+                        s.skillData.ID == skillData.ID
+                    );
                     skillSelectedCallback?.Invoke(newSkill);
                 }
             }

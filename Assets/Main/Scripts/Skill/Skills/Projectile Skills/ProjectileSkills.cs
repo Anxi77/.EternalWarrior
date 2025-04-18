@@ -38,17 +38,19 @@ public abstract class ProjectileSkills : Skill
 
     protected override void InitializeSkillData()
     {
-        if (skillData == null) return;
+        if (skillData == null)
+            return;
 
-        var csvStats = SkillDataManager.Instance.GetSkillStatsForLevel(
-            skillData.ID,
-            currentLevel,
-            SkillType.Projectile
-        ) as ProjectileSkillStat;
+        var csvStats =
+            SkillDataManager.Instance.GetSkillStatsForLevel(
+                skillData.ID,
+                currentLevel,
+                SkillType.Projectile
+            ) as ProjectileSkillStat;
 
         if (csvStats != null)
         {
-            skillData.SetStatsForLevel(skillData.GetCurrentTypeStat().baseStat.skillLevel, csvStats);
+            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, csvStats);
         }
         else
         {
@@ -61,7 +63,7 @@ public abstract class ProjectileSkills : Skill
                     skillLevel = currentLevel,
                     maxSkillLevel = 5,
                     element = skillData.Element,
-                    elementalPower = _elementalPower
+                    elementalPower = _elementalPower,
                 },
                 projectileSpeed = _projectileSpeed,
                 projectileScale = _projectileScale,
@@ -72,7 +74,7 @@ public abstract class ProjectileSkills : Skill
                 isHoming = _isHoming,
                 explosionRad = _explosionRadius,
                 projectileCount = _projectileCount,
-                innerInterval = _innerInterval
+                innerInterval = _innerInterval,
             };
             skillData.SetStatsForLevel(currentLevel, defaultStats);
         }
@@ -93,7 +95,7 @@ public abstract class ProjectileSkills : Skill
                         skillLevel = 1,
                         maxSkillLevel = 5,
                         element = skillData.Element,
-                        elementalPower = _elementalPower
+                        elementalPower = _elementalPower,
                     },
                     projectileSpeed = _projectileSpeed,
                     projectileScale = _projectileScale,
@@ -104,7 +106,7 @@ public abstract class ProjectileSkills : Skill
                     isHoming = _isHoming,
                     explosionRad = _explosionRadius,
                     projectileCount = _projectileCount,
-                    innerInterval = _innerInterval
+                    innerInterval = _innerInterval,
                 };
                 skillData?.SetStatsForLevel(1, stats);
             }
@@ -121,7 +123,8 @@ public abstract class ProjectileSkills : Skill
 
     protected virtual void Update()
     {
-        if (!isInitialized || !canFire) return;
+        if (!isInitialized || !canFire)
+            return;
 
         CalcDirection();
         UpdateFiring();
@@ -183,7 +186,8 @@ public abstract class ProjectileSkills : Skill
 
     protected virtual void Fire()
     {
-        if (!isInitialized) return;
+        if (!isInitialized)
+            return;
 
         Vector3 spawnPosition = transform.position + transform.up * 0.5f;
 
@@ -314,15 +318,16 @@ public abstract class ProjectileSkills : Skill
     public override string GetDetailedDescription()
     {
         string baseDesc = skillData?.Description ?? "Projectile skill description";
-        if (skillData?.GetCurrentTypeStat() != null)
+        if (skillData?.GetSkillStats() != null)
         {
-            baseDesc += $"\n\nCurrent Effects:" +
-                       $"\nDamage: {Damage:F1}" +
-                       $"\nProjectile Speed: {ProjectileSpeed:F1}" +
-                       $"\nShot Interval: {ShotInterval:F1}s" +
-                       $"\nPierce Count: {PierceCount}" +
-                       $"\nAttack Range: {AttackRange:F1}" +
-                       $"\nProjectile Count: {ProjectileCount}";
+            baseDesc +=
+                $"\n\nCurrent Effects:"
+                + $"\nDamage: {Damage:F1}"
+                + $"\nProjectile Speed: {ProjectileSpeed:F1}"
+                + $"\nShot Interval: {ShotInterval:F1}s"
+                + $"\nPierce Count: {PierceCount}"
+                + $"\nAttack Range: {AttackRange:F1}"
+                + $"\nProjectile Count: {ProjectileCount}";
 
             if (IsHoming)
             {
@@ -411,7 +416,7 @@ public abstract class ProjectileSkills : Skill
     public void ModifyProjectileSpeed(float multiplier)
     {
         _projectileSpeed *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as ProjectileSkillStat;
+        var currentStats = skillData?.GetSkillStats() as ProjectileSkillStat;
         if (currentStats != null)
         {
             currentStats.projectileSpeed = _projectileSpeed;
@@ -421,7 +426,7 @@ public abstract class ProjectileSkills : Skill
     public void ModifyProjectileRange(float multiplier)
     {
         _attackRange *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as ProjectileSkillStat;
+        var currentStats = skillData?.GetSkillStats() as ProjectileSkillStat;
         if (currentStats != null)
         {
             currentStats.attackRange = _attackRange;
@@ -431,7 +436,7 @@ public abstract class ProjectileSkills : Skill
     public override void ModifyDamage(float multiplier)
     {
         _damage *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat();
+        var currentStats = skillData?.GetSkillStats();
         if (currentStats?.baseStat != null)
         {
             currentStats.baseStat.damage = _damage;
@@ -441,7 +446,7 @@ public abstract class ProjectileSkills : Skill
     public override void ModifyCooldown(float multiplier)
     {
         _shotInterval *= multiplier;
-        var currentStats = skillData?.GetCurrentTypeStat() as ProjectileSkillStat;
+        var currentStats = skillData?.GetSkillStats() as ProjectileSkillStat;
         if (currentStats != null)
         {
             currentStats.shotInterval = _shotInterval;

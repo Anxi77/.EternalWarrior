@@ -1,12 +1,13 @@
-using UnityEngine;
-using System.IO;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEditor;
+using UnityEngine;
 
-public static class CSVIO<T> where T : class, new()
+public static class CSVIO<T>
+    where T : class, new()
 {
     private static readonly string basePath;
     private static string customPath;
@@ -30,7 +31,12 @@ public static class CSVIO<T> where T : class, new()
 
     public static void SaveData(string key, T data)
     {
-        string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{key}.csv");
+        string fullPath = Path.Combine(
+            Application.dataPath,
+            "Resources",
+            GetSavePath(),
+            $"{key}.csv"
+        );
         string directory = Path.GetDirectoryName(fullPath);
 
         if (!Directory.Exists(directory))
@@ -57,16 +63,21 @@ public static class CSVIO<T> where T : class, new()
                 return;
             }
 
-            string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{key}.csv");
+            string fullPath = Path.Combine(
+                Application.dataPath,
+                "Resources",
+                GetSavePath(),
+                $"{key}.csv"
+            );
             string directory = Path.GetDirectoryName(fullPath);
 
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
             var csv = new StringBuilder();
-            var properties = typeof(T).GetProperties
-            (System.Reflection.BindingFlags.Public |
-            System.Reflection.BindingFlags.Instance);
+            var properties = typeof(T).GetProperties(
+                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance
+            );
 
             var headerLine = string.Join(",", properties.Select(p => p.Name.ToLower()));
             csv.AppendLine(headerLine);
@@ -83,7 +94,8 @@ public static class CSVIO<T> where T : class, new()
                 var values = properties.Select(p =>
                 {
                     var value = p.GetValue(data);
-                    if (value == null) return "";
+                    if (value == null)
+                        return "";
 
                     if (value is string strValue && strValue.Contains(","))
                         return $"\"{strValue}\"";
@@ -105,7 +117,7 @@ public static class CSVIO<T> where T : class, new()
             AssetDatabase.Refresh();
 #endif
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error saving bulk CSV data: {e.Message}\n{e.StackTrace}");
         }
@@ -116,7 +128,12 @@ public static class CSVIO<T> where T : class, new()
         if (cache.TryGetValue(key, out T cachedData))
             return cachedData;
 
-        string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{key}.csv");
+        string fullPath = Path.Combine(
+            Application.dataPath,
+            "Resources",
+            GetSavePath(),
+            $"{key}.csv"
+        );
         if (!File.Exists(fullPath))
             return null;
 
@@ -148,7 +165,9 @@ public static class CSVIO<T> where T : class, new()
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"Failed to parse value '{values[i]}' for property '{prop.Name}': {e.Message}");
+                    Debug.LogWarning(
+                        $"Failed to parse value '{values[i]}' for property '{prop.Name}': {e.Message}"
+                    );
                 }
             }
         }
@@ -159,7 +178,12 @@ public static class CSVIO<T> where T : class, new()
 
     public static IEnumerable<T> LoadBulkData(string key)
     {
-        string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{key}.csv");
+        string fullPath = Path.Combine(
+            Application.dataPath,
+            "Resources",
+            GetSavePath(),
+            $"{key}.csv"
+        );
         if (!File.Exists(fullPath))
             yield break;
 
@@ -193,7 +217,9 @@ public static class CSVIO<T> where T : class, new()
                     }
                     catch (Exception e)
                     {
-                        Debug.LogWarning($"Failed to parse value '{values[j]}' for property '{prop.Name}': {e.Message}");
+                        Debug.LogWarning(
+                            $"Failed to parse value '{values[j]}' for property '{prop.Name}': {e.Message}"
+                        );
                     }
                 }
             }
@@ -204,7 +230,12 @@ public static class CSVIO<T> where T : class, new()
 
     public static bool DeleteData(string key)
     {
-        string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{key}.csv");
+        string fullPath = Path.Combine(
+            Application.dataPath,
+            "Resources",
+            GetSavePath(),
+            $"{key}.csv"
+        );
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);
@@ -232,7 +263,12 @@ public static class CSVIO<T> where T : class, new()
     {
         try
         {
-            string fullPath = Path.Combine(Application.dataPath, "Resources", GetSavePath(), $"{fileName}.csv");
+            string fullPath = Path.Combine(
+                Application.dataPath,
+                "Resources",
+                GetSavePath(),
+                $"{fileName}.csv"
+            );
             string directory = Path.GetDirectoryName(fullPath);
 
             if (!Directory.Exists(directory))
@@ -249,7 +285,7 @@ public static class CSVIO<T> where T : class, new()
 #endif
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error creating default CSV file: {e.Message}\n{e.StackTrace}");
         }

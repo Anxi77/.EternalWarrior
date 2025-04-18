@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using static StageManager;
 
 public class StageStateHandler : BaseStateHandler
 {
@@ -18,7 +17,7 @@ public class StageStateHandler : BaseStateHandler
 
         if (Game != null && Game.player == null)
         {
-            Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Game);
+            Vector3 spawnPos = PlayerUnit.GetSpawnPosition(SceneType.Main_Stage);
             PlayerUnit.SpawnPlayer(spawnPos);
             StartCoroutine(InitializeStageAfterPlayerSpawn());
         }
@@ -46,7 +45,7 @@ public class StageStateHandler : BaseStateHandler
             PlayerUnit.LoadGameState();
         }
 
-        CameraManager.Instance.SetupCamera(SceneType.Game);
+        CameraManager.Instance.SetupCamera(SceneType.Main_Stage);
 
         if (PathFindingManager.Instance != null)
         {
