@@ -18,7 +18,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
     {
         if (!PlayerDataManager.Instance.IsInitialized)
         {
-            Debug.LogWarning("Waiting for PlayerDataManager to initialize...");
+            Debug.LogWarning("[GameManager] Waiting for PlayerDataManager to initialize...");
             return;
         }
 
