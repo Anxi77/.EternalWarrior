@@ -13,7 +13,7 @@ public class Portal : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            StageManager.Instance.OnPortalEnter(destinationType);
+            LoadingManager.Instance.OnPortalEnter(destinationType);
         }
     }
 }

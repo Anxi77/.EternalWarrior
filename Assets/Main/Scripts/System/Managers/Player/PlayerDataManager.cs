@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class PlayerDataManager : DataManager<PlayerDataManager>
+public class PlayerDataSystem : IDataManager<string, PlayerData>
 {
     private const string SAVE_FOLDER = "PlayerData";
     private string SAVE_PATH => Path.Combine(Application.persistentDataPath, SAVE_FOLDER);
@@ -13,7 +14,7 @@ public class PlayerDataManager : DataManager<PlayerDataManager>
     public PlayerStatData CurrentPlayerStatData => currentPlayerStatData;
     public InventoryData CurrentInventoryData => currentInventoryData;
 
-    protected override void LoadRuntimeData()
+    public void LoadRuntimeData()
     {
         try
         {
@@ -35,7 +36,7 @@ public class PlayerDataManager : DataManager<PlayerDataManager>
         }
     }
 
-    protected virtual void CreateDefaultFiles()
+    public void CreateDefaultFiles()
     {
         currentPlayerStatData = new PlayerStatData();
         currentInventoryData = new InventoryData();
@@ -51,7 +52,7 @@ public class PlayerDataManager : DataManager<PlayerDataManager>
         );
     }
 
-    public virtual void ClearAllRuntimeData()
+    public void ClearAllRuntimeData()
     {
         currentPlayerStatData = new PlayerStatData();
         currentInventoryData = new InventoryData();
@@ -61,15 +62,11 @@ public class PlayerDataManager : DataManager<PlayerDataManager>
 
     public void SavePlayerData(PlayerData data)
     {
-        if (!IsInitialized)
-            Initialize();
         JSONIO<PlayerData>.SaveData(DEFAULT_SAVE_SLOT, data);
     }
 
     public PlayerData LoadPlayerData()
     {
-        if (!IsInitialized)
-            Initialize();
         return JSONIO<PlayerData>.LoadData(DEFAULT_SAVE_SLOT);
     }
 
@@ -100,8 +97,48 @@ public class PlayerDataManager : DataManager<PlayerDataManager>
 
     public bool HasSaveData()
     {
-        if (!IsInitialized)
-            Initialize();
         return File.Exists(DEFAULT_SAVE_SLOT);
+    }
+
+    public PlayerData GetData(string key)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public List<PlayerData> GetAllData()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public bool HasData(string key)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public Dictionary<string, PlayerData> GetDatabase()
+    {
+        return null;
+    }
+
+    public GameObject GetPrefab(string key, PlayerData data, params object[] parameters)
+    {
+        return null;
+    }
+
+    public void InitializeDefaultData()
+    {
+        LoadRuntimeData();
+    }
+
+    public void SaveRuntimeData()
+    {
+        SavePlayerData(
+            new PlayerData
+            {
+                stats = currentPlayerStatData,
+                inventory = currentInventoryData,
+                levelData = currentLevelData,
+            }
+        );
     }
 }

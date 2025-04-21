@@ -42,7 +42,7 @@ public abstract class ProjectileSkills : Skill
             return;
 
         var csvStats =
-            SkillDataManager.Instance.GetSkillStatsForLevel(
+            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 currentLevel,
                 SkillType.Projectile
@@ -350,11 +350,6 @@ public abstract class ProjectileSkills : Skill
         }
 
         base.OnValidate();
-
-        if (SkillDataManager.Instance == null || !SkillDataManager.Instance.IsInitialized)
-        {
-            return;
-        }
 
         if (skillData == null)
         {

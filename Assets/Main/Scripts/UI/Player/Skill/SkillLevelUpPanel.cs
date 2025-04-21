@@ -59,8 +59,8 @@ public class SkillLevelUpPanel : MonoBehaviour
 
     private List<SkillData> GetAvailableSkills(List<Skill> playerSkills)
     {
-        return SkillManager
-            .Instance.GetRandomSkills(SKILL_CHOICES)
+        return GameManager
+            .Instance.SkillSystem.GetRandomSkills(SKILL_CHOICES)
             .Where(skillData => IsSkillAvailable(skillData, playerSkills))
             .ToList();
     }

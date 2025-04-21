@@ -45,12 +45,12 @@ public class StageStateHandler : BaseStateHandler
             PlayerUnit.LoadGameState();
         }
 
-        CameraManager.Instance.SetupCamera(SceneType.Main_Stage);
+        GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Stage);
 
-        if (PathFindingManager.Instance != null)
+        if (GameManager.Instance.PathFindingSystem != null)
         {
-            PathFindingManager.Instance.gameObject.SetActive(true);
-            PathFindingManager.Instance.InitializeWithNewCamera();
+            GameManager.Instance.PathFindingSystem.gameObject.SetActive(true);
+            GameManager.Instance.PathFindingSystem.InitializeWithNewCamera();
         }
 
         if (UI != null && UI.playerUIPanel != null)
@@ -61,7 +61,8 @@ public class StageStateHandler : BaseStateHandler
 
         Game.StartLevelCheck();
 
-        StageTimeManager.Instance.StartStageTimer(STAGE_DURATION);
+        StartCoroutine(GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION));
+
         UI.stageTimeUI.gameObject.SetActive(true);
         isInitialized = true;
 
@@ -85,13 +86,13 @@ public class StageStateHandler : BaseStateHandler
         base.OnExit();
 
         MonsterManager.Instance?.StopSpawning();
-        StageTimeManager.Instance?.PauseTimer();
-        StageTimeManager.Instance?.ResetTimer();
-        CameraManager.Instance?.ClearCamera();
+        GameManager.Instance.StageTimer?.PauseTimer();
+        GameManager.Instance.StageTimer?.ResetTimer();
+        GameManager.Instance.CameraSystem?.ClearCamera();
 
-        if (PathFindingManager.Instance != null)
+        if (GameManager.Instance.PathFindingSystem != null)
         {
-            PathFindingManager.Instance.gameObject.SetActive(false);
+            GameManager.Instance.PathFindingSystem.gameObject.SetActive(false);
         }
     }
 
@@ -100,7 +101,7 @@ public class StageStateHandler : BaseStateHandler
         if (!isInitialized)
             return;
 
-        if (!isBossPhase && StageTimeManager.Instance.IsStageTimeUp())
+        if (!isBossPhase && GameManager.Instance.StageTimer.IsStageTimeUp())
         {
             StartBossPhase();
         }
@@ -115,6 +116,6 @@ public class StageStateHandler : BaseStateHandler
 
     public void OnBossDefeated(Vector3 position)
     {
-        StageManager.Instance?.SpawnTownPortal(position);
+        LoadingManager.Instance?.SpawnTownPortal(position);
     }
 }

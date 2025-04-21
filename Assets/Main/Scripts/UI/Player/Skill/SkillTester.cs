@@ -1,13 +1,16 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections;
 
 public class SkillTester : MonoBehaviour
 {
     [Header("UI Elements")]
-    [SerializeField] private TMP_Dropdown skillDropdown;
-    [SerializeField] private Button addSkillButton;
+    [SerializeField]
+    private TMP_Dropdown skillDropdown;
+
+    [SerializeField]
+    private Button addSkillButton;
 
     private bool isInitialized = false;
 
@@ -19,10 +22,7 @@ public class SkillTester : MonoBehaviour
     private IEnumerator InitializeWhenReady()
     {
         // �ʿ��� �Ŵ������� �ʱ�ȭ�� ������ ���
-        yield return new WaitUntil(() =>
-            GameManager.Instance != null &&
-            SkillDataManager.Instance != null &&
-            SkillDataManager.Instance.IsInitialized);
+        yield return new WaitUntil(() => GameManager.Instance != null);
 
         // UI ��ҵ��� �Ҵ�Ǿ����� Ȯ��
         if (!ValidateComponents())
@@ -57,13 +57,13 @@ public class SkillTester : MonoBehaviour
     private void InitializeDropdown()
     {
         skillDropdown.ClearOptions();
-        var skillDatas = SkillDataManager.Instance.GetAllSkillData();
+        var skillDatas = DataSystem.SkillDataSystem.GetAllData();
 
         foreach (var skillData in skillDatas)
         {
-            skillDropdown.options.Add(new TMP_Dropdown.OptionData(
-                $"{skillData.Name} ({skillData.Type})"
-            ));
+            skillDropdown.options.Add(
+                new TMP_Dropdown.OptionData($"{skillData.Name} ({skillData.Type})")
+            );
         }
 
         skillDropdown.RefreshShownValue();
@@ -91,7 +91,7 @@ public class SkillTester : MonoBehaviour
             return;
         }
 
-        var skillDatas = SkillDataManager.Instance.GetAllSkillData();
+        var skillDatas = DataSystem.SkillDataSystem.GetAllData();
         if (skillDropdown.value < skillDatas.Count)
         {
             var selectedSkill = skillDatas[skillDropdown.value];
@@ -102,7 +102,8 @@ public class SkillTester : MonoBehaviour
 
     private void Update()
     {
-        if (!isInitialized) return;
+        if (!isInitialized)
+            return;
 
         // TŰ�� ���� ���õ� ��ų �߰�
         if (Input.GetKeyDown(KeyCode.T))

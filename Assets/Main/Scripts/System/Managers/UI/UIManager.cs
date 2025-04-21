@@ -61,19 +61,8 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
 
     private bool isInventoryAccessable = true;
 
-    protected override void Awake()
-    {
-        base.Awake();
-    }
-
     public void Initialize()
     {
-        if (!GameLoopManager.Instance.IsInitialized)
-        {
-            Debug.LogWarning("Waiting for GameLoopManager to initialize...");
-            return;
-        }
-
         try
         {
             InitializeUIComponents();
@@ -205,11 +194,11 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
                 stageTimeUI.Initialize();
             }
 
-            while (!StageTimeManager.Instance.IsInitialized)
+            while (!GameManager.Instance.StageTimer.IsInitialized)
             {
                 yield return null;
             }
-            StageTimeManager.Instance.StartStageTimer(600f);
+            GameManager.Instance.StageTimer.StartStageTimer(600f);
         }
     }
 
@@ -434,7 +423,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
 
     private IEnumerator LoadTownScene()
     {
-        StageManager.Instance.LoadTownScene();
+        LoadingManager.Instance.LoadTownScene();
         yield break;
     }
 

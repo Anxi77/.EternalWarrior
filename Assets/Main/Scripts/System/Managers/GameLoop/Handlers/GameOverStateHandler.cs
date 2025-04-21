@@ -16,7 +16,8 @@ public class GameOverStateHandler : BaseStateHandler
             PlayerUnit.SpawnPlayer(Vector3.zero);
             PlayerUnit.LoadGameState();
             Debug.Log("Player respawned at death location");
-            CameraManager.Instance.SetupCamera(SceneType.Main_Stage);
+
+            GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Stage);
 
             if (!portalSpawned)
             {
@@ -47,7 +48,7 @@ public class GameOverStateHandler : BaseStateHandler
         {
             Vector3 playerPos = Game.player.transform.position;
             Vector3 portalPosition = playerPos + new Vector3(2f, 0f, 0f);
-            StageManager.Instance.SpawnTownPortal(portalPosition);
+            LoadingManager.Instance.SpawnTownPortal(portalPosition);
             Debug.Log("Town portal spawned near player's death location");
         }
     }

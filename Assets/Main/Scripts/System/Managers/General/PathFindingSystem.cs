@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathFindingManager : Singleton<PathFindingManager>, IInitializable
+public class PathFindingSystem : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -30,11 +30,9 @@ public class PathFindingManager : Singleton<PathFindingManager>, IInitializable
     {
         try
         {
-            Debug.Log("Initializing PathFindingManager...");
             InitializePools();
             CreateGrid();
             IsInitialized = true;
-            Debug.Log("PathFindingManager initialized successfully");
         }
         catch (Exception e)
         {

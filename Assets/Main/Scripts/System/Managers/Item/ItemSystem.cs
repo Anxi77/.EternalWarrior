@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class ItemManager : Singleton<ItemManager>, IInitializable
+public class ItemSystem : MonoBehaviour, IInitializable
 {
     [SerializeField]
     private GameObject worldDropItemPrefab;
@@ -13,25 +13,12 @@ public class ItemManager : Singleton<ItemManager>, IInitializable
 
     public bool IsInitialized => isInitialized;
 
-    protected override void Awake()
-    {
-        base.Awake();
-        Initialize();
-    }
-
     public void Initialize()
     {
         if (!IsInitialized)
         {
             try
             {
-                while (ItemDataManager.Instance == null)
-                {
-                    while (!ItemDataManager.Instance.IsInitialized)
-                    {
-                        Debug.Log("Waiting for ItemDataManager to Load Datas...");
-                    }
-                }
                 isInitialized = true;
             }
             catch (Exception e)
@@ -68,7 +55,7 @@ public class ItemManager : Singleton<ItemManager>, IInitializable
 
     public List<ItemData> GetDropsForEnemy(EnemyType enemyType, float luckMultiplier = 1f)
     {
-        var dropTable = ItemDataManager.Instance.GetDropTables().GetValueOrDefault(enemyType);
+        var dropTable = DataSystem.ItemDataSystem.GetDropTables()[enemyType];
         if (dropTable == null)
             return new List<ItemData>();
         return itemGenerator.GenerateDrops(dropTable, luckMultiplier);
@@ -97,8 +84,8 @@ public class ItemManager : Singleton<ItemManager>, IInitializable
 
     public List<ItemData> GetItemsByType(ItemType type)
     {
-        return ItemDataManager
-            .Instance.GetAllItemData()
+        return DataSystem
+            .ItemDataSystem.GetAllData()
             .Where(item => item.Type == type)
             .Select(item => item.Clone())
             .ToList();
@@ -106,8 +93,8 @@ public class ItemManager : Singleton<ItemManager>, IInitializable
 
     public List<ItemData> GetItemsByRarity(ItemRarity rarity)
     {
-        return ItemDataManager
-            .Instance.GetAllItemData()
+        return DataSystem
+            .ItemDataSystem.GetAllData()
             .Where(item => item.Rarity == rarity)
             .Select(item => item.Clone())
             .ToList();

@@ -7,20 +7,19 @@ public class InitializationManager : MonoBehaviour
     {
         InitializeEventSystem();
         CreateManagerObjects();
-        if (GameLoopManager.Instance != null)
+        if (GameManager.Instance != null)
         {
-            GameLoopManager.Instance.StartInitialization();
             StartCoroutine(WaitForInitialization());
         }
     }
 
     private IEnumerator WaitForInitialization()
     {
-        while (!GameLoopManager.Instance.IsInitialized)
+        while (!GameManager.Instance.IsInitialized)
         {
             yield return null;
         }
-        StageManager.Instance?.LoadMainMenu();
+        LoadingManager.Instance?.LoadMainMenu();
     }
 
     private void CreateManagerObjects()

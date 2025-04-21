@@ -40,7 +40,7 @@ public abstract class AreaSkills : Skill
             return;
 
         var skillStats =
-            SkillDataManager.Instance.GetSkillStatsForLevel(
+            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 skillData.GetSkillStats().baseStat.skillLevel,
                 SkillType.Area
@@ -141,11 +141,6 @@ public abstract class AreaSkills : Skill
         }
 
         base.OnValidate();
-
-        if (SkillDataManager.Instance == null || !SkillDataManager.Instance.IsInitialized)
-        {
-            return;
-        }
 
         if (skillData == null)
         {

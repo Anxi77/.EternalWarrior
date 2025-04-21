@@ -3,25 +3,43 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public interface IGameState
+{
+    void OnEnter();
+    void OnUpdate();
+    void OnFixedUpdate();
+    void OnExit();
+}
+
 public class GameManager : Singleton<GameManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
-
     internal List<Enemy> enemies = new();
     internal Player player;
     private bool hasInitializedGame = false;
+    private StageTimer stageTimer;
+    public StageTimer StageTimer => stageTimer;
+    private CameraSystem cameraSystem;
+    public CameraSystem CameraSystem => cameraSystem;
+    private ItemSystem itemSystem;
+    public ItemSystem ItemSystem => itemSystem;
+    private SkillSystem skillSystem;
+    public SkillSystem SkillSystem => skillSystem;
+    private PathFindingSystem pathFindingSystem;
+    public PathFindingSystem PathFindingSystem => pathFindingSystem;
 
     private int lastPlayerLevel = 1;
     private Coroutine levelCheckCoroutine;
+    private GameState currentState = GameState.Title;
+
+    private Dictionary<GameState, IGameState> stateHandlers;
+
+    private bool isStateTransitioning = false;
+
+    private readonly Queue<GameState> stateTransitionQueue = new();
 
     public void Initialize()
     {
-        if (!PlayerDataManager.Instance.IsInitialized)
-        {
-            Debug.LogWarning("[GameManager] Waiting for PlayerDataManager to initialize...");
-            return;
-        }
-
         try
         {
             IsInitialized = true;
@@ -31,6 +49,135 @@ public class GameManager : Singleton<GameManager>, IInitializable
             Debug.LogError($"Error initializing GameManager: {e.Message}");
             IsInitialized = false;
         }
+    }
+
+    private bool CreateStateHandlers()
+    {
+        stateHandlers = new Dictionary<GameState, IGameState>();
+
+        try
+        {
+            stateHandlers[GameState.Title] = new MainMenuStateHandler();
+            stateHandlers[GameState.Town] = new TownStateHandler();
+            stateHandlers[GameState.Stage] = new StageStateHandler();
+            stateHandlers[GameState.Paused] = new PausedStateHandler();
+            stateHandlers[GameState.GameOver] = new GameOverStateHandler();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error creating state handlers: {e.Message}\n{e.StackTrace}");
+            return false;
+        }
+    }
+
+    public void ChangeState(GameState newState)
+    {
+        if (!IsInitialized || stateHandlers == null)
+            return;
+
+        stateTransitionQueue.Enqueue(newState);
+
+        if (!isStateTransitioning)
+        {
+            ProcessStateQueue();
+        }
+    }
+
+    private void ProcessStateQueue()
+    {
+        if (stateTransitionQueue.Count == 0)
+            return;
+
+        try
+        {
+            isStateTransitioning = true;
+            GameState newState = stateTransitionQueue.Dequeue();
+
+            if (currentState == newState)
+            {
+                isStateTransitioning = false;
+                ProcessStateQueue();
+                return;
+            }
+
+            if (stateHandlers.ContainsKey(currentState))
+            {
+                stateHandlers[currentState].OnExit();
+            }
+
+            currentState = newState;
+
+            if (stateHandlers.ContainsKey(currentState))
+            {
+                stateHandlers[currentState].OnEnter();
+            }
+
+            isStateTransitioning = false;
+
+            if (stateTransitionQueue.Count > 0)
+            {
+                ProcessStateQueue();
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error during state change: {e.Message}\n{e.StackTrace}");
+            isStateTransitioning = false;
+        }
+    }
+
+    private void Update()
+    {
+        if (!IsInitialized || stateHandlers == null)
+            return;
+
+        try
+        {
+            stateHandlers[currentState]?.OnUpdate();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error in state update: {e.Message}");
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!IsInitialized || stateHandlers == null)
+            return;
+
+        try
+        {
+            stateHandlers[currentState]?.OnFixedUpdate();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error in state fixed update: {e.Message}");
+        }
+    }
+
+    public T GetCurrentHandler<T>()
+        where T : class, IGameState
+    {
+        if (!IsInitialized || stateHandlers == null)
+            return null;
+
+        if (stateHandlers.TryGetValue(currentState, out var handler))
+        {
+            return handler as T;
+        }
+        return null;
+    }
+
+    protected override void OnDestroy()
+    {
+        IsInitialized = false;
+        stateHandlers?.Clear();
+        StopAllCoroutines();
+
+        base.OnDestroy();
     }
 
     public void StartLevelCheck()
@@ -88,13 +235,13 @@ public class GameManager : Singleton<GameManager>, IInitializable
     {
         if (!hasInitializedGame)
         {
-            PlayerDataManager.Instance.InitializeDefaultData();
+            DataSystem.PlayerDataSystem.LoadPlayerData();
             hasInitializedGame = true;
         }
         else
         {
             ClearGameData();
-            PlayerDataManager.Instance.InitializeDefaultData();
+            DataSystem.PlayerDataSystem.LoadPlayerData();
         }
     }
 
@@ -116,12 +263,12 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     public void ClearGameData()
     {
-        PlayerDataManager.Instance.ClearAllRuntimeData();
+        DataSystem.PlayerDataSystem.ClearAllRuntimeData();
     }
 
     public bool HasSaveData()
     {
-        return PlayerDataManager.Instance != null && PlayerDataManager.Instance.HasSaveData();
+        return DataSystem.PlayerDataSystem.HasSaveData();
     }
     #endregion
 

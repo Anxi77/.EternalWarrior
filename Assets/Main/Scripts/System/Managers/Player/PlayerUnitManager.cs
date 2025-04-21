@@ -67,7 +67,7 @@ public class PlayerUnitManager : Singleton<PlayerUnitManager>, IInitializable
             PlayerStatSystem playerStat = player.GetComponent<PlayerStatSystem>();
             if (playerStat != null)
             {
-                if (PlayerDataManager.Instance.HasSaveData())
+                if (DataSystem.PlayerDataSystem.HasSaveData())
                 {
                     LoadGameState();
                 }
@@ -116,7 +116,7 @@ public class PlayerUnitManager : Singleton<PlayerUnitManager>, IInitializable
             PlayerData data = new PlayerData();
             data.stats = playerStat.CreateSaveData();
             data.inventory = inventory.GetInventoryData();
-            PlayerDataManager.Instance.SavePlayerData(data);
+            DataSystem.PlayerDataSystem.SavePlayerData(data);
         }
     }
 
@@ -131,7 +131,7 @@ public class PlayerUnitManager : Singleton<PlayerUnitManager>, IInitializable
 
         if (playerStat != null && inventory != null)
         {
-            var savedData = PlayerDataManager.Instance.LoadPlayerData();
+            var savedData = DataSystem.PlayerDataSystem.LoadPlayerData();
             if (savedData != null)
             {
                 playerStat.LoadFromSaveData(savedData.stats);

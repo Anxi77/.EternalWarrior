@@ -4,13 +4,11 @@ using UnityEngine;
 public abstract class BaseStateHandler : IGameState
 {
     protected readonly GameManager Game;
-    protected readonly GameLoopManager GameLoop;
     protected readonly PlayerUnitManager PlayerUnit;
     protected readonly UIManager UI;
 
     protected BaseStateHandler()
     {
-        GameLoop = GameLoopManager.Instance;
         UI = UIManager.Instance;
         Game = GameManager.Instance;
         PlayerUnit = PlayerUnitManager.Instance;
@@ -40,7 +38,7 @@ public abstract class BaseStateHandler : IGameState
             if (Game.player.TryGetComponent<Inventory>(out var inventory))
             {
                 var inventoryData = inventory.GetInventoryData();
-                PlayerDataManager.Instance.SaveInventoryData(inventoryData);
+                DataSystem.PlayerDataSystem.SaveInventoryData(inventoryData);
             }
             if (PlayerUnit != null)
             {
@@ -51,11 +49,11 @@ public abstract class BaseStateHandler : IGameState
 
     protected Coroutine StartCoroutine(IEnumerator routine)
     {
-        return GameLoop.StartCoroutine(routine);
+        return GameManager.Instance.StartCoroutine(routine);
     }
 
     protected void StopCoroutine(IEnumerator routine)
     {
-        GameLoop.StopCoroutine(routine);
+        GameManager.Instance.StopCoroutine(routine);
     }
 }

@@ -1,19 +1,14 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
-public class StageTimeManager : Singleton<StageTimeManager>, IInitializable
+public class StageTimer : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
     private float stageTimer;
     private float stageDuration;
     private bool isTimerRunning;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        Initialize();
-    }
 
     public void Initialize()
     {
@@ -29,19 +24,17 @@ public class StageTimeManager : Singleton<StageTimeManager>, IInitializable
         }
     }
 
-    private void Update()
-    {
-        if (isTimerRunning)
-        {
-            stageTimer += Time.deltaTime;
-        }
-    }
-
-    public void StartStageTimer(float duration)
+    public IEnumerator StartStageTimer(float duration)
     {
         stageDuration = duration;
         stageTimer = 0f;
         isTimerRunning = true;
+
+        while (isTimerRunning)
+        {
+            stageTimer += Time.deltaTime;
+            yield return null;
+        }
     }
 
     public void PauseTimer()

@@ -2,7 +2,7 @@ using System;
 using Cinemachine;
 using UnityEngine;
 
-public class CameraManager : Singleton<CameraManager>, IInitializable
+public class CameraSystem : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -16,12 +16,6 @@ public class CameraManager : Singleton<CameraManager>, IInitializable
     [SerializeField]
     private float gameCameraSize = 6f;
     private CinemachineVirtualCamera virtualCamera;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        Initialize();
-    }
 
     public void Initialize()
     {

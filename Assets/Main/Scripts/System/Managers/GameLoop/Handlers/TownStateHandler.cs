@@ -56,11 +56,11 @@ public class TownStateHandler : BaseStateHandler
             return;
         }
 
-        CameraManager.Instance.SetupCamera(SceneType.Main_Town);
+        GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Town);
 
-        if (PathFindingManager.Instance != null)
+        if (GameManager.Instance.PathFindingSystem != null)
         {
-            PathFindingManager.Instance.gameObject.SetActive(false);
+            GameManager.Instance.PathFindingSystem.gameObject.SetActive(false);
         }
 
         if (UI != null)
@@ -75,7 +75,7 @@ public class TownStateHandler : BaseStateHandler
 
             if (inventory != null)
             {
-                PlayerDataManager.Instance.LoadPlayerData();
+                DataSystem.ItemDataSystem.LoadRuntimeData();
             }
 
             UI.InitializeInventoryUI();
@@ -83,7 +83,7 @@ public class TownStateHandler : BaseStateHandler
             UI.UpdateInventoryUI();
         }
 
-        StageManager.Instance.SpawnGameStagePortal();
+        LoadingManager.Instance.SpawnGameStagePortal();
     }
 
     public override void OnExit()

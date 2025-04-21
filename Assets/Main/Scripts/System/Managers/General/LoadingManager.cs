@@ -10,7 +10,7 @@ public enum SceneType
     Test,
 }
 
-public class StageManager : Singleton<StageManager>
+public class LoadingManager : Singleton<LoadingManager>
 {
     [Header("Portal Settings")]
     [SerializeField]
@@ -102,14 +102,14 @@ public class StageManager : Singleton<StageManager>
         switch (sceneType)
         {
             case SceneType.Main_Title:
-                GameLoopManager.Instance.ChangeState(GameState.Title);
+                GameManager.Instance.ChangeState(GameState.Title);
                 break;
             case SceneType.Main_Town:
-                GameLoopManager.Instance.ChangeState(GameState.Town);
+                GameManager.Instance.ChangeState(GameState.Town);
                 break;
             case SceneType.Main_Stage:
             case SceneType.Test:
-                GameLoopManager.Instance.ChangeState(GameState.Stage);
+                GameManager.Instance.ChangeState(GameState.Stage);
                 break;
         }
 
@@ -140,7 +140,7 @@ public class StageManager : Singleton<StageManager>
 
             case SceneType.Main_Town:
                 return GameManager.Instance?.player != null
-                    && CameraManager.Instance?.IsInitialized == true
+                    && GameManager.Instance.CameraSystem?.IsInitialized == true
                     && UIManager.Instance?.playerUIPanel != null
                     && UIManager.Instance.IsGameUIReady();
 
@@ -148,7 +148,7 @@ public class StageManager : Singleton<StageManager>
             case SceneType.Test:
                 bool isReady =
                     GameManager.Instance?.player != null
-                    && CameraManager.Instance?.IsInitialized == true
+                    && GameManager.Instance.CameraSystem?.IsInitialized == true
                     && UIManager.Instance?.playerUIPanel != null
                     && UIManager.Instance.IsGameUIReady()
                     && MonsterManager.Instance?.IsInitialized == true;
@@ -157,7 +157,7 @@ public class StageManager : Singleton<StageManager>
                 {
                     Debug.Log(
                         $"Test Scene not ready: Player={GameManager.Instance?.player != null}, "
-                            + $"Camera={CameraManager.Instance?.IsInitialized}, "
+                            + $"Camera={GameManager.Instance.CameraSystem?.IsInitialized}, "
                             + $"UI={UIManager.Instance?.playerUIPanel != null}, "
                             + $"GameUI={UIManager.Instance?.IsGameUIReady()}, "
                             + $"Monster={MonsterManager.Instance?.IsInitialized}"

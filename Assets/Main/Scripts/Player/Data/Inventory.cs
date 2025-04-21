@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using System;
 
 public class Inventory : MonoBehaviour, IInitializable
 {
@@ -35,7 +35,7 @@ public class Inventory : MonoBehaviour, IInitializable
 
     private void LoadSavedInventory()
     {
-        var savedData = PlayerDataManager.Instance.LoadPlayerData();
+        var savedData = DataSystem.PlayerDataSystem.LoadPlayerData();
         if (savedData != null)
         {
             LoadInventoryData(savedData.inventory);
@@ -53,19 +53,19 @@ public class Inventory : MonoBehaviour, IInitializable
         {
             slots = new List<InventorySlot>(slots),
 
-            equippedItems = equippedItems.ToDictionary
-            (
+            equippedItems = equippedItems.ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value.GetItemData()
             ),
 
-            gold = gold
+            gold = gold,
         };
     }
 
     public void LoadInventoryData(InventoryData data)
     {
-        if (data == null) return;
+        if (data == null)
+            return;
         slots = new List<InventorySlot>(data.slots);
         gold = data.gold;
 
@@ -80,13 +80,14 @@ public class Inventory : MonoBehaviour, IInitializable
 
     public void AddItem(ItemData itemData)
     {
-        if (itemData == null) return;
+        if (itemData == null)
+            return;
 
         if (itemData.MaxStack > 1)
         {
             var existingSlot = slots.Find(slot =>
-                slot.itemData.ID == itemData.ID &&
-                slot.amount < itemData.MaxStack);
+                slot.itemData.ID == itemData.ID && slot.amount < itemData.MaxStack
+            );
             if (existingSlot != null)
             {
                 existingSlot.amount++;
@@ -96,14 +97,15 @@ public class Inventory : MonoBehaviour, IInitializable
 
         if (slots.Count < MAX_SLOTS)
         {
-            slots.Add(new InventorySlot
-            {
-                itemData = itemData,
-                amount = 1,
-                isEquipped = false
-            });
+            slots.Add(
+                new InventorySlot
+                {
+                    itemData = itemData,
+                    amount = 1,
+                    isEquipped = false,
+                }
+            );
         }
-
         else
         {
             Debug.LogWarning("Inventory is full!");
@@ -118,7 +120,6 @@ public class Inventory : MonoBehaviour, IInitializable
             {
                 return item;
             }
-
             else
             {
                 Debug.LogWarning($"Found null item or ItemData in slot {slot}");
@@ -131,7 +132,6 @@ public class Inventory : MonoBehaviour, IInitializable
 
     public void UnequipFromSlot(EquipmentSlot slot)
     {
-
         if (equippedItems.TryGetValue(slot, out var item))
         {
             var inventorySlot = slots.Find(s => s.itemData == item.GetItemData());
@@ -177,7 +177,6 @@ public class Inventory : MonoBehaviour, IInitializable
 
             Debug.Log($"Successfully equipped {itemData.Name} to slot {slot}");
         }
-
         else
         {
             Debug.LogError($"Failed to create equipment item for {itemData.Name}");
@@ -194,23 +193,20 @@ public class Inventory : MonoBehaviour, IInitializable
                 ItemType.Armor => new ArmorItem(itemData),
                 ItemType.Accessory => new AccessoryItem(itemData),
 
-                _ => null
+                _ => null,
             };
 
             if (newItem == null)
             {
                 Debug.LogError($"Failed to create item of type: {itemData.Type}");
             }
-
             else
             {
                 Debug.Log($"Successfully created {itemData.Type} item: {itemData.Name}");
             }
 
             return newItem;
-
         }
-
         catch (Exception e)
         {
             Debug.LogError($"Error creating equipment item: {e.Message}");
@@ -221,12 +217,13 @@ public class Inventory : MonoBehaviour, IInitializable
 
     public void SaveInventoryState()
     {
-        PlayerDataManager.Instance.SaveInventoryData(GetInventoryData());
+        DataSystem.PlayerDataSystem.SaveInventoryData(GetInventoryData());
     }
 
     public void RestoreEquippedItems()
     {
-        if (savedState?.equippedItems == null) return;
+        if (savedState?.equippedItems == null)
+            return;
         foreach (var slot in equippedItems.Keys.ToList())
         {
             UnequipFromSlot(slot);

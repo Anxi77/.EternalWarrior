@@ -265,7 +265,9 @@ public class Enemy : MonoBehaviour
         if (isStunned || moveSpeed <= 0)
             return;
 
-        Node currentNode = PathFindingManager.Instance.GetNodeFromWorldPosition(transform.position);
+        Node currentNode = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+            transform.position
+        );
         if (currentNode != null && !currentNode.walkable)
         {
             Vector2 safePosition = FindNearestSafePosition(transform.position);
@@ -277,9 +279,11 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        if (!PathFindingManager.Instance.IsPositionInGrid(transform.position))
+        if (!GameManager.Instance.PathFindingSystem.IsPositionInGrid(transform.position))
         {
-            Vector2 clampedPosition = PathFindingManager.Instance.ClampToGrid(transform.position);
+            Vector2 clampedPosition = GameManager.Instance.PathFindingSystem.ClampToGrid(
+                transform.position
+            );
             transform.position = clampedPosition;
         }
 
@@ -303,7 +307,7 @@ public class Enemy : MonoBehaviour
     {
         if (ShouldUpdatePath())
         {
-            List<Vector2> newPath = PathFindingManager.Instance.FindPath(
+            List<Vector2> newPath = GameManager.Instance.PathFindingSystem.FindPath(
                 transform.position,
                 targetPosition
             );
@@ -312,7 +316,9 @@ public class Enemy : MonoBehaviour
                 bool isValidPath = true;
                 foreach (Vector2 pathPoint in newPath)
                 {
-                    Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(pathPoint);
+                    Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+                        pathPoint
+                    );
                     if (node != null && !node.walkable)
                     {
                         isValidPath = false;
@@ -329,7 +335,7 @@ public class Enemy : MonoBehaviour
                 else
                 {
                     Vector2 safePosition = FindSafePosition(targetPosition);
-                    currentPath = PathFindingManager.Instance.FindPath(
+                    currentPath = GameManager.Instance.PathFindingSystem.FindPath(
                         transform.position,
                         safePosition
                     );
@@ -352,7 +358,9 @@ public class Enemy : MonoBehaviour
                 targetPosition
                 + new Vector2(Mathf.Cos(radian) * checkRadius, Mathf.Sin(radian) * checkRadius);
 
-            Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(checkPosition);
+            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+                checkPosition
+            );
             if (node != null && node.walkable)
             {
                 return checkPosition;
@@ -382,7 +390,9 @@ public class Enemy : MonoBehaviour
         UpdateCirclingParameters();
         Vector2 targetPosition = CalculateCirclingPosition();
 
-        Node targetNode = PathFindingManager.Instance.GetNodeFromWorldPosition(targetPosition);
+        Node targetNode = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+            targetPosition
+        );
         if (targetNode != null && !targetNode.walkable)
         {
             targetPosition = FindSafeCirclingPosition(targetPosition);
@@ -406,7 +416,9 @@ public class Enemy : MonoBehaviour
                     Mathf.Sin(newAngle * Mathf.Deg2Rad)
                 ) * circlingRadius;
 
-            Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(checkPosition);
+            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+                checkPosition
+            );
             if (node != null && node.walkable)
             {
                 return checkPosition;
@@ -458,7 +470,7 @@ public class Enemy : MonoBehaviour
     {
         if (ShouldUpdatePath())
         {
-            List<Vector2> newPath = PathFindingManager.Instance.FindPath(
+            List<Vector2> newPath = GameManager.Instance.PathFindingSystem.FindPath(
                 transform.position,
                 target.position
             );
@@ -484,7 +496,7 @@ public class Enemy : MonoBehaviour
         {
             Vector2 finalDestination = currentPath[currentPath.Count - 1];
             float distanceToFinalDestination = Vector2.Distance(finalDestination, target.position);
-            return distanceToFinalDestination > PathFindingManager.NODE_SIZE * 2;
+            return distanceToFinalDestination > PathFindingSystem.NODE_SIZE * 2;
         }
         return false;
     }
@@ -532,7 +544,9 @@ public class Enemy : MonoBehaviour
                 currentPosition
                 + new Vector2(Mathf.Cos(radian) * checkRadius, Mathf.Sin(radian) * checkRadius);
 
-            Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(checkPosition);
+            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+                checkPosition
+            );
             if (node != null && node.walkable)
             {
                 return checkPosition;
@@ -690,7 +704,7 @@ public class Enemy : MonoBehaviour
 
     protected virtual bool HasReachedWaypoint(Vector2 currentPos, Vector2 waypoint)
     {
-        return Vector2.Distance(currentPos, waypoint) < PathFindingManager.NODE_SIZE * 0.5f;
+        return Vector2.Distance(currentPos, waypoint) < PathFindingSystem.NODE_SIZE * 0.5f;
     }
 
     protected virtual void UpdateWaypoint()
@@ -895,14 +909,14 @@ public class Enemy : MonoBehaviour
             .Instance.player.GetComponent<PlayerStatSystem>()
             .GetStat(StatType.Luck);
 
-        var drops = ItemManager.Instance.GetDropsForEnemy(enemyType, 1f + playerLuck);
+        var drops = GameManager.Instance.ItemSystem.GetDropsForEnemy(enemyType, 1f + playerLuck);
 
         if (drops.Any())
         {
             foreach (var itemData in drops)
             {
                 Vector2 dropPosition = CalculateDropPosition();
-                ItemManager.Instance.DropItem(itemData, dropPosition);
+                GameManager.Instance.ItemSystem.DropItem(itemData, dropPosition);
             }
         }
     }

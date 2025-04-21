@@ -124,7 +124,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
                 (ranPos * (minMaxDist.y - minMaxDist.x)) + (ranPos.normalized * minMaxDist.x);
             Vector2 finalPos = playerPos + spawnPos;
 
-            Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(finalPos);
+            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(finalPos);
             if (node != null && node.walkable)
             {
                 return finalPos;
@@ -152,7 +152,9 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
                         Mathf.Sin(radian) * searchRadius
                     );
 
-                Node node = PathFindingManager.Instance.GetNodeFromWorldPosition(checkPos);
+                Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
+                    checkPos
+                );
                 if (node != null && node.walkable)
                 {
                     return checkPos;
@@ -187,7 +189,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
     {
         isBossDefeated = true;
         lastBossPosition = position;
-        GameLoopManager.Instance.GetCurrentHandler<StageStateHandler>()?.OnBossDefeated(position);
+        GameManager.Instance.GetCurrentHandler<StageStateHandler>()?.OnBossDefeated(position);
     }
     #endregion
 

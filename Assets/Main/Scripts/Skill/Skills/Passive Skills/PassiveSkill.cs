@@ -117,7 +117,7 @@ public class PassiveSkill : Skill
             return;
 
         var csvStats =
-            SkillDataManager.Instance.GetSkillStatsForLevel(
+            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 currentLevel,
                 SkillType.Passive

@@ -16,13 +16,7 @@ public abstract class Skill : MonoBehaviour
 
     protected virtual IEnumerator WaitForInitialization()
     {
-        yield return new WaitUntil(
-            () =>
-                GameManager.Instance != null
-                && SkillDataManager.Instance != null
-                && SkillDataManager.Instance.IsInitialized
-                && skillData != null
-        );
+        yield return new WaitUntil(() => GameManager.Instance != null && skillData != null);
 
         Initialize();
     }
@@ -144,7 +138,7 @@ public abstract class Skill : MonoBehaviour
                 $"Current stats - Level: {currentStats?.baseStat?.skillLevel}, Damage: {currentStats?.baseStat?.damage}"
             );
 
-            var newStats = SkillDataManager.Instance.GetSkillStatsForLevel(
+            var newStats = DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 newLevel,
                 skillData.Type

@@ -1,7 +1,7 @@
 using UnityEngine;
 
-public abstract class DataManager<T> : Singleton<T>, IInitializable
-    where T : MonoBehaviour
+public abstract class DataManager<T> : IInitializable
+    where T : class
 {
     protected bool isInitialized = false;
     public bool IsInitialized => isInitialized;

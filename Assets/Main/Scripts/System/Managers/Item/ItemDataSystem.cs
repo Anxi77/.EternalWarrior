@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
-public class ItemDataManager : DataManager<ItemDataManager>
+public class ItemDataSystem
 {
     #region Constants
     private const string ITEM_DB_PATH = "Items/Database";
@@ -12,12 +12,23 @@ public class ItemDataManager : DataManager<ItemDataManager>
     #endregion
 
     #region Fields
-    public Dictionary<string, ItemData> itemDatabase = new();
-    public Dictionary<EnemyType, DropTableData> dropTables = new();
+    private static Dictionary<string, ItemData> itemDatabase = new();
+    private static Dictionary<EnemyType, DropTableData> dropTables = new();
     #endregion
 
     #region Data Loading
-    protected override void LoadRuntimeData()
+
+    public void InitializeDefaultData()
+    {
+        LoadRuntimeData();
+    }
+
+    public List<ItemData> GetAllData()
+    {
+        return new List<ItemData>(itemDatabase.Values);
+    }
+
+    public void LoadRuntimeData()
     {
         try
         {
@@ -96,12 +107,8 @@ public class ItemDataManager : DataManager<ItemDataManager>
     #endregion
 
     #region Data Access
-    public List<ItemData> GetAllItemData()
-    {
-        return new List<ItemData>(itemDatabase.Values);
-    }
 
-    public ItemData GetItemData(string itemId)
+    public ItemData GetData(string itemId)
     {
         if (itemDatabase.TryGetValue(itemId, out var itemData))
         {
@@ -111,12 +118,12 @@ public class ItemDataManager : DataManager<ItemDataManager>
         return null;
     }
 
-    public bool HasItem(string itemId)
+    public bool HasData(string itemId)
     {
         return itemDatabase.ContainsKey(itemId);
     }
 
-    public Dictionary<string, ItemData> GetItemDatabase()
+    public Dictionary<string, ItemData> GetDatabase()
     {
         return new Dictionary<string, ItemData>(itemDatabase);
     }
@@ -125,5 +132,6 @@ public class ItemDataManager : DataManager<ItemDataManager>
     {
         return new Dictionary<EnemyType, DropTableData>(dropTables);
     }
+
     #endregion
 }

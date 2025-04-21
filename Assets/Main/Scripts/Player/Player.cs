@@ -337,7 +337,7 @@ public class Player : MonoBehaviour
         playerStatus = Status.Dead;
         StopAllCoroutines();
 
-        GameLoopManager.Instance.ChangeState(GameState.GameOver);
+        GameManager.Instance.ChangeState(GameState.GameOver);
     }
 
     #endregion
@@ -443,7 +443,7 @@ public class Player : MonoBehaviour
     {
         if (skillData == null)
             return false;
-        SkillManager.Instance.AddOrUpgradeSkill(skillData);
+        GameManager.Instance.SkillSystem.AddOrUpgradeSkill(skillData);
         return true;
     }
 

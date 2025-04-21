@@ -4,41 +4,21 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class SkillManager : Singleton<SkillManager>, IInitializable
+public class SkillSystem : MonoBehaviour, IInitializable
 {
     private List<SkillData> availableSkills = new List<SkillData>();
     private List<Skill> activeSkills = new List<Skill>();
-    public bool IsInitialized { get; private set; }
-
-    protected override void Awake()
-    {
-        base.Awake();
-        IsInitialized = false;
-    }
+    public bool IsInitialized { get; private set; } = false;
 
     public void Initialize()
     {
-        try
-        {
-            if (SkillDataManager.Instance == null || !SkillDataManager.Instance.IsInitialized)
-            {
-                Debug.LogWarning("Waiting for SkillDataManager to initialize...");
-                return;
-            }
-
-            LoadSkillData();
-            IsInitialized = true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error initializing SkillManager: {e.Message}");
-            IsInitialized = false;
-        }
+        LoadSkillData();
+        IsInitialized = true;
     }
 
     private void LoadSkillData()
     {
-        availableSkills = SkillDataManager.Instance.GetAllSkillData();
+        availableSkills = DataSystem.SkillDataSystem.GetAllData();
         Debug.Log($"[SkillManager] Loaded {availableSkills.Count} skills from SkillDataManager");
     }
 
@@ -79,7 +59,7 @@ public class SkillManager : Singleton<SkillManager>, IInitializable
     {
         Debug.Log($"Updating stats for skill {skill.skillData.Name} to level {targetLevel}");
 
-        newStats = SkillDataManager.Instance.GetSkillStatsForLevel(
+        newStats = DataSystem.SkillDataSystem.GetSkillStatsForLevel(
             skill.skillData.ID,
             targetLevel,
             skill.skillData.Type
@@ -132,7 +112,7 @@ public class SkillManager : Singleton<SkillManager>, IInitializable
                     $"Current level: {existingSkill.currentLevel}, Attempting upgrade to level: {nextLevel}"
                 );
 
-                GameObject levelPrefab = SkillDataManager.Instance.GetLevelPrefab(
+                GameObject levelPrefab = DataSystem.SkillDataSystem.GetLevelPrefab(
                     skillData.ID,
                     nextLevel
                 );
@@ -153,7 +133,7 @@ public class SkillManager : Singleton<SkillManager>, IInitializable
             else
             {
                 GameObject prefab =
-                    SkillDataManager.Instance.GetLevelPrefab(skillData.ID, 1) ?? skillData.Prefab;
+                    DataSystem.SkillDataSystem.GetLevelPrefab(skillData.ID, 1) ?? skillData.Prefab;
 
                 if (prefab != null)
                 {
@@ -306,7 +286,7 @@ public class SkillManager : Singleton<SkillManager>, IInitializable
                     return false;
                 }
 
-                var stats = SkillDataManager.Instance.GetSkillStats(skill.ID, 1);
+                var stats = DataSystem.SkillDataSystem.GetSkillStats(skill.ID, 1);
                 bool hasStats = stats != null;
                 bool matchesElement = elementType == null || skill.Element == elementType;
 

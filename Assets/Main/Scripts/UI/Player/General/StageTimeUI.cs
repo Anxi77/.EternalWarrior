@@ -1,9 +1,10 @@
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class StageTimeUI : MonoBehaviour, IInitializable
 {
-    [SerializeField] private TextMeshProUGUI remainingTimeText;
+    [SerializeField]
+    private TextMeshProUGUI remainingTimeText;
 
     public bool IsInitialized { get; private set; }
     private bool isUIReady = false;
@@ -40,9 +41,10 @@ public class StageTimeUI : MonoBehaviour, IInitializable
 
     private void UpdateTimerDisplay()
     {
-        if (StageTimeManager.Instance == null) return;
+        if (GameManager.Instance.StageTimer == null)
+            return;
 
-        float remainingTime = StageTimeManager.Instance.GetRemainingTime();
+        float remainingTime = GameManager.Instance.StageTimer.GetRemainingTime();
 
         int minutes = Mathf.FloorToInt(remainingTime / 60);
         int seconds = Mathf.FloorToInt(remainingTime % 60);
@@ -51,7 +53,8 @@ public class StageTimeUI : MonoBehaviour, IInitializable
 
     public void Clear()
     {
-        if (remainingTimeText) remainingTimeText.text = "Remaining: 00:00";
+        if (remainingTimeText)
+            remainingTimeText.text = "Remaining: 00:00";
     }
 
     private void OnEnable()
@@ -67,4 +70,3 @@ public class StageTimeUI : MonoBehaviour, IInitializable
         Clear();
     }
 }
-
