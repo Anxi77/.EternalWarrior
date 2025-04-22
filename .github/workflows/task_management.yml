@@ -1,23 +1,12 @@
 name: Task Management
 
 on:
-  # 태스크 제안 처리
-  push:
-    paths:
-      - "TaskProposals/*.csv"
-
-  # 이슈 상태 추적
-  schedule:
-    - cron: "*/10 * * * *"
-
-  # 이슈 및 프로젝트 카드 변경 추적
   issues:
     types: [edited, labeled, unlabeled, assigned, unassigned]
 
   project_card:
-    types: [created, edited, moved, converted, deleted]
+    types: [created, moved, converted, deleted]
 
-  # 프로젝트 V2 이벤트
   workflow_dispatch:
 
 permissions:
@@ -33,10 +22,10 @@ env:
 jobs:
   track-status:
     if: |
-      github.event_name == 'schedule' ||
+      (github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'issues' ||
-      github.event_name == 'project_card'
+      (github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, 'report') && github.actor != 'github-actions[bot]' && !startsWith(github.event.issue.title, '.github/workflows/')) ||
+      (github.event_name == 'project_card' && github.actor != 'github-actions[bot]'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -56,7 +45,6 @@ jobs:
       - name: Update Task Status
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PAT: ${{ secrets.PAT }}
         run: |
           cd .github/scripts
           PYTHONPATH=. python task_report.py
@@ -85,7 +73,6 @@ jobs:
       - name: Update Project
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PAT: ${{ secrets.PAT }}
         run: |
           cd .github/scripts
           PYTHONPATH=. python project_updater.py

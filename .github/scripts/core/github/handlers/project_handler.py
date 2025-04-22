@@ -363,8 +363,18 @@ class GitHubProjectHandler:
             return repo['id'], labels
         return None, {}
 
+    def _is_automated_update(self) -> bool:
+        """자동화된 업데이트인지 확인합니다"""
+        actor = os.environ.get('GITHUB_ACTOR')
+        return actor == 'github-actions[bot]'
+
     def update_project_status(self, task_manager) -> None:
         """프로젝트의 상태를 업데이트합니다."""
+        # 자동화된 업데이트라면 건너뛰기
+        if self._is_automated_update():
+            logger.info("자동화된 업데이트 감지. 재귀 방지를 위해 건너뜁니다.")
+            return
+        
         logger.info("프로젝트 상태 업데이트 시작")
         
         # 프로젝트 필드 정보 가져오기

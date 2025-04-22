@@ -2,6 +2,8 @@
 태스크 리포트 관리 핸들러
 """
 import logging
+import time
+import os
 from datetime import datetime
 from typing import Dict, Optional, Tuple
 
@@ -18,31 +20,60 @@ class ReportHandler:
         """
         self.client = github_client
         self.project_name = project_name
+        self.cache_file = os.path.join(os.path.dirname(__file__), "../../../.cache/last_report_update.txt")
+        os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
+
+    def _should_update_report(self) -> bool:
+        """업데이트 진행 여부를 결정합니다 (쿨다운 적용)"""
+        cooldown_period = 300  # 5분
+        current_time = time.time()
+        
+        try:
+            if os.path.exists(self.cache_file):
+                with open(self.cache_file, 'r') as f:
+                    last_update = float(f.read().strip() or 0)
+                if (current_time - last_update) < cooldown_period:
+                    logger.info(f"마지막 업데이트 이후 {cooldown_period}초가 지나지 않았습니다. 건너뜁니다.")
+                    return False
+        except Exception as e:
+            logger.warning(f"쿨다운 확인 중 오류: {str(e)}")
+        
+        with open(self.cache_file, 'w') as f:
+            f.write(str(current_time))
+        
+        return True
+
+    def _is_automated_update(self) -> bool:
+        """자동화된 업데이트인지 확인합니다"""
+        event_name = os.environ.get('GITHUB_EVENT_NAME')
+        actor = os.environ.get('GITHUB_ACTOR')
+        return actor == 'github-actions[bot]'
 
     def create_or_update_report(self, report_formatter) -> None:
         """프로젝트 보고서를 생성하거나 업데이트합니다."""
         logger.info("프로젝트 보고서 생성/업데이트 시작")
         
-        # 저장소 ID와 라벨 ID 가져오기
+        if self._is_automated_update():
+            logger.info("자동화된 업데이트 감지. 재귀 방지를 위해 건너뜁니다.")
+            return
+            
+        if not self._should_update_report():
+            return
+        
         repo_id, labels = self._get_repository_id()
         if not repo_id:
             logger.error("저장소 ID를 가져오는데 실패했습니다.")
             return
         
-        # report 라벨이 없으면 생성
         if 'report' not in labels:
             logger.info("'report' 라벨이 없어 새로 생성합니다...")
             label_id = self._create_report_label(repo_id)
             if label_id:
                 labels['report'] = label_id
         
-        # 보고서 제목 생성
         report_title = f"📊 프로젝트 진행보고서 - {self.project_name}"
-        
-        # 보고서 본문 생성
         report_body = report_formatter.format_report()
         
-        # 기존 보고서 찾기
         existing_report = self._find_existing_report()
         
         if existing_report:

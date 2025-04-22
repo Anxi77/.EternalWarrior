@@ -21,6 +21,16 @@ logging.getLogger('github').setLevel(logging.WARNING)
 
 def main():
     try:
+        # 이벤트 정보 로깅
+        event_name = os.environ.get('GITHUB_EVENT_NAME', 'unknown')
+        actor = os.environ.get('GITHUB_ACTOR', 'unknown')
+        logger.info(f"이벤트 타입: {event_name}, 액터: {actor}")
+        
+        # 자동화된 업데이트 체크
+        if actor == 'github-actions[bot]' and event_name in ['issues', 'project_card']:
+            logger.info("자동화된 업데이트 감지. 재귀 방지를 위해 종료합니다.")
+            return
+            
         github_token = os.environ.get('PAT') or os.environ.get('GITHUB_TOKEN')
         if not github_token:
             raise ValueError("GitHub 토큰이 설정되지 않았습니다.")
