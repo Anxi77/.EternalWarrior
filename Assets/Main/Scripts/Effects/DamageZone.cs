@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class DamageZone : MonoBehaviour
 {
@@ -18,7 +18,7 @@ public class DamageZone : MonoBehaviour
         this.damage = damage;
         this.tickRate = tickRate;
 
-        // ¿ÀºêÁ§Æ® ½ºÄÉÀÏ ¼³Á¤
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         transform.localScale = new Vector3(width, width, 1f);
 
         if (particleSystem != null)
@@ -41,7 +41,7 @@ public class DamageZone : MonoBehaviour
 
             if (Time.time >= lastDamageTime[other.gameObject] + tickRate)
             {
-                Enemy enemy = other.GetComponent<Enemy>();
+                Monster enemy = other.GetComponent<Monster>();
                 if (enemy != null)
                 {
                     enemy.TakeDamage(damage);

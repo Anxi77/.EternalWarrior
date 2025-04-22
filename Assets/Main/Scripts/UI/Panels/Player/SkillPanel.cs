@@ -116,17 +116,17 @@ public class SkillPanel : MonoBehaviour
         {
             if (existingSkill != null)
             {
-                GameManager.Instance.Player.AddOrUpgradeSkill(skillData);
-                var updatedSkill = GameManager.Instance.Player.skills.Find(s =>
+                GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(skillData);
+                var updatedSkill = GameManager.Instance.PlayerSystem.Player.skills.Find(s =>
                     s.skillData.ID == skillData.ID
                 );
                 skillSelectedCallback?.Invoke(updatedSkill);
             }
             else
             {
-                if (GameManager.Instance.Player.AddOrUpgradeSkill(skillData))
+                if (GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(skillData))
                 {
-                    var newSkill = GameManager.Instance.Player.skills.Find(s =>
+                    var newSkill = GameManager.Instance.PlayerSystem.Player.skills.Find(s =>
                         s.skillData.ID == skillData.ID
                     );
                     skillSelectedCallback?.Invoke(newSkill);
@@ -134,7 +134,7 @@ public class SkillPanel : MonoBehaviour
             }
             LevelUpPanelClose();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error in skill selection: {e.Message}");
             ShowError("Failed to process skill selection");

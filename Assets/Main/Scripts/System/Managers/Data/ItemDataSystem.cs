@@ -13,7 +13,7 @@ public class ItemDataSystem
 
     #region Fields
     private static Dictionary<string, ItemData> itemDatabase = new();
-    private static Dictionary<EnemyType, DropTableData> dropTables = new();
+    private static Dictionary<MonsterType, DropTableData> dropTables = new();
     #endregion
 
     #region Data Loading
@@ -128,9 +128,9 @@ public class ItemDataSystem
         return new Dictionary<string, ItemData>(itemDatabase);
     }
 
-    public Dictionary<EnemyType, DropTableData> GetDropTables()
+    public Dictionary<MonsterType, DropTableData> GetDropTables()
     {
-        return new Dictionary<EnemyType, DropTableData>(dropTables);
+        return new Dictionary<MonsterType, DropTableData>(dropTables);
     }
 
     #endregion

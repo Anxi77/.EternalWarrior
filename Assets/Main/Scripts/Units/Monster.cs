@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-public class Enemy : MonoBehaviour
+public class Monster : MonoBehaviour
 {
     #region Variables
     #region Stats
@@ -51,7 +51,7 @@ public class Enemy : MonoBehaviour
     public float dropRadiusMax = 1.5f;
 
     [SerializeField]
-    public EnemyType enemyType;
+    public MonsterType enemyType;
     #endregion
 
     #region References
@@ -202,9 +202,9 @@ public class Enemy : MonoBehaviour
 
     protected virtual void Initialize()
     {
-        if (GameManager.Instance?.Player != null)
+        if (GameManager.Instance?.PlayerSystem?.Player != null)
         {
-            target = GameManager.Instance.Player.transform;
+            target = GameManager.Instance.PlayerSystem.Player.transform;
             isInit = true;
         }
     }
@@ -816,7 +816,7 @@ public class Enemy : MonoBehaviour
         Vector2 separation = Vector2.zero;
         int neighborCount = 0;
 
-        foreach (Enemy enemy in GameManager.Instance.enemies)
+        foreach (Monster enemy in GameManager.Instance.enemies)
         {
             if (enemy == this)
                 continue;
@@ -906,7 +906,7 @@ public class Enemy : MonoBehaviour
     protected virtual void DropItems()
     {
         float playerLuck = GameManager
-            .Instance.Player.GetComponent<PlayerStatSystem>()
+            .Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>()
             .GetStat(StatType.Luck);
 
         var drops = GameManager.Instance.ItemSystem.GetDropsForEnemy(enemyType, 1f + playerLuck);
@@ -939,8 +939,7 @@ public class Enemy : MonoBehaviour
 
             if (distanceToTarget <= attackRange)
             {
-                // RangedEnemy의 경우 원거리 공격을, MeleeEnemy의 경우 근접 공격을 수행
-                if (this is RangedEnemy || this is BossMonster)
+                if (this is RangedMonster || this is BossMonster)
                 {
                     PerformRangedAttack();
                 }
@@ -958,7 +957,7 @@ public class Enemy : MonoBehaviour
         particle.Play();
         Destroy(particle.gameObject, 0.3f);
 
-        GameManager.Instance.Player.TakeDamage(damage);
+        GameManager.Instance.PlayerSystem.Player?.TakeDamage(damage);
         preDamageTime = Time.time;
     }
 

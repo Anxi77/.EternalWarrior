@@ -42,7 +42,7 @@ public class WorldDropItem : MonoBehaviour
         if (!canPickup)
             return;
 
-        var player = GameManager.Instance?.Player;
+        var player = GameManager.Instance.PlayerSystem.Player;
         if (player != null)
         {
             float pickupRange = player

@@ -14,7 +14,7 @@ public class ItemDataEditorWindow : EditorWindow
 
     #region Fields
     private Dictionary<string, ItemData> itemDatabase = new();
-    private Dictionary<EnemyType, DropTableData> dropTables = new();
+    private Dictionary<MonsterType, DropTableData> dropTables = new();
     private string searchText = "";
     private ItemType typeFilter = ItemType.None;
     private ItemRarity rarityFilter = ItemRarity.Common;
@@ -26,7 +26,7 @@ public class ItemDataEditorWindow : EditorWindow
     private Vector2 itemListScrollPosition;
     private Vector2 itemDetailScrollPosition;
     private Vector2 dropTableScrollPosition;
-    private Dictionary<EnemyType, bool> dropTableFoldouts = new();
+    private Dictionary<MonsterType, bool> dropTableFoldouts = new();
 
     private bool showStatRanges = true;
     private bool showEffects = true;
@@ -356,9 +356,9 @@ public class ItemDataEditorWindow : EditorWindow
                 GUILayout.Height(position.height - 100)
             );
             {
-                foreach (EnemyType enemyType in Enum.GetValues(typeof(EnemyType)))
+                foreach (MonsterType enemyType in Enum.GetValues(typeof(MonsterType)))
                 {
-                    if (enemyType == EnemyType.None)
+                    if (enemyType == MonsterType.None)
                         continue;
                     if (!dropTableFoldouts.ContainsKey(enemyType))
                         dropTableFoldouts[enemyType] = false;
@@ -395,7 +395,7 @@ public class ItemDataEditorWindow : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
-    private void DrawDropTableSettings(EnemyType enemyType)
+    private void DrawDropTableSettings(MonsterType enemyType)
     {
         var dropTables = ItemDataEditorUtility.GetDropTables();
         EditorGUI.BeginChangeCheck();

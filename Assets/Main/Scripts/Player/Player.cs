@@ -327,7 +327,7 @@ public class Player : MonoBehaviour
     private Coroutine autoAttackCoroutine;
     private float attackAngle = 120f;
 
-    private IEnumerator PerformAttack(Enemy targetEnemy)
+    private IEnumerator PerformAttack(Monster targetEnemy)
     {
         if (characterControl == null)
             yield break;
@@ -356,7 +356,7 @@ public class Player : MonoBehaviour
             })
             .ToList();
 
-        foreach (Enemy enemy in enemiesInRange)
+        foreach (Monster enemy in enemiesInRange)
         {
             enemy.TakeDamage(damage);
         }
@@ -364,7 +364,7 @@ public class Player : MonoBehaviour
         playerStatus = Status.Alive;
     }
 
-    private Enemy FindNearestEnemy()
+    private Monster FindNearestEnemy()
     {
         return GameManager
             .Instance.enemies?.Where(enemy => enemy != null)
@@ -455,7 +455,7 @@ public class Player : MonoBehaviour
         {
             if (playerStatus != Status.Dead)
             {
-                Enemy nearestEnemy = FindNearestEnemy();
+                Monster nearestEnemy = FindNearestEnemy();
                 if (nearestEnemy != null)
                 {
                     float distanceToEnemy = Vector2.Distance(

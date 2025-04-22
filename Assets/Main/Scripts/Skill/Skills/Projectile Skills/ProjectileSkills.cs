@@ -210,7 +210,7 @@ public abstract class ProjectileSkills : Skill
 
     protected virtual bool AreEnemiesInRange()
     {
-        foreach (Enemy enemy in GameManager.Instance.enemies)
+        foreach (Monster enemy in GameManager.Instance.enemies)
         {
             if (Vector2.Distance(transform.position, enemy.transform.position) <= HomingRange)
             {
@@ -220,12 +220,12 @@ public abstract class ProjectileSkills : Skill
         return false;
     }
 
-    protected virtual Enemy FindNearestEnemy()
+    protected virtual Monster FindNearestEnemy()
     {
-        Enemy nearestEnemy = null;
+        Monster nearestEnemy = null;
         float nearestDistance = float.MaxValue;
 
-        foreach (Enemy enemy in GameManager.Instance.enemies)
+        foreach (Monster enemy in GameManager.Instance.enemies)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
             if (distance < nearestDistance && distance <= HomingRange)

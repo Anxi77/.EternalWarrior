@@ -16,10 +16,7 @@ public abstract class BaseStateHandler : IGameState
 
     public virtual void OnEnter()
     {
-        if (UI != null)
-        {
-            //UI.CleanupUI();
-        }
+        UI.CloseAllPanels();
     }
 
     public virtual void OnExit()
@@ -33,9 +30,9 @@ public abstract class BaseStateHandler : IGameState
 
     protected virtual void SavePlayerState()
     {
-        if (Game != null && Game.Player != null)
+        if (Game.PlayerSystem.Player != null)
         {
-            if (Game.Player.TryGetComponent<Inventory>(out var inventory))
+            if (Game.PlayerSystem.Player.TryGetComponent<Inventory>(out var inventory))
             {
                 var inventoryData = inventory.GetInventoryData();
                 DataSystem.PlayerDataSystem.SaveInventoryData(inventoryData);
@@ -45,15 +42,5 @@ public abstract class BaseStateHandler : IGameState
                 PlayerSystem.SaveGameState();
             }
         }
-    }
-
-    protected Coroutine StartCoroutine(IEnumerator routine)
-    {
-        return GameManager.Instance.StartCoroutine(routine);
-    }
-
-    protected void StopCoroutine(IEnumerator routine)
-    {
-        GameManager.Instance.StopCoroutine(routine);
     }
 }

@@ -49,7 +49,7 @@ public class InventoryPanel : Panel
 
     private IEnumerator InitializeRoutine()
     {
-        while (GameManager.Instance?.Player == null)
+        while (GameManager.Instance?.PlayerSystem?.Player == null)
         {
             yield return new WaitForSeconds(0.1f);
         }
@@ -59,7 +59,7 @@ public class InventoryPanel : Panel
 
     private void SetupInventory()
     {
-        inventory = GameManager.Instance.Player.GetComponent<Inventory>();
+        inventory = GameManager.Instance.PlayerSystem.Player.GetComponent<Inventory>();
         if (inventory == null)
         {
             Debug.LogError("Inventory component not found on player!");

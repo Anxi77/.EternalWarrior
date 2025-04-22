@@ -94,7 +94,7 @@ public class PassiveSkill : Skill
         if (skillData == null)
             return;
 
-        var playerStat = GameManager.Instance?.Player?.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
         if (playerStat != null)
         {
             float currentHpRatio =
@@ -161,10 +161,7 @@ public class PassiveSkill : Skill
 
     protected virtual void ApplyPassiveEffect()
     {
-        if (GameManager.Instance.Player == null)
-            return;
-
-        Player player = GameManager.Instance.Player;
+        Player player = GameManager.Instance.PlayerSystem.Player;
         if (_isPermanent)
         {
             ApplyPermanentEffect(player);
@@ -303,7 +300,7 @@ public class PassiveSkill : Skill
             return;
         }
 
-        var playerStat = GameManager.Instance?.Player?.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
         float currentHpRatio = 1f;
         if (playerStat != null)
         {
@@ -371,10 +368,10 @@ public class PassiveSkill : Skill
 
     protected virtual void OnDestroy()
     {
-        if (GameManager.Instance?.Player != null)
+        if (GameManager.Instance.PlayerSystem.Player != null)
         {
             StopAllCoroutines();
-            Player player = GameManager.Instance.Player;
+            Player player = GameManager.Instance.PlayerSystem.Player;
             var playerStat = player.GetComponent<PlayerStatSystem>();
 
             playerStat.RemoveStatsBySource(SourceType.Passive);

@@ -7,7 +7,6 @@ public class EnemyProjectile : Projectile
     protected override void Awake()
     {
         base.Awake();
-        // Enemy ���̾���� �浹�� �����ϰ�, Player ���̾���� �浹�� ó��
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), true);
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Player"), false);
     }
@@ -15,7 +14,7 @@ public class EnemyProjectile : Projectile
     public override void OnSpawnFromPool()
     {
         base.OnSpawnFromPool();
-        playerTarget = GameManager.Instance.Player.transform;
+        playerTarget = GameManager.Instance.PlayerSystem.Player.transform;
     }
 
     protected override void OnTriggerEnter2D(Collider2D other)

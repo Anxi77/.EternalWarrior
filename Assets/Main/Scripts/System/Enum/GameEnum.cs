@@ -174,4 +174,11 @@ public enum PanelType
     LevelUp,
 }
 
+public enum MonsterType
+{
+    None,
+    Normal,
+    Elite,
+    Boss,
+}
 #endregion

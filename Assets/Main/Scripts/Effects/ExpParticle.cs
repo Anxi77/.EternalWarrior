@@ -16,8 +16,8 @@ public class ExpParticle : MonoBehaviour, IContactable
 
     private void OnEnable()
     {
-        player = GameManager.Instance?.Player;
-        playerStat = GameManager.Instance?.Player.GetComponent<PlayerStatSystem>();
+        player = GameManager.Instance.PlayerSystem.Player;
+        playerStat = player.GetComponent<PlayerStatSystem>();
     }
 
     private void Start()

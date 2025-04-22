@@ -101,7 +101,7 @@ public class LoadingManager : Singleton<LoadingManager>
     {
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
 
@@ -111,7 +111,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
 
-        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player != null);
 
         AsyncOperation loadTargetScene = SceneManager.LoadSceneAsync(targetSceneName);
 
@@ -142,7 +142,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         loadTargetScene.allowSceneActivation = true;
 
@@ -161,7 +161,7 @@ public class LoadingManager : Singleton<LoadingManager>
     {
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         UIManager.Instance.OpenPanel(PanelType.Loading);
 
@@ -171,7 +171,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
 
-        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player != null);
 
         AsyncOperation loadTargetScene = SceneManager.LoadSceneAsync(targetSceneName);
 
@@ -198,7 +198,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         loadTargetScene.allowSceneActivation = true;
 
@@ -219,7 +219,7 @@ public class LoadingManager : Singleton<LoadingManager>
     {
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
 
@@ -229,7 +229,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
 
-        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player != null);
 
         AsyncOperation loadTargetSceneAsync = SceneManager.LoadSceneAsync(targetSceneName);
         loadTargetSceneAsync.allowSceneActivation = false;
@@ -273,7 +273,7 @@ public class LoadingManager : Singleton<LoadingManager>
 
         GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
 
         loadTargetSceneAsync.allowSceneActivation = true;
 

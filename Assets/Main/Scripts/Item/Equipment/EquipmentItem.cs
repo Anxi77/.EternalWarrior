@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public abstract class EquipmentItem : Item, ISkillModifier
 {
@@ -49,7 +49,11 @@ public abstract class EquipmentItem : Item, ISkillModifier
 
     protected abstract void ValidateItemType(ItemType type);
 
-    public virtual float ModifySkillDamage(float baseDamage, SkillType skillType, ElementType elementType)
+    public virtual float ModifySkillDamage(
+        float baseDamage,
+        SkillType skillType,
+        ElementType elementType
+    )
     {
         float multiplier = 1f;
         foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
@@ -128,7 +132,7 @@ public abstract class EquipmentItem : Item, ISkillModifier
         }
     }
 
-    public virtual void OnSkillHit(Skill skill, Enemy target)
+    public virtual void OnSkillHit(Skill skill, Monster target)
     {
         foreach (var effect in skillEffects)
         {

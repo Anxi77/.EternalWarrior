@@ -53,7 +53,7 @@ public class ItemSystem : MonoBehaviour, IInitializable
         }
     }
 
-    public List<ItemData> GetDropsForEnemy(EnemyType enemyType, float luckMultiplier = 1f)
+    public List<ItemData> GetDropsForEnemy(MonsterType enemyType, float luckMultiplier = 1f)
     {
         var dropTable = DataSystem.ItemDataSystem.GetDropTables()[enemyType];
         if (dropTable == null)

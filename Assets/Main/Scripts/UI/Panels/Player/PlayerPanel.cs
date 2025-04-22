@@ -8,6 +8,9 @@ public class PlayerPanel : Panel
 {
     public override PanelType PanelType => PanelType.PlayerInfo;
 
+    [SerializeField]
+    private PlayerSkillList skillList;
+
     [Header("Player Info Texts")]
     [SerializeField]
     private TextMeshProUGUI playerDefText;

@@ -17,8 +17,8 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
     public float spawnInterval;
 
     [Header("Monster Settings")]
-    public MeleeEnemy meleeEnemyPrefab;
-    public RangedEnemy rangedEnemyPrefab;
+    public MeleeMonster meleeEnemyPrefab;
+    public RangedMonster rangedEnemyPrefab;
 
     [Header("Boss Settings")]
     public BossMonster bossPrefab;
@@ -91,12 +91,12 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
     {
         for (int i = 0; i < count; i++)
         {
-            Vector2 playerPos = GameManager.Instance.Player.transform.position;
+            Vector2 playerPos = GameManager.Instance.PlayerSystem.Player.transform.position;
             Vector2 spawnPos = GetValidSpawnPosition(playerPos);
 
             if (Random.value < 0.5f)
             {
-                PoolManager.Instance.Spawn<MeleeEnemy>(
+                PoolManager.Instance.Spawn<MeleeMonster>(
                     meleeEnemyPrefab.gameObject,
                     spawnPos,
                     Quaternion.identity
@@ -104,7 +104,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
             }
             else
             {
-                PoolManager.Instance.Spawn<RangedEnemy>(
+                PoolManager.Instance.Spawn<RangedMonster>(
                     rangedEnemyPrefab.gameObject,
                     spawnPos,
                     Quaternion.identity
@@ -173,7 +173,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
         StopSpawning();
         ClearCurrentEnemies();
 
-        Vector3 playerPos = GameManager.Instance.Player.transform.position;
+        Vector3 playerPos = GameManager.Instance.PlayerSystem.Player.transform.position;
         Vector3 spawnPos = playerPos + new Vector3(bossSpawnOffset.x, bossSpawnOffset.y, 0);
 
         BossMonster boss = PoolManager.Instance.Spawn<BossMonster>(
@@ -195,7 +195,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
 
     private void ClearCurrentEnemies()
     {
-        var enemies = FindObjectsOfType<Enemy>().Where(e => !(e is BossMonster));
+        var enemies = FindObjectsOfType<Monster>().Where(e => !(e is BossMonster));
         foreach (var enemy in enemies)
         {
             PoolManager.Instance.Despawn(enemy);

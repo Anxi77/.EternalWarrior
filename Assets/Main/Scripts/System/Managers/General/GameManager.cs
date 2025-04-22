@@ -14,9 +14,7 @@ public interface IGameState
 public class GameManager : Singleton<GameManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
-    internal List<Enemy> enemies = new();
-    private Player player;
-    public Player Player => player;
+    internal List<Monster> enemies = new();
 
     private StageTimer stageTimer;
     public StageTimer StageTimer => stageTimer;
@@ -49,6 +47,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
         try
         {
             IsInitialized = true;
+            CreateStateHandlers();
         }
         catch (Exception e)
         {
@@ -82,6 +81,8 @@ public class GameManager : Singleton<GameManager>, IInitializable
     {
         if (!IsInitialized || stateHandlers == null)
             return;
+
+        Debug.Log($"[GameManager] Gamesate transition from [{currentState}] to [{newState}]");
 
         stateTransitionQueue.Enqueue(newState);
 
@@ -139,14 +140,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
         if (!IsInitialized || stateHandlers == null)
             return;
 
-        try
-        {
-            stateHandlers[currentState]?.OnUpdate();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error in state update: {e.Message}");
-        }
+        stateHandlers[currentState]?.OnUpdate();
     }
 
     private void FixedUpdate()
@@ -154,14 +148,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
         if (!IsInitialized || stateHandlers == null)
             return;
 
-        try
-        {
-            stateHandlers[currentState]?.OnFixedUpdate();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error in state fixed update: {e.Message}");
-        }
+        stateHandlers[currentState]?.OnFixedUpdate();
     }
 
     public T GetCurrentHandler<T>()
@@ -194,7 +181,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
             levelCheckCoroutine = null;
         }
 
-        if (Player != null && Player.playerStatus != Player.Status.Dead)
+        if (PlayerSystem.Player != null && PlayerSystem.Player.playerStatus != Player.Status.Dead)
         {
             levelCheckCoroutine = StartCoroutine(CheckLevelUp());
         }
@@ -202,25 +189,28 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     private IEnumerator CheckLevelUp()
     {
-        if (Player == null)
+        if (PlayerSystem.Player == null)
         {
             Debug.LogError("Player reference is null in GameManager");
             yield break;
         }
 
-        lastPlayerLevel = Player.level;
+        lastPlayerLevel = PlayerSystem.Player.level;
 
         while (true)
         {
-            if (Player == null || Player.playerStatus == Player.Status.Dead)
+            if (
+                PlayerSystem.Player == null
+                || PlayerSystem.Player.playerStatus == Player.Status.Dead
+            )
             {
                 levelCheckCoroutine = null;
                 yield break;
             }
 
-            if (Player.level > lastPlayerLevel)
+            if (PlayerSystem.Player.level > lastPlayerLevel)
             {
-                lastPlayerLevel = Player.level;
+                lastPlayerLevel = PlayerSystem.Player.level;
                 OnPlayerLevelUp();
             }
 
@@ -236,29 +226,28 @@ public class GameManager : Singleton<GameManager>, IInitializable
         }
     }
 
-    public void SpawnPortal(Vector3 position, SceneType destinationType)
+    public void SpawnPortal(Vector3 position, SceneType destinationType, Action<SceneType> onEnter)
     {
         if (portalPrefab != null)
         {
             Portal portal = Instantiate(portalPrefab, position, Quaternion.identity);
-            portal.Initialize(destinationType);
+            portal.Initialize(destinationType, onEnter);
         }
     }
 
     public void RespawnPlayer()
     {
-        if (player != null)
+        if (PlayerSystem.Player != null)
         {
-            Destroy(player.gameObject);
-            player = null;
+            PlayerSystem.DespawnPlayer();
         }
 
         Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Town);
         PlayerSystem.SpawnPlayer(spawnPos);
 
-        if (player != null)
+        if (PlayerSystem.Player != null)
         {
-            player.playerStatus = Player.Status.Alive;
+            PlayerSystem.Player.playerStatus = Player.Status.Alive;
             PlayerSystem.LoadGameState();
         }
     }
@@ -271,7 +260,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     public void SaveGameData()
     {
-        if (Player != null)
+        if (PlayerSystem.Player != null)
         {
             PlayerSystem.SaveGameState();
         }
@@ -279,7 +268,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     public void LoadGameData()
     {
-        if (Player != null)
+        if (PlayerSystem.Player != null)
         {
             PlayerSystem.LoadGameState();
         }

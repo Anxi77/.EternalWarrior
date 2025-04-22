@@ -1,13 +1,20 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
-public class RangedEnemy : Enemy
+public class RangedMonster : Monster
 {
     [Header("Ranged Attack Settings")]
-    [SerializeField] private EnemyProjectile projectilePrefab;
-    [SerializeField] private float minAttackDistance = 5f;
-    [SerializeField] private float maxAttackDistance = 15f;
-    [SerializeField] private float attackAnimationDuration = 0.5f;
+    [SerializeField]
+    private EnemyProjectile projectilePrefab;
+
+    [SerializeField]
+    private float minAttackDistance = 5f;
+
+    [SerializeField]
+    private float maxAttackDistance = 15f;
+
+    [SerializeField]
+    private float attackAnimationDuration = 0.5f;
 
     private bool isAttacking = false;
     private Animator animator;
@@ -66,14 +73,18 @@ public class RangedEnemy : Enemy
 
     protected override void MoveDirectlyTowardsTarget()
     {
-        if (isAttacking) return;
+        if (isAttacking)
+            return;
 
         float distanceToTarget = Vector2.Distance(transform.position, target.position);
 
         if (distanceToTarget < minAttackDistance)
         {
-            Vector2 fleeDirection = ((Vector2)transform.position - (Vector2)target.position).normalized;
-            Vector2 fleePosition = (Vector2)transform.position + fleeDirection * moveSpeed * Time.deltaTime;
+            Vector2 fleeDirection = (
+                (Vector2)transform.position - (Vector2)target.position
+            ).normalized;
+            Vector2 fleePosition =
+                (Vector2)transform.position + fleeDirection * moveSpeed * Time.deltaTime;
             transform.position = fleePosition;
         }
         else

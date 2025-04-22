@@ -5,9 +5,14 @@ using UnityEngine;
 public class ExplodingProjectile : Projectile
 {
     [Header("Explosion Settings")]
-    [SerializeField] protected float _explosionRadius = 2f;
+    [SerializeField]
+    protected float _explosionRadius = 2f;
 
-    public float explosionRad { get => _explosionRadius; set => _explosionRadius = value; }
+    public float explosionRad
+    {
+        get => _explosionRadius;
+        set => _explosionRadius = value;
+    }
 
     private ParticleSystem projectileParticle;
 
@@ -33,7 +38,8 @@ public class ExplodingProjectile : Projectile
 
     protected override void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Enemy")) return;
+        if (!other.CompareTag("Enemy"))
+            return;
         StartCoroutine(ExplodeCoroutine());
     }
 
@@ -53,16 +59,23 @@ public class ExplodingProjectile : Projectile
             impactInstance.Play();
             float explosionRadius = GetParticleSystemRadius(impactInstance);
 
-            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(
+                transform.position,
+                explosionRadius
+            );
             foreach (Collider2D hitCollider in hitColliders)
             {
-                if (hitCollider.TryGetComponent<Enemy>(out Enemy enemy))
+                if (hitCollider.TryGetComponent<Monster>(out Monster enemy))
                 {
                     enemy.TakeDamage(_damage);
 
                     if (_elementType != ElementType.None && _elementalPower > 0)
                     {
-                        ElementalEffects.ApplyElementalEffect(_elementType, _elementalPower, hitCollider.gameObject);
+                        ElementalEffects.ApplyElementalEffect(
+                            _elementType,
+                            _elementalPower,
+                            hitCollider.gameObject
+                        );
                     }
                 }
             }

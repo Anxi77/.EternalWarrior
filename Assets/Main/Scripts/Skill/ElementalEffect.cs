@@ -17,7 +17,7 @@ public static class ElementalEffects
         if (target == null || elementalPower <= 0)
             return;
 
-        if (!target.TryGetComponent<Enemy>(out Enemy enemy))
+        if (!target.TryGetComponent<Monster>(out Monster enemy))
         {
             Debug.LogWarning(
                 $"Failed to apply elemental effect: Target {target.name} is not an enemy"
@@ -47,7 +47,7 @@ public static class ElementalEffects
         }
     }
 
-    private static void ApplyDarkEffect(float power, Enemy enemy)
+    private static void ApplyDarkEffect(float power, Monster enemy)
     {
         float defenseReduction = Mathf.Clamp(power * 0.2f, 0.1f, 0.5f);
         enemy.ApplyDefenseDebuff(defenseReduction, DARK_EFFECT_DURATION);
@@ -57,7 +57,7 @@ public static class ElementalEffects
         );
     }
 
-    private static void ApplyWaterEffect(float power, Enemy enemy)
+    private static void ApplyWaterEffect(float power, Monster enemy)
     {
         float slowAmount = Mathf.Clamp(power * 0.3f, 0.2f, 0.6f);
         enemy.ApplySlowEffect(slowAmount, WATER_EFFECT_DURATION);
@@ -67,7 +67,7 @@ public static class ElementalEffects
         );
     }
 
-    private static void ApplyFireEffect(float power, Enemy enemy)
+    private static void ApplyFireEffect(float power, Monster enemy)
     {
         float dotDamage = power * 0.15f;
         enemy.ApplyDotDamage(dotDamage, FIRE_TICK_RATE, FIRE_EFFECT_DURATION);
@@ -77,7 +77,7 @@ public static class ElementalEffects
         );
     }
 
-    private static void ApplyEarthEffect(float power, Enemy enemy)
+    private static void ApplyEarthEffect(float power, Monster enemy)
     {
         float stunDuration = Mathf.Clamp(power * 0.1f, 0.5f, EARTH_EFFECT_DURATION);
         enemy.ApplyStun(power, stunDuration);

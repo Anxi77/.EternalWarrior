@@ -125,7 +125,7 @@ public class SkillLevelUpButton : MonoBehaviour
         {
             buttonClickCallback?.Invoke();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error in button click: {e.Message}");
         }
@@ -372,7 +372,6 @@ public class SkillLevelUpButton : MonoBehaviour
 
         try
         {
-            // 기본 지속시간과 쿨다운
             if (next.effectDuration != current.effectDuration)
             {
                 CompareFloatValue(
@@ -389,7 +388,6 @@ public class SkillLevelUpButton : MonoBehaviour
                 CompareFloatValue(sb, "Cooldown", current.cooldown, next.cooldown, true, "s");
             }
 
-            // 증가량 비교 (0이 아닌 경우에만 표시)
             ComparePassiveIncrease(sb, "Damage", current.damageIncrease, next.damageIncrease);
             ComparePassiveIncrease(sb, "Defense", current.defenseIncrease, next.defenseIncrease);
             ComparePassiveIncrease(
@@ -419,7 +417,6 @@ public class SkillLevelUpButton : MonoBehaviour
                 next.expAreaIncrease
             );
 
-            // 트리거 확률이 100% 미만일 때만 표시
             if (next.triggerChance < 100 || current.triggerChance < 100)
             {
                 CompareFloatValue(
@@ -432,7 +429,6 @@ public class SkillLevelUpButton : MonoBehaviour
                 );
             }
 
-            // 유도 효과 변경 표시
             if (current.homingActivate != next.homingActivate)
             {
                 string status = next.homingActivate ? "Activated" : "Deactivated";
@@ -440,14 +436,13 @@ public class SkillLevelUpButton : MonoBehaviour
                 sb.AppendLine($"Homing Effect: <color={color}>{status}</color>");
             }
 
-            // 디버그 로그 추가
             Debug.Log(
                 $"Comparing passive stats:\n"
                     + $"Current - Damage: {current.damageIncrease}, Speed: {current.moveSpeedIncrease}\n"
                     + $"Next - Damage: {next.damageIncrease}, Speed: {next.moveSpeedIncrease}"
             );
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error comparing passive stats: {e.Message}");
         }

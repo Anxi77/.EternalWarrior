@@ -1,13 +1,20 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
-public class MeleeEnemy : Enemy
+public class MeleeMonster : Monster
 {
     [Header("Melee Attack Settings")]
-    [SerializeField] private float attackAnimationDuration = 0.5f;
-    [SerializeField] private float attackPrepareTime = 0.2f;
-    [SerializeField] private float attackRadius = 1.5f;
-    [SerializeField] private LayerMask attackLayer;
+    [SerializeField]
+    private float attackAnimationDuration = 0.5f;
+
+    [SerializeField]
+    private float attackPrepareTime = 0.2f;
+
+    [SerializeField]
+    private float attackRadius = 1.5f;
+
+    [SerializeField]
+    private LayerMask attackLayer;
 
     private bool isAttacking = false;
     private Animator animator;
@@ -35,14 +42,22 @@ public class MeleeEnemy : Enemy
         animator?.SetTrigger("Attack");
         yield return new WaitForSeconds(attackPrepareTime);
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRadius, attackLayer);
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            attackRadius,
+            attackLayer
+        );
         foreach (var hit in hits)
         {
             if (hit.CompareTag("Player"))
             {
                 if (attackParticle != null)
                 {
-                    var particle = Instantiate(attackParticle, hit.transform.position, Quaternion.identity);
+                    var particle = Instantiate(
+                        attackParticle,
+                        hit.transform.position,
+                        Quaternion.identity
+                    );
                     particle.Play();
                     Destroy(particle.gameObject, 0.3f);
                 }
@@ -57,7 +72,8 @@ public class MeleeEnemy : Enemy
 
     protected override void MoveDirectlyTowardsTarget()
     {
-        if (isAttacking) return;
+        if (isAttacking)
+            return;
         base.MoveDirectlyTowardsTarget();
     }
 

@@ -1,26 +1,22 @@
+using System;
 using UnityEngine;
 
 public class Portal : MonoBehaviour
 {
     private SceneType destinationType;
+    private Action<SceneType> onEnter;
 
-    public void Initialize(SceneType destType)
+    public void Initialize(SceneType destType, Action<SceneType> onEnter)
     {
         destinationType = destType;
+        this.onEnter = onEnter;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        switch (destinationType)
+        if (other.CompareTag("Player"))
         {
-            case SceneType.Main_Town:
-                GameManager.Instance.PlayerSystem.SaveGameState();
-                LoadingManager.Instance.LoadScene(SceneType.Main_Town.ToString());
-                break;
-            case SceneType.Main_Stage:
-                GameManager.Instance.PlayerSystem.SaveGameState();
-                LoadingManager.Instance.LoadScene(SceneType.Main_Stage.ToString());
-                break;
+            onEnter?.Invoke(destinationType);
         }
     }
 }

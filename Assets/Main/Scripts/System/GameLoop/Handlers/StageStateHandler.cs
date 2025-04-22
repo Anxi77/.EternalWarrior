@@ -14,27 +14,15 @@ public class StageStateHandler : BaseStateHandler
 
         UIManager.Instance.ClosePanel(PanelType.Inventory);
 
-        if (Game != null && Game.Player == null)
+        if (Game.PlayerSystem.Player == null)
         {
             Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Stage);
             PlayerSystem.SpawnPlayer(spawnPos);
-            StartCoroutine(InitializeStageAfterPlayerSpawn());
         }
         else
         {
             InitializeStage();
         }
-    }
-
-    private IEnumerator InitializeStageAfterPlayerSpawn()
-    {
-        while (UIManager.Instance.GetPanel(PanelType.Loading) != null)
-        {
-            yield return null;
-        }
-
-        yield return new WaitForSeconds(0.2f);
-        InitializeStage();
     }
 
     private void InitializeStage()
@@ -57,17 +45,17 @@ public class StageStateHandler : BaseStateHandler
             UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
             PlayerPanel playerPanel =
                 UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerPanel;
-            playerPanel.InitializePlayerUI(Game.Player);
+            playerPanel.InitializePlayerUI(Game.PlayerSystem.Player);
         }
 
         Game.StartLevelCheck();
 
-        StartCoroutine(GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION));
+        GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
 
         UIManager.Instance.OpenPanel(PanelType.StageTime);
         isInitialized = true;
 
-        StartCoroutine(StartMonsterSpawningWhenReady());
+        StartMonsterSpawningWhenReady();
     }
 
     private IEnumerator StartMonsterSpawningWhenReady()
@@ -117,6 +105,11 @@ public class StageStateHandler : BaseStateHandler
 
     public void OnBossDefeated(Vector3 position)
     {
-        GameManager.Instance.SpawnPortal(position, SceneType.Main_Town);
+        GameManager.Instance.SpawnPortal(position, SceneType.Main_Town, OnTownPortalEnter);
+    }
+
+    private void OnTownPortalEnter(SceneType sceneType)
+    {
+        Game.ChangeState(GameState.Town);
     }
 }

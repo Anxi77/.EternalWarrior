@@ -17,7 +17,7 @@ public static class ItemDataEditorUtility
 
     #region Data Management
     private static Dictionary<string, ItemData> itemDatabase = new();
-    private static Dictionary<EnemyType, DropTableData> dropTables = new();
+    private static Dictionary<MonsterType, DropTableData> dropTables = new();
 
     public static Dictionary<string, ItemData> GetItemDatabase()
     {
@@ -28,13 +28,13 @@ public static class ItemDataEditorUtility
         return new Dictionary<string, ItemData>(itemDatabase);
     }
 
-    public static Dictionary<EnemyType, DropTableData> GetDropTables()
+    public static Dictionary<MonsterType, DropTableData> GetDropTables()
     {
         if (!dropTables.Any())
         {
             LoadDropTables();
         }
-        return new Dictionary<EnemyType, DropTableData>(dropTables);
+        return new Dictionary<MonsterType, DropTableData>(dropTables);
     }
 
     public static void SaveItemData(ItemData itemData)
@@ -297,13 +297,13 @@ public static class ItemDataEditorUtility
             else
             {
                 Debug.LogWarning("No drop tables found");
-                dropTables = new Dictionary<EnemyType, DropTableData>();
+                dropTables = new Dictionary<MonsterType, DropTableData>();
             }
         }
         catch (Exception e)
         {
             Debug.LogError($"Error loading drop tables: {e.Message}");
-            dropTables = new Dictionary<EnemyType, DropTableData>();
+            dropTables = new Dictionary<MonsterType, DropTableData>();
         }
     }
 
@@ -446,33 +446,33 @@ public static class ItemDataEditorUtility
 
     private static void CreateDefaultDropTables()
     {
-        dropTables = new Dictionary<EnemyType, DropTableData>
+        dropTables = new Dictionary<MonsterType, DropTableData>
         {
             {
-                EnemyType.Normal,
+                MonsterType.Normal,
                 new DropTableData
                 {
-                    enemyType = EnemyType.Normal,
+                    enemyType = MonsterType.Normal,
                     guaranteedDropRate = 0.1f,
                     maxDrops = 2,
                     dropEntries = new List<DropTableEntry>(),
                 }
             },
             {
-                EnemyType.Elite,
+                MonsterType.Elite,
                 new DropTableData
                 {
-                    enemyType = EnemyType.Elite,
+                    enemyType = MonsterType.Elite,
                     guaranteedDropRate = 0.3f,
                     maxDrops = 3,
                     dropEntries = new List<DropTableEntry>(),
                 }
             },
             {
-                EnemyType.Boss,
+                MonsterType.Boss,
                 new DropTableData
                 {
-                    enemyType = EnemyType.Boss,
+                    enemyType = MonsterType.Boss,
                     guaranteedDropRate = 1f,
                     maxDrops = 5,
                     dropEntries = new List<DropTableEntry>(),

@@ -7,32 +7,23 @@ public class TownStateHandler : BaseStateHandler
     {
         base.OnEnter();
 
-        if (Game != null && Game.Player != null && Game.Player.playerStatus == Player.Status.Dead)
+        if (
+            Game.PlayerSystem.Player != null
+            && Game.PlayerSystem.Player.playerStatus == Player.Status.Dead
+        )
         {
             GameManager.Instance.RespawnPlayer();
         }
-        else if (Game != null && Game.Player == null)
+        else if (Game != null && Game.PlayerSystem.Player == null)
         {
             Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Town);
             PlayerSystem.SpawnPlayer(spawnPos);
         }
-
-        StartCoroutine(InitializeTownAfterPlayerSpawn());
-    }
-
-    private IEnumerator InitializeTownAfterPlayerSpawn()
-    {
-        while (Game != null && Game.Player == null || !Game.Player.IsInitialized)
-        {
-            yield return null;
-        }
-
-        InitializeTown();
     }
 
     private void InitializeTown()
     {
-        if (Game != null && Game.Player == null)
+        if (Game != null && Game.PlayerSystem.Player == null)
         {
             Debug.LogError("Cannot initialize town: Player is null");
             return;
@@ -50,10 +41,10 @@ public class TownStateHandler : BaseStateHandler
             UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
             PlayerPanel playerPanel =
                 UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerPanel;
-            playerPanel.InitializePlayerUI(Game.Player);
+            playerPanel.InitializePlayerUI(Game.PlayerSystem.Player);
         }
 
-        Game.Player.TryGetComponent(out Inventory inventory);
+        Game.PlayerSystem.Player.TryGetComponent(out Inventory inventory);
 
         if (inventory != null)
         {
@@ -62,13 +53,16 @@ public class TownStateHandler : BaseStateHandler
 
         UIManager.Instance.OpenPanel(PanelType.Inventory);
 
-        GameManager.Instance.SpawnPortal(Vector3.zero, SceneType.Main_Stage);
+        GameManager.Instance.SpawnPortal(Vector3.zero, SceneType.Main_Stage, OnStagePortalEnter);
+    }
+
+    private void OnStagePortalEnter(SceneType sceneType)
+    {
+        Game.ChangeState(GameState.Stage);
     }
 
     public override void OnExit()
     {
         base.OnExit();
-
-        UIManager.Instance.ClosePanel(PanelType.Inventory);
     }
 }

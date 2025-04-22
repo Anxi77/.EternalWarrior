@@ -596,7 +596,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
             Gizmos.DrawCube(node.worldPosition, Vector3.one * NODE_SIZE * 0.8f);
         }
 
-        var enemies = FindObjectsOfType<Enemy>();
+        var enemies = FindObjectsOfType<Monster>();
         foreach (var enemy in enemies)
         {
             if (enemy?.currentPath != null && enemy.currentPath.Count > 0)

@@ -73,7 +73,7 @@ public class GravityProjectileSkill : ProjectileSkills
     {
         if (IsHoming)
         {
-            Enemy target = FindNearestEnemy();
+            Monster target = FindNearestEnemy();
             if (target != null)
             {
                 proj.SetTarget(target);
@@ -90,12 +90,12 @@ public class GravityProjectileSkill : ProjectileSkills
         }
     }
 
-    protected override Enemy FindNearestEnemy()
+    protected override Monster FindNearestEnemy()
     {
-        Enemy nearestEnemy = null;
+        Monster nearestEnemy = null;
         float nearestDistance = AttackRange;
 
-        Enemy[] enemies = FindObjectsOfType<Enemy>();
+        Monster[] enemies = FindObjectsOfType<Monster>();
         if (enemies.Length == 0)
             return null;
 

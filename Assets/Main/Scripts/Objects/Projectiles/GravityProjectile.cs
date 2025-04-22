@@ -5,16 +5,31 @@ using UnityEngine;
 public class GravityProjectile : Projectile
 {
     [Header("Gravity Settings")]
-    [SerializeField] private float _gravityForce =  5f;
-    [SerializeField] private float _gravityDamageInterval = 0.5f;
-    [SerializeField] private float _startSize = 1f;
-    [SerializeField] private float _endSize = 3f;
-    [SerializeField] private float _growthDuration = 2f;
-    [SerializeField] private float _shrinkDuration = 0.5f;
-    [SerializeField] private float _finalDamageMultiplier = 2f;
-    [SerializeField] private float _finalDamageRadius = 3f;
+    [SerializeField]
+    private float _gravityForce = 5f;
 
-    private List<Enemy> affectedEnemies = new List<Enemy>();
+    [SerializeField]
+    private float _gravityDamageInterval = 0.5f;
+
+    [SerializeField]
+    private float _startSize = 1f;
+
+    [SerializeField]
+    private float _endSize = 3f;
+
+    [SerializeField]
+    private float _growthDuration = 2f;
+
+    [SerializeField]
+    private float _shrinkDuration = 0.5f;
+
+    [SerializeField]
+    private float _finalDamageMultiplier = 2f;
+
+    [SerializeField]
+    private float _finalDamageRadius = 3f;
+
+    private List<Monster> affectedEnemies = new List<Monster>();
     private float damageTimer = 0f;
     private float currentSize;
     private float growthTimer = 0f;
@@ -26,7 +41,9 @@ public class GravityProjectile : Projectile
     private bool hasReachedDestination = false;
     private Vector3 projectileDirection;
     private float projectileSpeed = 10f;
-    [SerializeField] private float homingStrength = 5f;
+
+    [SerializeField]
+    private float homingStrength = 5f;
 
     private bool hasStartedGrowth = false;
 
@@ -63,10 +80,19 @@ public class GravityProjectile : Projectile
     {
         if (isHoming && targetEnemy != null && targetEnemy.gameObject.activeSelf)
         {
-            Vector2 directionToTarget = (targetEnemy.transform.position - transform.position).normalized;
-            projectileDirection = Vector3.Lerp(projectileDirection, directionToTarget, Time.deltaTime * homingStrength);
+            Vector2 directionToTarget = (
+                targetEnemy.transform.position - transform.position
+            ).normalized;
+            projectileDirection = Vector3.Lerp(
+                projectileDirection,
+                directionToTarget,
+                Time.deltaTime * homingStrength
+            );
 
-            float distanceToTarget = Vector2.Distance(transform.position, targetEnemy.transform.position);
+            float distanceToTarget = Vector2.Distance(
+                transform.position,
+                targetEnemy.transform.position
+            );
             if (distanceToTarget <= 0.5f)
             {
                 hasReachedDestination = true;
@@ -93,7 +119,7 @@ public class GravityProjectile : Projectile
 
     protected override void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.TryGetComponent<Enemy>(out _))
+        if (other.TryGetComponent<Monster>(out _))
         {
             hasReachedDestination = true;
         }
@@ -123,7 +149,11 @@ public class GravityProjectile : Projectile
             if (shrinkTimer >= _shrinkDuration)
             {
                 ApplyFinalDamage();
-                var imparticle = PoolManager.Instance.Spawn<ParticleSystem>(impactParticle.gameObject, transform.position, Quaternion.identity);
+                var imparticle = PoolManager.Instance.Spawn<ParticleSystem>(
+                    impactParticle.gameObject,
+                    transform.position,
+                    Quaternion.identity
+                );
                 imparticle.Play();
                 PoolManager.Instance.Despawn<GravityProjectile>(this);
                 PoolManager.Instance.Despawn<ParticleSystem>(imparticle, 1.5f);
@@ -147,28 +177,32 @@ public class GravityProjectile : Projectile
 
         foreach (Collider2D collider in colliders)
         {
-            if (collider.TryGetComponent<Enemy>(out Enemy enemy))
+            if (collider.TryGetComponent<Monster>(out Monster enemy))
             {
                 if (!affectedEnemies.Contains(enemy))
                 {
                     affectedEnemies.Add(enemy);
                 }
 
-                Vector2 directionToProjectile = (Vector2)(transform.position - enemy.transform.position);
+                Vector2 directionToProjectile = (Vector2)(
+                    transform.position - enemy.transform.position
+                );
                 float distance = directionToProjectile.magnitude;
 
                 float gravityMultiplier = 1f - (distance / currentRadius);
                 gravityMultiplier = Mathf.Clamp01(gravityMultiplier);
 
-                Vector2 force = directionToProjectile.normalized * _gravityForce * gravityMultiplier;
+                Vector2 force =
+                    directionToProjectile.normalized * _gravityForce * gravityMultiplier;
                 enemy.transform.position += (Vector3)(force * Time.deltaTime);
             }
         }
 
         affectedEnemies.RemoveAll(enemy =>
-            Vector2.Distance(enemy.transform.position, transform.position) > currentRadius ||
-            enemy == null ||
-            !enemy.gameObject.activeSelf);
+            Vector2.Distance(enemy.transform.position, transform.position) > currentRadius
+            || enemy == null
+            || !enemy.gameObject.activeSelf
+        );
     }
 
     private void ApplyDamageOverTime()
@@ -177,7 +211,7 @@ public class GravityProjectile : Projectile
 
         if (damageTimer >= _gravityDamageInterval)
         {
-            foreach (Enemy enemy in affectedEnemies)
+            foreach (Monster enemy in affectedEnemies)
             {
                 if (enemy != null && enemy.gameObject.activeSelf)
                 {
@@ -193,7 +227,7 @@ public class GravityProjectile : Projectile
         Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, _finalDamageRadius);
         foreach (Collider2D collider in colliders)
         {
-            if (collider.TryGetComponent<Enemy>(out Enemy enemy))
+            if (collider.TryGetComponent<Monster>(out Monster enemy))
             {
                 enemy.TakeDamage(damage * _finalDamageMultiplier);
             }
@@ -238,7 +272,7 @@ public class GravityProjectile : Projectile
         projectileSpeed = speed;
     }
 
-    public void SetTarget(Enemy enemy)
+    public void SetTarget(Monster enemy)
     {
         targetEnemy = enemy;
     }

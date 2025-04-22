@@ -1,19 +1,19 @@
-using UnityEngine;
 using System.Collections;
 using Assets.FantasyMonsters.Common.Scripts;
+using UnityEngine;
 
-public class BossMonster : Enemy
+public class BossMonster : Monster
 {
     [Header("Boss Specific Stats")]
-    public float enrageThreshold = 0.3f; // Ã¼·Â 30% ÀÌÇÏÀÏ ¶§ °İ³ë
+    public float enrageThreshold = 0.3f;
     public float enrageDamageMultiplier = 1.5f;
     public float enrageSpeedMultiplier = 1.3f;
 
-    public Monster monster;
+    public Assets.FantasyMonsters.Common.Scripts.Monster monster;
 
     private bool isEnraged = false;
     private Vector3 startPosition;
-    private Animator animator;  
+    private Animator animator;
 
     protected override void Start()
     {
@@ -25,18 +25,16 @@ public class BossMonster : Enemy
 
     private void InitializeBossStats()
     {
-        // º¸½º ±âº» ½ºÅÈ ¼³Á¤
-        hp *= 5f;  // ÀÏ¹İ ¸ó½ºÅÍº¸´Ù 5¹èÀÇ Ã¼·Â
-        damage *= 2f;  // 2¹èÀÇ µ¥¹ÌÁö
-        moveSpeed *= 0.8f;  // 80%ÀÇ ÀÌµ¿¼Óµµ
-        baseDefense *= 2f;  // 2¹èÀÇ ¹æ¾î·Â
+        hp *= 5f;
+        damage *= 2f;
+        moveSpeed *= 0.8f;
+        baseDefense *= 2f;
     }
 
     public override void TakeDamage(float damage)
     {
         base.TakeDamage(damage);
 
-        // Ã¼·ÂÀÌ Æ¯Á¤ ¼öÁØ ÀÌÇÏ·Î ¶³¾îÁö¸é °İ³ë »óÅÂ
         if (!isEnraged && hp <= maxHp * enrageThreshold)
         {
             EnterEnragedState();
@@ -55,15 +53,11 @@ public class BossMonster : Enemy
         damage *= enrageDamageMultiplier;
         moveSpeed *= enrageSpeedMultiplier;
 
-        // °İ³ë ÀÌÆåÆ® Àç»ı
+        // ï¿½İ³ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
         PlayEnrageEffect();
     }
 
-    private void PlayEnrageEffect()
-    {
-        // °İ³ë »óÅÂ ÀÌÆåÆ® Àç»ı ·ÎÁ÷
-        // ÆÄÆ¼Å¬ ½Ã½ºÅÛ µîÀ» »ç¿ë
-    }
+    private void PlayEnrageEffect() { }
 
     public override void Die()
     {
@@ -71,22 +65,21 @@ public class BossMonster : Enemy
         base.Die();
     }
 
-    // º¸½º Àü¿ë °ø°İ ÆĞÅÏµé
     //private IEnumerator SpecialAttackPattern()
     //{
     //    while (true)
     //    {
-    //        // ±âº» °ø°İ
+    //        // ï¿½âº» ï¿½ï¿½ï¿½ï¿½
     //        yield return new WaitForSeconds(3f);
 
-    //        // ±¤¿ª °ø°İ
+    //        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     //        if (hp < maxHp * 0.7f)
     //        {
     //            AreaAttack();
     //            yield return new WaitForSeconds(5f);
     //        }
 
-    //        // ¼ÒÈ¯ °ø°İ
+    //        // ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
     //        if (hp < maxHp * 0.5f)
     //        {
     //            SummonMinions();
@@ -97,11 +90,11 @@ public class BossMonster : Enemy
 
     //private void AreaAttack()
     //{
-    //    // ±¤¿ª °ø°İ ±¸Çö
+    //    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     //}
 
     //private void SummonMinions()
     //{
-    //    // ÇÏ¼öÀÎ ¼ÒÈ¯ ±¸Çö
+    //    // ï¿½Ï¼ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
     //}
 }

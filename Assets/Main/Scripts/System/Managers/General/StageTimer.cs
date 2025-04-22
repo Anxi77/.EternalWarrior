@@ -24,7 +24,12 @@ public class StageTimer : MonoBehaviour, IInitializable
         }
     }
 
-    public IEnumerator StartStageTimer(float duration)
+    public void StartStageTimer(float duration)
+    {
+        StartCoroutine(StageTimerRoutine(duration));
+    }
+
+    private IEnumerator StageTimerRoutine(float duration)
     {
         stageDuration = duration;
         stageTimer = 0f;

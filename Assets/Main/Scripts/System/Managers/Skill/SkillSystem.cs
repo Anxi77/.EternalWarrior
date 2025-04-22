@@ -26,26 +26,26 @@ public class SkillSystem : MonoBehaviour, IInitializable
     {
         Debug.Log($"Looking for skill with ID: {skillId}");
 
-        if (GameManager.Instance.Player == null)
+        if (GameManager.Instance.PlayerSystem.Player == null)
         {
             Debug.LogError("Player is null");
             return null;
         }
 
-        if (GameManager.Instance.Player.skills == null)
+        if (GameManager.Instance.PlayerSystem.Player.skills == null)
         {
             Debug.LogError("Player skills list is null");
             return null;
         }
 
-        Debug.Log($"Player has {GameManager.Instance.Player.skills.Count} skills");
+        Debug.Log($"Player has {GameManager.Instance.PlayerSystem.Player.skills.Count} skills");
 
-        foreach (var skill in GameManager.Instance.Player.skills)
+        foreach (var skill in GameManager.Instance.PlayerSystem.Player.skills)
         {
             Debug.Log($"Checking skill: {skill.skillData.Name} (ID: {skill.skillData.ID})");
         }
 
-        var foundSkill = GameManager.Instance.Player.skills.Find(s =>
+        var foundSkill = GameManager.Instance.PlayerSystem.Player.skills.Find(s =>
         {
             Debug.Log($"Comparing {s.skillData.ID} with {skillId}");
             return s.skillData.ID == skillId;
@@ -84,14 +84,15 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
     public void AddOrUpgradeSkill(SkillData skillData)
     {
-        if (GameManager.Instance?.Player == null || skillData == null)
+        if (GameManager.Instance?.PlayerSystem?.Player == null || skillData == null)
             return;
 
         try
         {
             Debug.Log($"Adding/Upgrading skill: {skillData.Name} (ID: {skillData.ID})");
 
-            var playerStat = GameManager.Instance.Player.GetComponent<PlayerStatSystem>();
+            var playerStat =
+                GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
             float currentHpRatio = 1f;
             if (playerStat != null)
             {
@@ -140,7 +141,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
                 {
                     var tempObj = Instantiate(
                         prefab,
-                        GameManager.Instance.Player.transform.position,
+                        GameManager.Instance.PlayerSystem.Player.transform.position,
                         Quaternion.identity
                     );
                     tempObj.SetActive(false);
@@ -150,13 +151,15 @@ public class SkillSystem : MonoBehaviour, IInitializable
                         skillComponent.SetSkillData(skillData);
                         skillComponent.Initialize();
 
-                        tempObj.transform.SetParent(GameManager.Instance.Player.transform);
+                        tempObj.transform.SetParent(
+                            GameManager.Instance.PlayerSystem.Player.transform
+                        );
                         tempObj.transform.localPosition = Vector3.zero;
                         tempObj.transform.localRotation = Quaternion.identity;
                         tempObj.transform.localScale = Vector3.one;
 
                         tempObj.SetActive(true);
-                        GameManager.Instance.Player.skills.Add(skillComponent);
+                        GameManager.Instance.PlayerSystem.Player.skills.Add(skillComponent);
                         Debug.Log(
                             $"Successfully added new skill: {skillData.Name} at position {tempObj.transform.localPosition}"
                         );
@@ -191,7 +194,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
         Quaternion rotation = existingSkill.transform.rotation;
         Transform parent = existingSkill.transform.parent;
 
-        var playerStat = GameManager.Instance.Player.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
         float currentHpRatio = 1f;
         float currentHp = 0f;
         float maxHp = 0f;
@@ -208,10 +211,10 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
         if (existingSkill is PassiveSkill passiveSkill)
         {
-            passiveSkill.RemoveEffectFromPlayer(GameManager.Instance.Player);
+            passiveSkill.RemoveEffectFromPlayer(GameManager.Instance.PlayerSystem.Player);
         }
 
-        GameManager.Instance.Player.skills.Remove(existingSkill);
+        GameManager.Instance.PlayerSystem.Player.skills.Remove(existingSkill);
         Destroy(existingSkill.gameObject);
 
         var newObj = Instantiate(newPrefab, position, rotation, parent);
@@ -230,7 +233,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
             }
 
             newSkill.Initialize();
-            GameManager.Instance.Player.skills.Add(newSkill);
+            GameManager.Instance.PlayerSystem.Player.skills.Add(newSkill);
             Debug.Log($"Successfully replaced skill with level {targetLevel} prefab");
 
             if (playerStat != null)
@@ -247,10 +250,10 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
     public void RemoveSkill(SkillID skillID)
     {
-        if (GameManager.Instance.Player == null)
+        if (GameManager.Instance.PlayerSystem.Player == null)
             return;
 
-        Player player = GameManager.Instance.Player;
+        Player player = GameManager.Instance.PlayerSystem.Player;
         Skill skillToRemove = player.skills.Find(x => x.skillData.ID == skillID);
 
         if (skillToRemove != null)

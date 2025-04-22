@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class SlowField : MonoBehaviour
 {
-    [SerializeField] private float slowAmount = 0.5f;
+    [SerializeField]
+    private float slowAmount = 0.5f;
 
     private float damage;
     private float radius;
@@ -40,11 +41,15 @@ public class SlowField : MonoBehaviour
 
     private void ApplyEffects()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, radius, LayerMask.GetMask("Enemy"));
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(
+            transform.position,
+            radius,
+            LayerMask.GetMask("Enemy")
+        );
 
         foreach (Collider2D collider in colliders)
         {
-            if (collider.TryGetComponent<Enemy>(out Enemy enemy))
+            if (collider.TryGetComponent<Monster>(out Monster enemy))
             {
                 enemy.TakeDamage(damage);
                 enemy.ApplySlowEffect(slowAmount, tickRate * 2f);

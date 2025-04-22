@@ -21,10 +21,8 @@ public class SkillTester : MonoBehaviour
 
     private IEnumerator InitializeWhenReady()
     {
-        // �ʿ��� �Ŵ������� �ʱ�ȭ�� ������ ���
         yield return new WaitUntil(() => GameManager.Instance != null);
 
-        // UI ��ҵ��� �Ҵ�Ǿ����� Ȯ��
         if (!ValidateComponents())
         {
             Debug.LogError("SkillTester: Required UI components are missing!");
@@ -85,7 +83,7 @@ public class SkillTester : MonoBehaviour
             return;
         }
 
-        if (GameManager.Instance?.Player == null)
+        if (GameManager.Instance?.PlayerSystem?.Player == null)
         {
             Debug.LogWarning("SkillTester: Player not found!");
             return;
@@ -95,7 +93,7 @@ public class SkillTester : MonoBehaviour
         if (skillDropdown.value < skillDatas.Count)
         {
             var selectedSkill = skillDatas[skillDropdown.value];
-            GameManager.Instance.Player.AddOrUpgradeSkill(selectedSkill);
+            GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(selectedSkill);
             Debug.Log($"SkillTester: Added/Upgraded skill: {selectedSkill.Name}");
         }
     }
@@ -105,7 +103,6 @@ public class SkillTester : MonoBehaviour
         if (!isInitialized)
             return;
 
-        // TŰ�� ���� ���õ� ��ų �߰�
         if (Input.GetKeyDown(KeyCode.T))
         {
             AddSelectedSkill();

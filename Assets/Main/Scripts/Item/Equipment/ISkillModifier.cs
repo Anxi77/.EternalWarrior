@@ -11,5 +11,5 @@ public interface ISkillModifier
     float ModifyAreaDuration(float baseDuration);
 
     void OnSkillCast(Skill skill);
-    void OnSkillHit(Skill skill, Enemy target);
+    void OnSkillHit(Skill skill, Monster target);
 }

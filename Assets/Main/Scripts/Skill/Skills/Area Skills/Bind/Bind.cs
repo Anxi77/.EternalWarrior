@@ -11,7 +11,7 @@ public class Bind : AreaSkills
     public override void Initialize()
     {
         base.Initialize();
-        playerTransform = GameManager.Instance.Player?.transform;
+        playerTransform = GameManager.Instance.PlayerSystem.Player.transform;
         if (playerTransform == null)
         {
             Debug.LogError("Player not found for Bind skill!");
@@ -34,11 +34,11 @@ public class Bind : AreaSkills
             if (playerTransform == null)
                 continue;
 
-            List<Enemy> affectedEnemies = new List<Enemy>();
+            List<Monster> affectedEnemies = new List<Monster>();
 
             if (GameManager.Instance.enemies != null)
             {
-                foreach (Enemy enemy in GameManager.Instance.enemies)
+                foreach (Monster enemy in GameManager.Instance.enemies)
                 {
                     if (enemy != null)
                     {
@@ -85,7 +85,7 @@ public class Bind : AreaSkills
             float elapsedTime = 0f;
             while (elapsedTime < Duration)
             {
-                foreach (Enemy enemy in affectedEnemies)
+                foreach (Monster enemy in affectedEnemies)
                 {
                     if (enemy != null)
                     {
@@ -96,7 +96,7 @@ public class Bind : AreaSkills
                 elapsedTime += TickRate;
             }
 
-            foreach (Enemy enemy in affectedEnemies)
+            foreach (Monster enemy in affectedEnemies)
             {
                 if (enemy != null)
                 {

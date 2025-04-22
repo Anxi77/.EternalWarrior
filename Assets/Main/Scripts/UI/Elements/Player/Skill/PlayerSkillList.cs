@@ -6,77 +6,45 @@ using UnityEngine;
 public class PlayerSkillList : MonoBehaviour
 {
     public PlayerSkillIcon skillIconPrefab;
-    private Player player;
     private List<PlayerSkillIcon> currentIcons = new List<PlayerSkillIcon>();
 
-    private void Awake()
+    public void UpdateSkillList()
     {
-        StartCoroutine(WaitForPlayer());
-    }
+        ClearCurrentIcons();
 
-    private IEnumerator WaitForPlayer()
-    {
-        while (GameManager.Instance == null || GameManager.Instance.Player == null)
-        {
-            yield return null;
-        }
-        player = GameManager.Instance.Player;
-        if (gameObject.activeInHierarchy)
-        {
-            skillListUpdate();
-        }
-    }
+        Player player = GameManager.Instance.PlayerSystem.Player;
 
-    public void skillListUpdate()
-    {
-        if (!gameObject.activeInHierarchy)
+        if (player == null)
+        {
             return;
+        }
 
-        try
+        if (player.skills != null)
         {
-            ClearCurrentIcons();
+            var sortedSkills = player
+                .skills.Where(s => s != null)
+                .OrderBy(s => s.GetSkillData()?.Type)
+                .ThenByDescending(s => s.currentLevel)
+                .ToList();
 
-            if (player == null)
+            foreach (Skill skill in sortedSkills)
             {
-                player = GameManager.Instance?.Player;
-                if (player == null)
+                SkillData skillData = skill.GetSkillData();
+                if (skillData != null)
                 {
-                    StartCoroutine(WaitForPlayer());
-                    return;
+                    PlayerSkillIcon icon = Instantiate(skillIconPrefab, transform);
+                    icon.SetSkillIcon(skillData.Icon, skill);
+                    currentIcons.Add(icon);
                 }
-            }
-
-            if (player.skills != null)
-            {
-                var sortedSkills = player
-                    .skills.Where(s => s != null)
-                    .OrderBy(s => s.GetSkillData()?.Type)
-                    .ThenByDescending(s => s.currentLevel)
-                    .ToList();
-
-                foreach (Skill skill in sortedSkills)
+                else
                 {
-                    SkillData skillData = skill.GetSkillData();
-                    if (skillData != null)
-                    {
-                        PlayerSkillIcon icon = Instantiate(skillIconPrefab, transform);
-                        icon.SetSkillIcon(skillData.Icon, skill);
-                        currentIcons.Add(icon);
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Skill data is null for skill: {skill.name}");
-                    }
+                    Debug.LogWarning($"Skill data is null for skill: {skill.name}");
                 }
-            }
-            else
-            {
-                Debug.LogError("Player skills list is null");
             }
         }
-        catch (System.Exception e)
+        else
         {
-            Debug.LogError($"Error updating skill list: {e.Message}\n{e.StackTrace}");
+            Debug.LogError("Player skills list is null");
         }
     }
 
@@ -88,10 +56,5 @@ public class PlayerSkillList : MonoBehaviour
                 Destroy(icon.gameObject);
         }
         currentIcons.Clear();
-    }
-
-    private void OnEnable()
-    {
-        skillListUpdate();
     }
 }

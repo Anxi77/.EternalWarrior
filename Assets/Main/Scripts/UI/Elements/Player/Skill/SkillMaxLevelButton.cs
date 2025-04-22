@@ -1,14 +1,21 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System;
 
 public class SkillMaxLevelButton : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI titleText;
-    [SerializeField] private TextMeshProUGUI descriptionText;
-    [SerializeField] private Button continueButton;
-    [SerializeField] private Image backgroundImage;
+    [SerializeField]
+    private TextMeshProUGUI titleText;
+
+    [SerializeField]
+    private TextMeshProUGUI descriptionText;
+
+    [SerializeField]
+    private Button continueButton;
+
+    [SerializeField]
+    private Image backgroundImage;
 
     public void Initialize(Action onContinue)
     {
@@ -16,7 +23,8 @@ public class SkillMaxLevelButton : MonoBehaviour
             titleText.text = "All Skills Maxed!";
 
         if (descriptionText != null)
-            descriptionText.text = "Congratulations! All available skills are at maximum level.\nClick to continue.";
+            descriptionText.text =
+                "Congratulations! All available skills are at maximum level.\nClick to continue.";
 
         if (continueButton != null)
         {

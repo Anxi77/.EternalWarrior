@@ -7,7 +7,11 @@ public abstract class SkillInteractionEffectBase : ISkillInteractionEffect
     protected float cooldown;
     protected float lastProcTime;
 
-    public SkillInteractionEffectBase(ItemEffectData effectData, float procChance = 1f, float cooldown = 0f)
+    public SkillInteractionEffectBase(
+        ItemEffectData effectData,
+        float procChance = 1f,
+        float cooldown = 0f
+    )
     {
         this.effectData = effectData;
         this.procChance = procChance;
@@ -17,8 +21,10 @@ public abstract class SkillInteractionEffectBase : ISkillInteractionEffect
 
     protected bool CanTriggerEffect()
     {
-        if (Time.time < lastProcTime + cooldown) return false;
-        if (Random.value > procChance) return false;
+        if (Time.time < lastProcTime + cooldown)
+            return false;
+        if (Random.value > procChance)
+            return false;
 
         lastProcTime = Time.time;
         return true;
@@ -26,9 +32,9 @@ public abstract class SkillInteractionEffectBase : ISkillInteractionEffect
 
     public virtual void OnSkillCast(Skill skill, Player player) { }
 
-    public virtual void OnSkillHit(Skill skill, Player player, Enemy target) { }
+    public virtual void OnSkillHit(Skill skill, Player player, Monster target) { }
 
-    public virtual void OnSkillKill(Skill skill, Player player, Enemy target) { }
+    public virtual void OnSkillKill(Skill skill, Player player, Monster target) { }
 
     public virtual void ModifySkillStats(Skill skill) { }
 }

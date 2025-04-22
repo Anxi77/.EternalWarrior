@@ -5,31 +5,71 @@ using UnityEngine;
 public class Projectile : MonoBehaviour, IPoolable
 {
     [Header("Base Stats")]
-    [SerializeField] protected float _damage = 10f;
-    [SerializeField] protected float _moveSpeed = 10f;
-    [SerializeField] protected float _elementalPower = 1f;
-    [SerializeField] protected ElementType _elementType = ElementType.None;
+    [SerializeField]
+    protected float _damage = 10f;
+
+    [SerializeField]
+    protected float _moveSpeed = 10f;
+
+    [SerializeField]
+    protected float _elementalPower = 1f;
+
+    [SerializeField]
+    protected ElementType _elementType = ElementType.None;
 
     [Header("Projectile Settings")]
-    [SerializeField] protected bool _isHoming = false;
-    [SerializeField] protected int _pierceCount = 1;
-    [SerializeField] protected float _maxTravelDistance = 10f;
+    [SerializeField]
+    protected bool _isHoming = false;
+
+    [SerializeField]
+    protected int _pierceCount = 1;
+
+    [SerializeField]
+    protected float _maxTravelDistance = 10f;
     public ParticleSystem impactParticle;
 
     // Properties
-    public float damage { get => _damage; set => _damage = value; }
-    public float moveSpeed { get => _moveSpeed; set => _moveSpeed = value; }
-    public bool isHoming { get => _isHoming; set => _isHoming = value; }
-    public int pierceCount { get => _pierceCount; set => _pierceCount = value; }
-    public float maxTravelDistance { get => _maxTravelDistance; set => _maxTravelDistance = value; }
-    public float elementalPower { get => _elementalPower; set => _elementalPower = value; }
-    public ElementType elementType { get => _elementType; set => _elementType = value; }
+    public float damage
+    {
+        get => _damage;
+        set => _damage = value;
+    }
+    public float moveSpeed
+    {
+        get => _moveSpeed;
+        set => _moveSpeed = value;
+    }
+    public bool isHoming
+    {
+        get => _isHoming;
+        set => _isHoming = value;
+    }
+    public int pierceCount
+    {
+        get => _pierceCount;
+        set => _pierceCount = value;
+    }
+    public float maxTravelDistance
+    {
+        get => _maxTravelDistance;
+        set => _maxTravelDistance = value;
+    }
+    public float elementalPower
+    {
+        get => _elementalPower;
+        set => _elementalPower = value;
+    }
+    public ElementType elementType
+    {
+        get => _elementType;
+        set => _elementType = value;
+    }
 
     // Runtime variables
     public Vector2 initialPosition;
     public Vector2 direction;
     protected bool hasReachedMaxDistance = false;
-    public Enemy targetEnemy;
+    public Monster targetEnemy;
     protected CircleCollider2D coll;
     protected List<Collider2D> contactedColls = new();
     protected ParticleSystem projectileRender;
@@ -112,7 +152,7 @@ public class Projectile : MonoBehaviour, IPoolable
         if (GameManager.Instance.enemies.Count > 0)
         {
             float targetDistance = float.MaxValue;
-            foreach (Enemy enemy in GameManager.Instance.enemies)
+            foreach (Monster enemy in GameManager.Instance.enemies)
             {
                 float distance = Vector3.Distance(enemy.transform.position, transform.position);
                 if (distance < targetDistance)
@@ -139,7 +179,7 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
-    public virtual void SetInitialTarget(Enemy enemy)
+    public virtual void SetInitialTarget(Monster enemy)
     {
         targetEnemy = enemy;
     }
@@ -165,7 +205,7 @@ public class Projectile : MonoBehaviour, IPoolable
 
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.TryGetComponent<Enemy>(out Enemy enemy))
+        if (!other.TryGetComponent<Monster>(out Monster enemy))
         {
             return;
         }
@@ -182,7 +222,7 @@ public class Projectile : MonoBehaviour, IPoolable
             if (particle != null)
             {
                 particle.Play();
-                PoolManager.Instance.Despawn<ParticleSystem>(particle,0.5f);
+                PoolManager.Instance.Despawn<ParticleSystem>(particle, 0.5f);
             }
         }
 

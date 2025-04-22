@@ -1,9 +1,10 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class RotatingOrb : MonoBehaviour
 {
-    [SerializeField] public GameObject orbPrefab;
+    [SerializeField]
+    public GameObject orbPrefab;
     private float inOutTime = 0f;
     private float inOutSpeed = 2.5f;
     private float inOutDistance = 0.3f;
@@ -29,7 +30,9 @@ public class RotatingOrb : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             float angle = i * angleStep;
-            Vector3 orbPosition = transform.position + (Quaternion.Euler(0, 0, angle) * Vector3.right * parentSkill.Radius);
+            Vector3 orbPosition =
+                transform.position
+                + (Quaternion.Euler(0, 0, angle) * Vector3.right * parentSkill.Radius);
             GameObject orb = Instantiate(orbPrefab, orbPosition, Quaternion.identity, transform);
             orbs.Add(orb);
 
@@ -74,7 +77,9 @@ public class RotatingOrb : MonoBehaviour
         for (int i = 0; i < orbs.Count; i++)
         {
             float angle = (360f / orbs.Count) * i;
-            Vector3 orbPosition = transform.localPosition + (Quaternion.Euler(0, 0, angle) * originalRadius * (1 + offset));
+            Vector3 orbPosition =
+                transform.localPosition
+                + (Quaternion.Euler(0, 0, angle) * originalRadius * (1 + offset));
             orbs[i].transform.localPosition = orbPosition;
         }
     }
@@ -88,7 +93,7 @@ public class OrbDamage : MonoBehaviour
     {
         if (other.CompareTag("Enemy"))
         {
-            Enemy enemy = other.GetComponent<Enemy>();
+            Monster enemy = other.GetComponent<Monster>();
             if (enemy != null)
             {
                 enemy.TakeDamage(damage);

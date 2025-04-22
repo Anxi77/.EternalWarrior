@@ -1,27 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.UI;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerSkillIcon : MonoBehaviour
 {
-    [SerializeField] private Image iconImage;
-    [SerializeField] private TextMeshProUGUI levelText;
-    [SerializeField] private Image elementalBorder;
-    private Skill skill;
+    [SerializeField]
+    private Image iconImage;
+
+    [SerializeField]
+    private TextMeshProUGUI levelText;
+
+    [SerializeField]
+    private Image elementalBorder;
 
     public void SetSkillIcon(Sprite iconSprite, Skill skill)
     {
         try
         {
-            this.skill = skill;
-
             if (iconImage != null)
             {
                 if (iconSprite == null)
                 {
-                    iconSprite = Resources.Load<Sprite>("DefaultSkillIcon");
+                    iconSprite = Resources.Load<Sprite>("Icons/Default/SkillIcon");
                     Debug.LogWarning($"Using default icon for skill: {skill?.GetType().Name}");
                 }
                 iconImage.sprite = iconSprite;
@@ -59,7 +61,7 @@ public class PlayerSkillIcon : MonoBehaviour
             ElementType.Water => new Color(0.3f, 0.3f, 1f, 0.5f),
             ElementType.Earth => new Color(0.3f, 0.8f, 0.3f, 0.5f),
             ElementType.Dark => new Color(0.5f, 0.2f, 0.7f, 0.5f),
-            _ => new Color(1f, 1f, 1f, 0f)
+            _ => new Color(1f, 1f, 1f, 0f),
         };
     }
 
@@ -75,4 +77,3 @@ public class PlayerSkillIcon : MonoBehaviour
             elementalBorder = transform.Find("ElementalBorder")?.GetComponent<Image>();
     }
 }
-

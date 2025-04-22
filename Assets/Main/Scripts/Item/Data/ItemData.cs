@@ -222,7 +222,7 @@ public class DropTableEntry
 public class DropTableData
 {
     [SerializeField]
-    public EnemyType enemyType;
+    public MonsterType enemyType;
 
     [SerializeField]
     public List<DropTableEntry> dropEntries = new();
