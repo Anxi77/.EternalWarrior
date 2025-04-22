@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class ProjectileSkills : Skill
@@ -41,46 +40,24 @@ public abstract class ProjectileSkills : Skill
         if (skillData == null)
             return;
 
-        var csvStats =
+        ProjectileSkillStat statData =
             DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 currentLevel,
                 SkillType.Projectile
             ) as ProjectileSkillStat;
 
-        if (csvStats != null)
+        if (statData != null)
         {
-            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, csvStats);
+            skillData.SetStatsForLevel(currentLevel, statData);
         }
         else
         {
-            Debug.LogWarning($"No CSV data found for {skillData.Name}, using default values");
-            var defaultStats = new ProjectileSkillStat
-            {
-                baseStat = new BaseSkillStat
-                {
-                    damage = _damage,
-                    skillLevel = currentLevel,
-                    maxSkillLevel = 5,
-                    element = skillData.Element,
-                    elementalPower = _elementalPower,
-                },
-                projectileSpeed = _projectileSpeed,
-                projectileScale = _projectileScale,
-                shotInterval = _shotInterval,
-                pierceCount = _pierceCount,
-                attackRange = _attackRange,
-                homingRange = _homingRange,
-                isHoming = _isHoming,
-                explosionRad = _explosionRadius,
-                projectileCount = _projectileCount,
-                innerInterval = _innerInterval,
-            };
-            skillData.SetStatsForLevel(currentLevel, defaultStats);
+            Debug.LogWarning($"No Stat data found for {skillData.Name}");
         }
     }
 
-    protected ProjectileSkillStat TypedStats
+    protected ProjectileSkillStat TypeStat
     {
         get
         {
@@ -92,7 +69,7 @@ public abstract class ProjectileSkills : Skill
                     baseStat = new BaseSkillStat
                     {
                         damage = _damage,
-                        skillLevel = 1,
+                        skillLevel = currentLevel,
                         maxSkillLevel = 5,
                         element = skillData.Element,
                         elementalPower = _elementalPower,
@@ -108,7 +85,7 @@ public abstract class ProjectileSkills : Skill
                     projectileCount = _projectileCount,
                     innerInterval = _innerInterval,
                 };
-                skillData?.SetStatsForLevel(1, stats);
+                skillData?.SetStatsForLevel(currentLevel, stats);
             }
             return stats;
         }
@@ -358,7 +335,7 @@ public abstract class ProjectileSkills : Skill
 
         try
         {
-            var currentStats = TypedStats;
+            var currentStats = TypeStat;
             if (currentStats == null || currentStats.baseStat == null)
             {
                 return;

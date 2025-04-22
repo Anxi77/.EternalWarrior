@@ -202,9 +202,9 @@ public class Enemy : MonoBehaviour
 
     protected virtual void Initialize()
     {
-        if (GameManager.Instance?.player != null)
+        if (GameManager.Instance?.Player != null)
         {
-            target = GameManager.Instance.player.transform;
+            target = GameManager.Instance.Player.transform;
             isInit = true;
         }
     }
@@ -906,7 +906,7 @@ public class Enemy : MonoBehaviour
     protected virtual void DropItems()
     {
         float playerLuck = GameManager
-            .Instance.player.GetComponent<PlayerStatSystem>()
+            .Instance.Player.GetComponent<PlayerStatSystem>()
             .GetStat(StatType.Luck);
 
         var drops = GameManager.Instance.ItemSystem.GetDropsForEnemy(enemyType, 1f + playerLuck);
@@ -958,7 +958,7 @@ public class Enemy : MonoBehaviour
         particle.Play();
         Destroy(particle.gameObject, 0.3f);
 
-        GameManager.Instance.player.TakeDamage(damage);
+        GameManager.Instance.Player.TakeDamage(damage);
         preDamageTime = Time.time;
     }
 

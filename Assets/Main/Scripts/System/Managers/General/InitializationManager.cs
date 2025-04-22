@@ -19,7 +19,7 @@ public class InitializationManager : MonoBehaviour
         {
             yield return null;
         }
-        LoadingManager.Instance?.LoadMainMenu();
+        LoadingManager.Instance.LoadScene(SceneType.Main_Title.ToString());
     }
 
     private void CreateManagerObjects()

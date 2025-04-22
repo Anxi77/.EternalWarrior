@@ -34,30 +34,7 @@ public abstract class AreaSkills : Skill
     public bool IsPersistent => _isPersistent;
     public float MoveSpeed => _moveSpeed;
 
-    protected override void InitializeSkillData()
-    {
-        if (skillData == null)
-            return;
-
-        var skillStats =
-            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-                skillData.ID,
-                skillData.GetSkillStats().baseStat.skillLevel,
-                SkillType.Area
-            ) as AreaSkillStat;
-
-        if (skillStats != null)
-        {
-            UpdateInspectorValues(skillStats);
-            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, skillStats);
-        }
-        else
-        {
-            Debug.LogWarning($"No Stat data found for Skill : {skillData.Name}");
-        }
-    }
-
-    protected AreaSkillStat TypedStats
+    protected AreaSkillStat TypeStats
     {
         get
         {
@@ -69,10 +46,10 @@ public abstract class AreaSkills : Skill
                     baseStat = new BaseSkillStat
                     {
                         damage = _damage,
-                        skillLevel = 1,
+                        skillLevel = currentLevel,
                         maxSkillLevel = 5,
                         element = skillData?.Element ?? ElementType.None,
-                        elementalPower = 1f,
+                        elementalPower = _elementalPower,
                     },
                     radius = _radius,
                     duration = _duration,
@@ -80,9 +57,32 @@ public abstract class AreaSkills : Skill
                     isPersistent = _isPersistent,
                     moveSpeed = _moveSpeed,
                 };
-                skillData?.SetStatsForLevel(1, stats);
+                skillData?.SetStatsForLevel(currentLevel, stats);
             }
             return stats;
+        }
+    }
+
+    protected override void InitializeSkillData()
+    {
+        if (skillData == null)
+            return;
+
+        var skillStats =
+            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
+                skillData.ID,
+                currentLevel,
+                SkillType.Area
+            ) as AreaSkillStat;
+
+        if (skillStats != null)
+        {
+            UpdateInspectorValues(skillStats);
+            skillData.SetStatsForLevel(currentLevel, skillStats);
+        }
+        else
+        {
+            Debug.LogWarning($"No Stat data found for Skill : {skillData.Name}");
         }
     }
 
@@ -149,7 +149,7 @@ public abstract class AreaSkills : Skill
 
         try
         {
-            var currentStats = TypedStats;
+            var currentStats = TypeStats;
             if (currentStats == null || currentStats.baseStat == null)
             {
                 return;

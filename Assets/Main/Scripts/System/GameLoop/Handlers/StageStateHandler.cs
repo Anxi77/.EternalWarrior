@@ -1,0 +1,122 @@
+using System.Collections;
+using UnityEngine;
+
+public class StageStateHandler : BaseStateHandler
+{
+    private const float STAGE_DURATION = 600f;
+    private bool isBossPhase = false;
+    private bool isInitialized = false;
+
+    public override void OnEnter()
+    {
+        base.OnEnter();
+        isInitialized = false;
+
+        UIManager.Instance.ClosePanel(PanelType.Inventory);
+
+        if (Game != null && Game.Player == null)
+        {
+            Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Stage);
+            PlayerSystem.SpawnPlayer(spawnPos);
+            StartCoroutine(InitializeStageAfterPlayerSpawn());
+        }
+        else
+        {
+            InitializeStage();
+        }
+    }
+
+    private IEnumerator InitializeStageAfterPlayerSpawn()
+    {
+        while (UIManager.Instance.GetPanel(PanelType.Loading) != null)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.2f);
+        InitializeStage();
+    }
+
+    private void InitializeStage()
+    {
+        if (Game.HasSaveData())
+        {
+            PlayerSystem.LoadGameState();
+        }
+
+        GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Stage);
+
+        if (GameManager.Instance.PathFindingSystem != null)
+        {
+            GameManager.Instance.PathFindingSystem.gameObject.SetActive(true);
+            GameManager.Instance.PathFindingSystem.InitializeWithNewCamera();
+        }
+
+        if (UIManager.Instance.GetPanel(PanelType.PlayerInfo) != null)
+        {
+            UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
+            PlayerPanel playerPanel =
+                UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerPanel;
+            playerPanel.InitializePlayerUI(Game.Player);
+        }
+
+        Game.StartLevelCheck();
+
+        StartCoroutine(GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION));
+
+        UIManager.Instance.OpenPanel(PanelType.StageTime);
+        isInitialized = true;
+
+        StartCoroutine(StartMonsterSpawningWhenReady());
+    }
+
+    private IEnumerator StartMonsterSpawningWhenReady()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        if (MonsterManager.Instance != null)
+        {
+            MonsterManager.Instance.StartSpawning();
+        }
+    }
+
+    public override void OnExit()
+    {
+        isInitialized = false;
+
+        base.OnExit();
+
+        MonsterManager.Instance?.StopSpawning();
+        GameManager.Instance.StageTimer?.PauseTimer();
+        GameManager.Instance.StageTimer?.ResetTimer();
+        GameManager.Instance.CameraSystem?.ClearCamera();
+
+        if (GameManager.Instance.PathFindingSystem != null)
+        {
+            GameManager.Instance.PathFindingSystem.gameObject.SetActive(false);
+        }
+    }
+
+    public override void OnUpdate()
+    {
+        if (!isInitialized)
+            return;
+
+        if (!isBossPhase && GameManager.Instance.StageTimer.IsStageTimeUp())
+        {
+            StartBossPhase();
+        }
+    }
+
+    private void StartBossPhase()
+    {
+        isBossPhase = true;
+        UIManager.Instance.OpenPanel(PanelType.BossWarning);
+        MonsterManager.Instance?.SpawnStageBoss();
+    }
+
+    public void OnBossDefeated(Vector3 position)
+    {
+        GameManager.Instance.SpawnPortal(position, SceneType.Main_Town);
+    }
+}

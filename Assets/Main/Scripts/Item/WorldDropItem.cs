@@ -1,12 +1,19 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 public class WorldDropItem : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private CircleCollider2D pickupCollider;
-    [SerializeField] private float pickupDelay = 0.5f;
-    [SerializeField] private float magnetSpeed = 10f;
+    [SerializeField]
+    private SpriteRenderer spriteRenderer;
+
+    [SerializeField]
+    private CircleCollider2D pickupCollider;
+
+    [SerializeField]
+    private float pickupDelay = 0.5f;
+
+    [SerializeField]
+    private float magnetSpeed = 10f;
 
     private ItemData itemData;
     private bool canPickup = false;
@@ -32,12 +39,15 @@ public class WorldDropItem : MonoBehaviour
 
     private void Update()
     {
-        if (!canPickup) return;
+        if (!canPickup)
+            return;
 
-        var player = GameManager.Instance?.player;
+        var player = GameManager.Instance?.Player;
         if (player != null)
         {
-            float pickupRange = player.GetComponent<PlayerStatSystem>().GetStat(StatType.ExpCollectionRadius);
+            float pickupRange = player
+                .GetComponent<PlayerStatSystem>()
+                .GetStat(StatType.ExpCollectionRadius);
             float distance = Vector2.Distance(transform.position, player.transform.position);
 
             if (distance <= pickupRange)
@@ -74,8 +84,10 @@ public class WorldDropItem : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!canPickup) return;
-        if (!other.CompareTag("Player")) return;
+        if (!canPickup)
+            return;
+        if (!other.CompareTag("Player"))
+            return;
 
         var inventory = other.GetComponent<Inventory>();
         if (inventory != null)

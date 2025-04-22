@@ -7,7 +7,7 @@ public class EnemyProjectile : Projectile
     protected override void Awake()
     {
         base.Awake();
-        // Enemy ·¹ÀÌ¾î¿ÍÀÇ Ãæµ¹Àº ¹«½ÃÇÏ°í, Player ·¹ÀÌ¾î¿ÍÀÇ Ãæµ¹¸¸ Ã³¸®
+        // Enemy ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½, Player ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ï¿½ï¿½ Ã³ï¿½ï¿½
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Enemy"), true);
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Player"), false);
     }
@@ -15,7 +15,7 @@ public class EnemyProjectile : Projectile
     public override void OnSpawnFromPool()
     {
         base.OnSpawnFromPool();
-        playerTarget = GameManager.Instance.player.transform;
+        playerTarget = GameManager.Instance.Player.transform;
     }
 
     protected override void OnTriggerEnter2D(Collider2D other)
@@ -45,7 +45,11 @@ public class EnemyProjectile : Projectile
 
             if (elementType != ElementType.None && elementalPower > 0)
             {
-                ElementalEffects.ApplyElementalEffect(elementType, elementalPower, other.gameObject);
+                ElementalEffects.ApplyElementalEffect(
+                    elementType,
+                    elementalPower,
+                    other.gameObject
+                );
             }
 
             PoolManager.Instance.Despawn(this);

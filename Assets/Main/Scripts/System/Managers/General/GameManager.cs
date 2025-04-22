@@ -15,8 +15,9 @@ public class GameManager : Singleton<GameManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
     internal List<Enemy> enemies = new();
-    internal Player player;
-    private bool hasInitializedGame = false;
+    private Player player;
+    public Player Player => player;
+
     private StageTimer stageTimer;
     public StageTimer StageTimer => stageTimer;
     private CameraSystem cameraSystem;
@@ -27,6 +28,8 @@ public class GameManager : Singleton<GameManager>, IInitializable
     public SkillSystem SkillSystem => skillSystem;
     private PathFindingSystem pathFindingSystem;
     public PathFindingSystem PathFindingSystem => pathFindingSystem;
+    private PlayerSystem playerSystem;
+    public PlayerSystem PlayerSystem => playerSystem;
 
     private int lastPlayerLevel = 1;
     private Coroutine levelCheckCoroutine;
@@ -37,6 +40,9 @@ public class GameManager : Singleton<GameManager>, IInitializable
     private bool isStateTransitioning = false;
 
     private readonly Queue<GameState> stateTransitionQueue = new();
+
+    [SerializeField]
+    private Portal portalPrefab;
 
     public void Initialize()
     {
@@ -188,7 +194,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
             levelCheckCoroutine = null;
         }
 
-        if (player != null && player.playerStatus != Player.Status.Dead)
+        if (Player != null && Player.playerStatus != Player.Status.Dead)
         {
             levelCheckCoroutine = StartCoroutine(CheckLevelUp());
         }
@@ -196,25 +202,25 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     private IEnumerator CheckLevelUp()
     {
-        if (player == null)
+        if (Player == null)
         {
             Debug.LogError("Player reference is null in GameManager");
             yield break;
         }
 
-        lastPlayerLevel = player.level;
+        lastPlayerLevel = Player.level;
 
         while (true)
         {
-            if (player == null || player.playerStatus == Player.Status.Dead)
+            if (Player == null || Player.playerStatus == Player.Status.Dead)
             {
                 levelCheckCoroutine = null;
                 yield break;
             }
 
-            if (player.level > lastPlayerLevel)
+            if (Player.level > lastPlayerLevel)
             {
-                lastPlayerLevel = player.level;
+                lastPlayerLevel = Player.level;
                 OnPlayerLevelUp();
             }
 
@@ -226,38 +232,56 @@ public class GameManager : Singleton<GameManager>, IInitializable
     {
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.ShowLevelUpPanel();
+            UIManager.Instance.OpenPanel(PanelType.LevelUp);
+        }
+    }
+
+    public void SpawnPortal(Vector3 position, SceneType destinationType)
+    {
+        if (portalPrefab != null)
+        {
+            Portal portal = Instantiate(portalPrefab, position, Quaternion.identity);
+            portal.Initialize(destinationType);
+        }
+    }
+
+    public void RespawnPlayer()
+    {
+        if (player != null)
+        {
+            Destroy(player.gameObject);
+            player = null;
+        }
+
+        Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Town);
+        PlayerSystem.SpawnPlayer(spawnPos);
+
+        if (player != null)
+        {
+            player.playerStatus = Player.Status.Alive;
+            PlayerSystem.LoadGameState();
         }
     }
 
     #region Game State Management
     public void InitializeNewGame()
     {
-        if (!hasInitializedGame)
-        {
-            DataSystem.PlayerDataSystem.LoadPlayerData();
-            hasInitializedGame = true;
-        }
-        else
-        {
-            ClearGameData();
-            DataSystem.PlayerDataSystem.LoadPlayerData();
-        }
+        DataSystem.PlayerDataSystem.LoadPlayerData();
     }
 
     public void SaveGameData()
     {
-        if (player != null)
+        if (Player != null)
         {
-            PlayerUnitManager.Instance.SaveGameState();
+            PlayerSystem.SaveGameState();
         }
     }
 
     public void LoadGameData()
     {
-        if (player != null)
+        if (Player != null)
         {
-            PlayerUnitManager.Instance.LoadGameState();
+            PlayerSystem.LoadGameState();
         }
     }
 
@@ -270,6 +294,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
     {
         return DataSystem.PlayerDataSystem.HasSaveData();
     }
+
     #endregion
 
     protected override void OnApplicationQuit()

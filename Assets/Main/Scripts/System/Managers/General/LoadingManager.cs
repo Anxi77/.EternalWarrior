@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using Michsky.UI.Heat;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,218 +10,310 @@ public enum SceneType
     Main_Title,
     Main_Town,
     Main_Stage,
+    Main_Loading,
     Test,
 }
 
 public class LoadingManager : Singleton<LoadingManager>
 {
-    [Header("Portal Settings")]
-    [SerializeField]
-    private GameObject portalPrefab;
+    private const string LOADING_SCENE_NAME = "Main_Loading";
+    private const float MINIMUM_LOADING_TIME = 3f;
 
-    [SerializeField]
-    private Vector3 townPortalPosition = new(10, 0, 0);
+    private LoadingPanel loadingUI;
+    public LoadingPanel LoadingUI => loadingUI;
+    private ProgressBar progressBar;
 
-    #region Scene Loading
-    public void LoadMainMenu()
+    private bool isLoading = false;
+
+    public event Action<float> OnProgressUpdated;
+
+    public void Initialize()
     {
-        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Title));
-    }
-
-    public void LoadTownScene()
-    {
-        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Town));
-    }
-
-    public void LoadGameScene()
-    {
-        StartCoroutine(LoadSceneCoroutine(SceneType.Main_Stage));
-    }
-
-    public void LoadTestScene()
-    {
-        StartCoroutine(LoadSceneCoroutine(SceneType.Test));
-    }
-
-    private IEnumerator LoadSceneCoroutine(SceneType sceneType)
-    {
-        UIManager.Instance.ShowLoadingScreen();
-        UIManager.Instance.UpdateLoadingProgress(0f);
-        Time.timeScale = 0f;
-
-        float progress = 0f;
-        while (progress < 10f)
+        if (loadingUI == null)
         {
-            progress += Time.unscaledDeltaTime * 50f;
-            UIManager.Instance.UpdateLoadingProgress(progress);
+            loadingUI = UIManager.Instance.OpenPanel(PanelType.Loading) as LoadingPanel;
+        }
+
+        loadingUI.Close(false);
+    }
+
+    /// <summary>
+    /// 씬을 로딩합니다.
+    /// </summary>
+    /// <param name="sceneName">로드할 씬 이름</param>
+    /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
+    public void LoadScene(string sceneName, Action onComplete = null)
+    {
+        if (isLoading)
+            return;
+
+        isLoading = true;
+
+        UIManager.Instance.CloseAllPanels();
+
+        StartCoroutine(LoadSceneRoutine(sceneName, onComplete));
+    }
+
+    /// <summary>
+    /// 여러 비동기 작업을 로딩합니다.
+    /// </summary>
+    /// <param name="operations">비동기 작업 목록</param>
+    /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
+    public void LoadScene(
+        string targetSceneName,
+        List<Func<IEnumerator>> operations,
+        Action onComplete = null
+    )
+    {
+        if (isLoading)
+            return;
+
+        isLoading = true;
+
+        UIManager.Instance.CloseAllPanels();
+
+        StartCoroutine(LoadOperations(targetSceneName, operations, onComplete));
+    }
+
+    /// <summary>
+    /// 비동기 작업을 로딩합니다.
+    /// </summary>
+    /// <param name="asyncOperation">비동기 작업</param>
+    /// <param name="loadingText">로딩 텍스트</param>
+    /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
+    public void LoadScene(
+        string targetSceneName,
+        Func<IEnumerator> asyncOperation,
+        Action onComplete = null
+    )
+    {
+        if (isLoading)
+            return;
+
+        isLoading = true;
+
+        UIManager.Instance.CloseAllPanels();
+
+        StartCoroutine(LoadOpertion(targetSceneName, asyncOperation, onComplete));
+    }
+
+    private IEnumerator LoadSceneRoutine(string targetSceneName, Action onComplete)
+    {
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
+
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+
+        AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
+
+        yield return new WaitUntil(() => loadLoadingScene.isDone);
+
+        UIManager.Instance.OpenPanel(PanelType.Loading);
+
+        GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
+
+        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+
+        AsyncOperation loadTargetScene = SceneManager.LoadSceneAsync(targetSceneName);
+
+        loadTargetScene.allowSceneActivation = false;
+
+        loadingUI.Open();
+
+        float startTime = Time.time;
+        float progress = 0;
+
+        while (!loadTargetScene.isDone)
+        {
+            UpdateProgress(0);
+
+            progress = Mathf.Clamp01(loadTargetScene.progress / 0.9f);
+
+            UpdateProgress(progress);
+
+            if (progress >= 1.0f && (Time.time - startTime) >= MINIMUM_LOADING_TIME)
+            {
+                loadTargetScene.allowSceneActivation = true;
+            }
+
             yield return null;
         }
 
-        CleanupCurrentScene();
+        isLoading = false;
 
-        if (sceneType.ToString().Contains("Test"))
-        {
-            progress = 10f;
-            while (progress < 70f)
-            {
-                progress += Time.unscaledDeltaTime * 100f;
-                UIManager.Instance.UpdateLoadingProgress(progress);
-                yield return null;
-            }
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-            SceneManager.LoadScene(sceneType.ToString());
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
 
-            yield return new WaitForSeconds(0.5f);
-        }
-        else
-        {
-            AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneType.ToString());
-            asyncLoad.allowSceneActivation = false;
+        loadTargetScene.allowSceneActivation = true;
 
-            while (asyncLoad.progress < 0.9f)
-            {
-                progress = Mathf.Lerp(10f, 70f, asyncLoad.progress / 0.9f);
-                UIManager.Instance.UpdateLoadingProgress(progress);
-                yield return null;
-            }
+        yield return new WaitUntil(() => loadTargetScene.isDone);
 
-            asyncLoad.allowSceneActivation = true;
-            while (!asyncLoad.isDone)
-            {
-                yield return null;
-            }
-        }
+        loadingUI.Close(false);
 
-        switch (sceneType)
-        {
-            case SceneType.Main_Title:
-                UIManager.Instance.SetupMainMenuUI();
-                break;
-            default:
-                UIManager.Instance.SetupGameUI();
-                break;
-        }
-
-        switch (sceneType)
-        {
-            case SceneType.Main_Title:
-                GameManager.Instance.ChangeState(GameState.Title);
-                break;
-            case SceneType.Main_Town:
-                GameManager.Instance.ChangeState(GameState.Town);
-                break;
-            case SceneType.Main_Stage:
-            case SceneType.Test:
-                GameManager.Instance.ChangeState(GameState.Stage);
-                break;
-        }
-
-        while (!IsSceneReady(sceneType))
-        {
-            progress = Mathf.Lerp(80f, 95f, Time.unscaledDeltaTime);
-            UIManager.Instance.UpdateLoadingProgress(progress);
-            yield return null;
-        }
-
-        while (progress < 100f)
-        {
-            progress += Time.unscaledDeltaTime * 50f;
-            UIManager.Instance.UpdateLoadingProgress(Mathf.Min(100f, progress));
-            yield return null;
-        }
-
-        UIManager.Instance.HideLoadingScreen();
-        Time.timeScale = 1f;
+        onComplete?.Invoke();
     }
 
-    private bool IsSceneReady(SceneType sceneType)
+    private IEnumerator LoadOpertion(
+        string targetSceneName,
+        Func<IEnumerator> asyncOperation,
+        Action onComplete = null
+    )
     {
-        switch (sceneType)
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
+
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+
+        UIManager.Instance.OpenPanel(PanelType.Loading);
+
+        AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
+
+        yield return new WaitUntil(() => loadLoadingScene.isDone);
+
+        GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
+
+        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+
+        AsyncOperation loadTargetScene = SceneManager.LoadSceneAsync(targetSceneName);
+
+        loadTargetScene.allowSceneActivation = false;
+
+        float startTime = Time.time;
+
+        var operationCoroutine = asyncOperation();
+
+        while (operationCoroutine.MoveNext())
         {
-            case SceneType.Main_Title:
-                return UIManager.Instance != null && UIManager.Instance.IsMainMenuActive();
+            if (operationCoroutine.Current is float progressValue)
+            {
+                UpdateProgress(progressValue);
+            }
+            yield return operationCoroutine.Current;
+        }
 
-            case SceneType.Main_Town:
-                return GameManager.Instance?.player != null
-                    && GameManager.Instance.CameraSystem?.IsInitialized == true
-                    && UIManager.Instance?.playerUIPanel != null
-                    && UIManager.Instance.IsGameUIReady();
+        float elapsedTime = Time.time - startTime;
+        if (elapsedTime < MINIMUM_LOADING_TIME)
+        {
+            yield return new WaitForSeconds(MINIMUM_LOADING_TIME - elapsedTime);
+        }
 
-            case SceneType.Main_Stage:
-            case SceneType.Test:
-                bool isReady =
-                    GameManager.Instance?.player != null
-                    && GameManager.Instance.CameraSystem?.IsInitialized == true
-                    && UIManager.Instance?.playerUIPanel != null
-                    && UIManager.Instance.IsGameUIReady()
-                    && MonsterManager.Instance?.IsInitialized == true;
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
 
-                if (!isReady)
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+
+        loadTargetScene.allowSceneActivation = true;
+
+        yield return new WaitUntil(() => loadTargetScene.isDone);
+
+        loadingUI.Close(false);
+
+        isLoading = false;
+
+        onComplete?.Invoke();
+    }
+
+    private IEnumerator LoadOperations(
+        string targetSceneName,
+        List<Func<IEnumerator>> operations,
+        Action onComplete
+    )
+    {
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
+
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+
+        AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
+
+        yield return new WaitUntil(() => loadLoadingScene.isDone);
+
+        UIManager.Instance.OpenPanel(PanelType.Loading);
+
+        GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
+
+        yield return new WaitUntil(() => GameManager.Instance.Player != null);
+
+        AsyncOperation loadTargetSceneAsync = SceneManager.LoadSceneAsync(targetSceneName);
+        loadTargetSceneAsync.allowSceneActivation = false;
+
+        loadingUI.Open();
+
+        float startTime = Time.time;
+
+        float totalOperations = operations.Count;
+        float accumulatedProgress = 0f;
+
+        for (int i = 0; i < operations.Count; i++)
+        {
+            var operation = operations[i];
+            var operationCoroutine = operation();
+
+            float baseProgress = i / totalOperations;
+            float operationWeight = 1f / totalOperations;
+
+            while (operationCoroutine.MoveNext())
+            {
+                if (operationCoroutine.Current is float progressValue)
                 {
-                    Debug.Log(
-                        $"Test Scene not ready: Player={GameManager.Instance?.player != null}, "
-                            + $"Camera={GameManager.Instance.CameraSystem?.IsInitialized}, "
-                            + $"UI={UIManager.Instance?.playerUIPanel != null}, "
-                            + $"GameUI={UIManager.Instance?.IsGameUIReady()}, "
-                            + $"Monster={MonsterManager.Instance?.IsInitialized}"
-                    );
+                    float scaledProgress = baseProgress + (progressValue * operationWeight);
+                    UpdateProgress(scaledProgress);
                 }
-
-                return isReady;
-
-            default:
-                return true;
-        }
-    }
-
-    private void CleanupCurrentScene()
-    {
-        var existingPortals = FindObjectsOfType<Portal>();
-        foreach (var portal in existingPortals)
-        {
-            Destroy(portal.gameObject);
-        }
-        PoolManager.Instance?.ClearAllPools();
-    }
-    #endregion
-
-    #region Portal Management
-    public void SpawnGameStagePortal()
-    {
-        SpawnPortal(townPortalPosition, SceneType.Main_Stage);
-    }
-
-    public void SpawnTownPortal(Vector3 position)
-    {
-        SpawnPortal(position, SceneType.Main_Town);
-    }
-
-    private void SpawnPortal(Vector3 position, SceneType destinationType)
-    {
-        if (portalPrefab != null)
-        {
-            GameObject portalObj = Instantiate(portalPrefab, position, Quaternion.identity);
-            DontDestroyOnLoad(portalObj);
-
-            if (portalObj.TryGetComponent<Portal>(out var portal))
-            {
-                portal.Initialize(destinationType);
+                yield return operationCoroutine.Current;
             }
+
+            accumulatedProgress = (i + 1) / totalOperations;
+            UpdateProgress(accumulatedProgress);
         }
+
+        float elapsedTime = Time.time - startTime;
+        if (elapsedTime < MINIMUM_LOADING_TIME)
+        {
+            yield return new WaitForSeconds(MINIMUM_LOADING_TIME - elapsedTime);
+        }
+
+        UpdateProgress(1.0f);
+
+        GameManager.Instance.PlayerSystem.DespawnPlayer();
+
+        yield return new WaitUntil(() => GameManager.Instance.Player == null);
+
+        loadTargetSceneAsync.allowSceneActivation = true;
+
+        yield return new WaitUntil(() => loadTargetSceneAsync.isDone);
+
+        isLoading = false;
+
+        loadingUI.Close(false);
+
+        onComplete?.Invoke();
     }
 
-    public void OnPortalEnter(SceneType destinationType)
+    /// <summary>
+    /// 로딩 진행 상태를 업데이트합니다.
+    /// </summary>
+    /// <param name="progress">진행 상태 (0~1)</param>
+    public void UpdateProgress(float progress)
     {
-        switch (destinationType)
+        if (loadingUI != null)
         {
-            case SceneType.Main_Town:
-                PlayerUnitManager.Instance.SaveGameState();
-                LoadTownScene();
-                break;
-            case SceneType.Main_Stage:
-                LoadGameScene();
-                break;
+            loadingUI.UpdateProgress(progress);
+        }
+        else if (progressBar != null)
+        {
+            progressBar.currentValue = progress * 100f;
+            progressBar.UpdateUI();
+        }
+
+        OnProgressUpdated?.Invoke(progress);
+    }
+
+    /// <summary>
+    /// 로딩 텍스트를 설정합니다.
+    /// </summary>
+    /// <param name="text">로딩 텍스트</param>
+    public void SetLoadingText(string text)
+    {
+        if (loadingUI != null)
+        {
+            loadingUI.SetLoadingText(text);
         }
     }
-    #endregion
 }

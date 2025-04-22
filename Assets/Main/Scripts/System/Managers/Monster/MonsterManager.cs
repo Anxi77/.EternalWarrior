@@ -91,7 +91,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
     {
         for (int i = 0; i < count; i++)
         {
-            Vector2 playerPos = GameManager.Instance.player.transform.position;
+            Vector2 playerPos = GameManager.Instance.Player.transform.position;
             Vector2 spawnPos = GetValidSpawnPosition(playerPos);
 
             if (Random.value < 0.5f)
@@ -173,7 +173,7 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
         StopSpawning();
         ClearCurrentEnemies();
 
-        Vector3 playerPos = GameManager.Instance.player.transform.position;
+        Vector3 playerPos = GameManager.Instance.Player.transform.position;
         Vector3 spawnPos = playerPos + new Vector3(bossSpawnOffset.x, bossSpawnOffset.y, 0);
 
         BossMonster boss = PoolManager.Instance.Spawn<BossMonster>(

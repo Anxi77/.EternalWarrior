@@ -61,9 +61,11 @@ public static class SkillDataEditorUtility
                         skillData.Icon = ResourceIO<Sprite>.LoadData(skillData.IconPath);
                     }
 
-                    if (!string.IsNullOrEmpty(skillData.PrefabPath))
+                    if (!string.IsNullOrEmpty(skillData.BasePrefabPath))
                     {
-                        skillData.Prefab = ResourceIO<GameObject>.LoadData(skillData.PrefabPath);
+                        skillData.BasePrefab = ResourceIO<GameObject>.LoadData(
+                            skillData.BasePrefabPath
+                        );
                     }
 
                     if (
@@ -180,11 +182,11 @@ public static class SkillDataEditorUtility
             skillData.IconPath = $"{SKILL_ICON_PATH}/{skillData.ID}_Icon";
         }
 
-        if (skillData.Prefab != null)
+        if (skillData.BasePrefab != null)
         {
             ResourceIO<GameObject>.SaveData(
                 $"{SKILL_PREFAB_PATH}/{skillData.ID}_Prefab",
-                skillData.Prefab
+                skillData.BasePrefab
             );
         }
 

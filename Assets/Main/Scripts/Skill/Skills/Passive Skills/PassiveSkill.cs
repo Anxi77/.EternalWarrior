@@ -53,38 +53,52 @@ public class PassiveSkill : Skill
 
     [SerializeField]
     protected bool _isPermanent = false;
+    public bool IsPermanent => _isPermanent;
     #endregion
 
-    protected virtual void OnDestroy()
+    public PassiveSkillStat TypeStat
     {
-        if (GameManager.Instance?.player != null)
+        get
         {
-            StopAllCoroutines();
-            Player player = GameManager.Instance.player;
-            var playerStat = player.GetComponent<PlayerStatSystem>();
-
-            playerStat.RemoveStatsBySource(SourceType.Passive);
-            if (_homingActivate)
-                player.ActivateHoming(false);
-
-            Debug.Log($"Removed all effects for {skillData?.Name ?? "Unknown Skill"}");
+            var stats = skillData?.GetStatsForLevel(currentLevel) as PassiveSkillStat;
+            if (stats == null)
+            {
+                stats = new PassiveSkillStat
+                {
+                    baseStat = new BaseSkillStat
+                    {
+                        damage = _damage,
+                        skillLevel = currentLevel,
+                        maxSkillLevel = 5,
+                        element = ElementType.None,
+                        elementalPower = _elementalPower,
+                    },
+                    moveSpeedIncrease = _moveSpeedIncrease,
+                    effectDuration = _effectDuration,
+                    cooldown = _cooldown,
+                    triggerChance = _triggerChance,
+                    damageIncrease = _damageIncrease,
+                    defenseIncrease = _defenseIncrease,
+                    expAreaIncrease = _expAreaIncrease,
+                    homingActivate = _homingActivate,
+                    hpIncrease = _hpIncrease,
+                };
+                skillData?.SetStatsForLevel(currentLevel, stats);
+            }
+            return stats;
         }
     }
 
     public override void Initialize()
     {
-        base.Initialize();
         if (skillData == null)
             return;
 
-        var playerStat = GameManager.Instance?.player?.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance?.Player?.GetComponent<PlayerStatSystem>();
         if (playerStat != null)
         {
             float currentHpRatio =
                 playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-            Debug.Log(
-                $"Before Initialize - HP: {playerStat.GetStat(StatType.CurrentHp)}/{playerStat.GetStat(StatType.MaxHp)} ({currentHpRatio:F2})"
-            );
 
             InitializeSkillData();
 
@@ -92,7 +106,6 @@ public class PassiveSkill : Skill
             float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
             playerStat.SetCurrentHp(newCurrentHp);
 
-            Debug.Log($"After Initialize - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})");
             if (skillData.GetSkillStats() is PassiveSkillStat passiveSkillStat)
             {
                 if (!passiveSkillStat.isPermanent)
@@ -116,42 +129,21 @@ public class PassiveSkill : Skill
         if (skillData == null)
             return;
 
-        var csvStats =
+        PassiveSkillStat statData =
             DataSystem.SkillDataSystem.GetSkillStatsForLevel(
                 skillData.ID,
                 currentLevel,
                 SkillType.Passive
             ) as PassiveSkillStat;
 
-        if (csvStats != null)
+        if (statData != null)
         {
-            UpdateInspectorValues(csvStats);
-            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, csvStats);
+            UpdateInspectorValues(statData);
+            skillData.SetStatsForLevel(currentLevel, statData);
         }
         else
         {
-            Debug.LogWarning($"No CSV data found for {skillData.Name}, using default values");
-            var defaultStats = new PassiveSkillStat
-            {
-                baseStat = new BaseSkillStat
-                {
-                    damage = _damage,
-                    skillLevel = currentLevel,
-                    maxSkillLevel = 5,
-                    element = ElementType.None,
-                    elementalPower = _elementalPower,
-                },
-                moveSpeedIncrease = _moveSpeedIncrease,
-                effectDuration = _effectDuration,
-                cooldown = _cooldown,
-                triggerChance = _triggerChance,
-                damageIncrease = _damageIncrease,
-                defenseIncrease = _defenseIncrease,
-                expAreaIncrease = _expAreaIncrease,
-                homingActivate = _homingActivate,
-                hpIncrease = _hpIncrease,
-            };
-            skillData.SetStatsForLevel(skillData.GetSkillStats().baseStat.skillLevel, defaultStats);
+            Debug.LogWarning($"No Stat data found for {skillData.Name}");
         }
     }
 
@@ -169,15 +161,31 @@ public class PassiveSkill : Skill
 
     protected virtual void ApplyPassiveEffect()
     {
-        if (GameManager.Instance.player == null)
+        if (GameManager.Instance.Player == null)
             return;
 
-        Player player = GameManager.Instance.player;
-
-        StartCoroutine(ApplyTemporaryEffects(player));
+        Player player = GameManager.Instance.Player;
+        if (_isPermanent)
+        {
+            ApplyPermanentEffect(player);
+        }
+        else
+        {
+            StartCoroutine(ApplyTemporaryEffects(player));
+        }
     }
 
-    protected virtual IEnumerator ApplyTemporaryEffects(Player player)
+    protected void ApplyPermanentEffect(Player player)
+    {
+        var playerStat = player.GetComponent<PlayerStatSystem>();
+        if (playerStat == null)
+            return;
+
+        ApplyStatModifier(playerStat, StatType.Damage, _damageIncrease);
+        ApplyStatModifier(playerStat, StatType.Defense, _defenseIncrease);
+    }
+
+    protected IEnumerator ApplyTemporaryEffects(Player player)
     {
         var playerStat = player.GetComponent<PlayerStatSystem>();
         if (playerStat == null)
@@ -295,7 +303,7 @@ public class PassiveSkill : Skill
             return;
         }
 
-        var playerStat = GameManager.Instance?.player?.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance?.Player?.GetComponent<PlayerStatSystem>();
         float currentHpRatio = 1f;
         if (playerStat != null)
         {
@@ -359,5 +367,21 @@ public class PassiveSkill : Skill
         Debug.Log(
             $"Applied {statType} increase: Current({currentStat}) + {percentageIncrease}% = {currentStat + increase}"
         );
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (GameManager.Instance?.Player != null)
+        {
+            StopAllCoroutines();
+            Player player = GameManager.Instance.Player;
+            var playerStat = player.GetComponent<PlayerStatSystem>();
+
+            playerStat.RemoveStatsBySource(SourceType.Passive);
+            if (_homingActivate)
+                player.ActivateHoming(false);
+
+            Debug.Log($"Removed all effects for {skillData?.Name ?? "Unknown Skill"}");
+        }
     }
 }

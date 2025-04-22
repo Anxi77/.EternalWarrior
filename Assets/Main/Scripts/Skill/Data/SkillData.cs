@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -17,8 +16,8 @@ public class SkillData : ICloneable
     public string[] Tags { get; set; }
 
     [JsonIgnore]
-    public GameObject Prefab { get; set; }
-    public string PrefabPath { get; set; }
+    public GameObject BasePrefab { get; set; }
+    public string BasePrefabPath { get; set; }
 
     [JsonIgnore]
     private Dictionary<int, ISkillStat> StatsByLevel { get; set; }
@@ -163,7 +162,7 @@ public class SkillData : ICloneable
             Element = this.Element,
             Tier = this.Tier,
             Tags = (string[])this.Tags?.Clone(),
-            PrefabPath = this.PrefabPath,
+            BasePrefabPath = this.BasePrefabPath,
             IconPath = this.IconPath,
             ProjectilePath = this.ProjectilePath,
             PrefabsByLevelPaths = (string[])this.PrefabsByLevelPaths?.Clone(),

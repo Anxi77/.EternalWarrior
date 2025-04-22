@@ -160,4 +160,18 @@ public enum GameState
     GameOver,
 }
 
+public enum PanelType
+{
+    None,
+    Loading,
+    Title,
+    PlayerInfo,
+    StageTime,
+    Inventory,
+    GameOver,
+    Pause,
+    BossWarning,
+    LevelUp,
+}
+
 #endregion

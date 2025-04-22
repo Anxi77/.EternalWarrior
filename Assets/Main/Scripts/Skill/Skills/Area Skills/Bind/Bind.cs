@@ -11,7 +11,7 @@ public class Bind : AreaSkills
     public override void Initialize()
     {
         base.Initialize();
-        playerTransform = GameManager.Instance.player?.transform;
+        playerTransform = GameManager.Instance.Player?.transform;
         if (playerTransform == null)
         {
             Debug.LogError("Player not found for Bind skill!");

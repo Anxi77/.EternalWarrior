@@ -83,9 +83,9 @@ public class CameraSystem : MonoBehaviour, IInitializable
                     break;
             }
 
-            if (GameManager.Instance?.player != null)
+            if (GameManager.Instance?.Player != null)
             {
-                virtualCamera.Follow = GameManager.Instance.player.transform;
+                virtualCamera.Follow = GameManager.Instance.Player.transform;
             }
             else
             {

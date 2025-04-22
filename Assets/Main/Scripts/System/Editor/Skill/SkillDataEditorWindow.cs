@@ -56,9 +56,9 @@ public class SkillDataEditorWindow : EditorWindow
                 skill.Icon = ResourceIO<Sprite>.LoadData(skill.IconPath);
             }
 
-            if (!string.IsNullOrEmpty(skill.PrefabPath))
+            if (!string.IsNullOrEmpty(skill.BasePrefabPath))
             {
-                skill.Prefab = ResourceIO<GameObject>.LoadData(skill.PrefabPath);
+                skill.BasePrefab = ResourceIO<GameObject>.LoadData(skill.BasePrefabPath);
             }
 
             if (skill.Type == SkillType.Projectile && !string.IsNullOrEmpty(skill.ProjectilePath))
@@ -448,7 +448,7 @@ public class SkillDataEditorWindow : EditorWindow
             var newPrefab = (GameObject)
                 EditorGUILayout.ObjectField(
                     "Base Prefab",
-                    CurrentSkill.Prefab,
+                    CurrentSkill.BasePrefab,
                     typeof(GameObject),
                     false
                 );
@@ -467,8 +467,8 @@ public class SkillDataEditorWindow : EditorWindow
                 try
                 {
                     ResourceIO<GameObject>.SaveData(resourcePath, newPrefab);
-                    CurrentSkill.PrefabPath = resourcePath;
-                    CurrentSkill.Prefab = ResourceIO<GameObject>.LoadData(resourcePath);
+                    CurrentSkill.BasePrefabPath = resourcePath;
+                    CurrentSkill.BasePrefab = ResourceIO<GameObject>.LoadData(resourcePath);
                     SaveCurrentSkill();
 
                     var currentId = selectedSkillId;
@@ -775,7 +775,7 @@ public class SkillDataEditorWindow : EditorWindow
                         Type = selectedType,
                         Element = ElementType.None,
                         IconPath = "",
-                        PrefabPath = "",
+                        BasePrefabPath = "",
                         ProjectilePath = "",
                         PrefabsByLevelPaths = new string[0],
                     };

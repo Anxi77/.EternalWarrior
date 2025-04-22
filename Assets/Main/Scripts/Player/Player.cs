@@ -42,6 +42,7 @@ public class Player : MonoBehaviour
         2700,
         3300,
     };
+
     public List<float> _expList
     {
         get { return expList; }
@@ -71,25 +72,16 @@ public class Player : MonoBehaviour
 
     public bool IsInitialized { get; private set; }
 
-    private bool isQuitting = false;
-
-    #region Unity Message Methods
-
-    private void Awake()
+    public void Initialize()
     {
         playerStat = GetComponent<PlayerStatSystem>();
         rb = GetComponent<Rigidbody2D>();
+
         if (rb != null)
         {
             rb.gravityScale = 0f;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
-    }
-
-    private void Start()
-    {
-        PlayerUnitManager.Instance?.InitializePlayer(this);
-        IsInitialized = true;
     }
 
     private void OnEnable()
@@ -98,11 +90,6 @@ public class Player : MonoBehaviour
         {
             StartCombatSystems();
         }
-    }
-
-    private void OnApplicationQuit()
-    {
-        isQuitting = true;
     }
 
     private void OnDisable()
@@ -140,10 +127,6 @@ public class Player : MonoBehaviour
 
         playerStatus = Status.Dead;
         IsInitialized = false;
-        if (!isQuitting)
-        {
-            GameManager.Instance.player = null;
-        }
     }
 
     public void StartCombatSystems()
@@ -170,8 +153,6 @@ public class Player : MonoBehaviour
     {
         GetMoveInput();
     }
-
-    #endregion
 
     #region Methods
 

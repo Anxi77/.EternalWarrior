@@ -169,7 +169,7 @@ public class GravityProjectileSkill : ProjectileSkills
         }
         else
         {
-            _homingRange = TypedStats.homingRange;
+            _homingRange = TypeStat.homingRange;
         }
     }
 }
