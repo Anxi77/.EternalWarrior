@@ -129,12 +129,7 @@ public class PassiveSkill : Skill
         if (skillData == null)
             return;
 
-        PassiveSkillStat statData =
-            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-                skillData.ID,
-                currentLevel,
-                SkillType.Passive
-            ) as PassiveSkillStat;
+        PassiveSkillStat statData = skillData.GetStatsForLevel(currentLevel) as PassiveSkillStat;
 
         if (statData != null)
         {

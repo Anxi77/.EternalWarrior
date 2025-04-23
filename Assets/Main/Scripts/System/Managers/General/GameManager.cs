@@ -11,9 +11,8 @@ public interface IGameState
     void OnExit();
 }
 
-public class GameManager : Singleton<GameManager>, IInitializable
+public class GameManager : Singleton<GameManager>
 {
-    public bool IsInitialized { get; private set; }
     internal List<Monster> enemies = new();
 
     private StageTimer stageTimer;
@@ -39,21 +38,37 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     private readonly Queue<GameState> stateTransitionQueue = new();
 
+    private readonly WaitForSeconds LOADING_TIME = new WaitForSeconds(0.3f);
+
+    public bool IsInitialized { get; private set; }
+
     [SerializeField]
     private Portal portalPrefab;
 
-    public void Initialize()
+    private void Start()
     {
-        try
-        {
-            IsInitialized = true;
-            CreateStateHandlers();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error initializing GameManager: {e.Message}");
-            IsInitialized = false;
-        }
+        List<Func<IEnumerator>> operations = new();
+        operations.Add(LoadSystems);
+        operations.Add(SkillDataManager.Instance.InitializeRoutine);
+        LoadingManager.Instance.LoadScene(
+            SceneType.Main_Title,
+            operations,
+            () =>
+            {
+                UIManager.Instance.OpenPanel(PanelType.Title);
+            }
+        );
+    }
+
+    public IEnumerator LoadSystems()
+    {
+        float currentProgress = 0f;
+        skillSystem = new GameObject("SkillSystem").AddComponent<SkillSystem>();
+        yield return LOADING_TIME;
+
+        currentProgress += 0.5f;
+
+        yield return currentProgress;
     }
 
     private bool CreateStateHandlers()
@@ -79,7 +94,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     public void ChangeState(GameState newState)
     {
-        if (!IsInitialized || stateHandlers == null)
+        if (stateHandlers == null)
             return;
 
         Debug.Log($"[GameManager] Gamesate transition from [{currentState}] to [{newState}]");
@@ -255,7 +270,7 @@ public class GameManager : Singleton<GameManager>, IInitializable
     #region Game State Management
     public void InitializeNewGame()
     {
-        DataSystem.PlayerDataSystem.LoadPlayerData();
+        PlayerDataSystem.Instance.LoadPlayerData();
     }
 
     public void SaveGameData()
@@ -276,12 +291,12 @@ public class GameManager : Singleton<GameManager>, IInitializable
 
     public void ClearGameData()
     {
-        DataSystem.PlayerDataSystem.ClearAllRuntimeData();
+        PlayerDataSystem.Instance.ClearAllRuntimeData();
     }
 
     public bool HasSaveData()
     {
-        return DataSystem.PlayerDataSystem.HasSaveData();
+        return PlayerDataSystem.Instance.HasSaveData();
     }
 
     #endregion

@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
-public class ItemDataSystem
+public class ItemDataManager : Singleton<ItemDataManager>
 {
     #region Constants
     private const string ITEM_DB_PATH = "Items/Database";

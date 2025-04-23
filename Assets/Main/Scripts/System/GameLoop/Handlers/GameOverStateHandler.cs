@@ -57,7 +57,7 @@ public class GameOverStateHandler : BaseStateHandler
         List<Func<IEnumerator>> loadSceneRoutines = new List<Func<IEnumerator>> { LoadTownScene };
 
         LoadingManager.Instance.LoadScene(
-            sceneType.ToString(),
+            sceneType,
             loadSceneRoutines,
             () =>
             {

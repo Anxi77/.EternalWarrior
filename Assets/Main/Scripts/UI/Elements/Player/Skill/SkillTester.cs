@@ -55,7 +55,7 @@ public class SkillTester : MonoBehaviour
     private void InitializeDropdown()
     {
         skillDropdown.ClearOptions();
-        var skillDatas = DataSystem.SkillDataSystem.GetAllData();
+        var skillDatas = SkillDataManager.Instance.GetAllData();
 
         foreach (var skillData in skillDatas)
         {
@@ -89,7 +89,7 @@ public class SkillTester : MonoBehaviour
             return;
         }
 
-        var skillDatas = DataSystem.SkillDataSystem.GetAllData();
+        var skillDatas = SkillDataManager.Instance.GetAllData();
         if (skillDropdown.value < skillDatas.Count)
         {
             var selectedSkill = skillDatas[skillDropdown.value];

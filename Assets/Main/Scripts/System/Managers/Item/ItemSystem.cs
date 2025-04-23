@@ -10,7 +10,6 @@ public class ItemSystem : MonoBehaviour, IInitializable
     private GameObject worldDropItemPrefab;
     private ItemGenerator itemGenerator;
     private bool isInitialized;
-
     public bool IsInitialized => isInitialized;
 
     public void Initialize()
@@ -19,6 +18,7 @@ public class ItemSystem : MonoBehaviour, IInitializable
         {
             try
             {
+                itemGenerator = gameObject.AddComponent<ItemGenerator>();
                 isInitialized = true;
             }
             catch (Exception e)
@@ -55,7 +55,7 @@ public class ItemSystem : MonoBehaviour, IInitializable
 
     public List<ItemData> GetDropsForEnemy(MonsterType enemyType, float luckMultiplier = 1f)
     {
-        var dropTable = DataSystem.ItemDataSystem.GetDropTables()[enemyType];
+        var dropTable = ItemDataManager.Instance.GetDropTables()[enemyType];
         if (dropTable == null)
             return new List<ItemData>();
         return itemGenerator.GenerateDrops(dropTable, luckMultiplier);
@@ -84,8 +84,8 @@ public class ItemSystem : MonoBehaviour, IInitializable
 
     public List<ItemData> GetItemsByType(ItemType type)
     {
-        return DataSystem
-            .ItemDataSystem.GetAllData()
+        return ItemDataManager
+            .Instance.GetAllData()
             .Where(item => item.Type == type)
             .Select(item => item.Clone())
             .ToList();
@@ -93,8 +93,8 @@ public class ItemSystem : MonoBehaviour, IInitializable
 
     public List<ItemData> GetItemsByRarity(ItemRarity rarity)
     {
-        return DataSystem
-            .ItemDataSystem.GetAllData()
+        return ItemDataManager
+            .Instance.GetAllData()
             .Where(item => item.Rarity == rarity)
             .Select(item => item.Clone())
             .ToList();

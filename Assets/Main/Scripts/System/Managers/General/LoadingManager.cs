@@ -42,37 +42,18 @@ public class LoadingManager : Singleton<LoadingManager>
     /// </summary>
     /// <param name="sceneName">로드할 씬 이름</param>
     /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
-    public void LoadScene(string sceneName, Action onComplete = null)
+    public void LoadScene(SceneType sceneType, Action onComplete = null)
     {
         if (isLoading)
             return;
 
         isLoading = true;
 
-        UIManager.Instance.CloseAllPanels();
-
-        StartCoroutine(LoadSceneRoutine(sceneName, onComplete));
-    }
-
-    /// <summary>
-    /// 여러 비동기 작업을 로딩합니다.
-    /// </summary>
-    /// <param name="operations">비동기 작업 목록</param>
-    /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
-    public void LoadScene(
-        string targetSceneName,
-        List<Func<IEnumerator>> operations,
-        Action onComplete = null
-    )
-    {
-        if (isLoading)
-            return;
-
-        isLoading = true;
+        string targetSceneName = sceneType.ToString();
 
         UIManager.Instance.CloseAllPanels();
 
-        StartCoroutine(LoadOperations(targetSceneName, operations, onComplete));
+        StartCoroutine(LoadSceneRoutine(targetSceneName, onComplete));
     }
 
     /// <summary>
@@ -82,7 +63,7 @@ public class LoadingManager : Singleton<LoadingManager>
     /// <param name="loadingText">로딩 텍스트</param>
     /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
     public void LoadScene(
-        string targetSceneName,
+        SceneType sceneType,
         Func<IEnumerator> asyncOperation,
         Action onComplete = null
     )
@@ -92,9 +73,34 @@ public class LoadingManager : Singleton<LoadingManager>
 
         isLoading = true;
 
+        string targetSceneName = sceneType.ToString();
+
         UIManager.Instance.CloseAllPanels();
 
         StartCoroutine(LoadOpertion(targetSceneName, asyncOperation, onComplete));
+    }
+
+    /// <summary>
+    /// 여러 비동기 작업을 로딩합니다.
+    /// </summary>
+    /// <param name="operations">비동기 작업 목록</param>
+    /// <param name="onComplete">로딩 완료 후 실행할 콜백</param>
+    public void LoadScene(
+        SceneType sceneType,
+        List<Func<IEnumerator>> operations,
+        Action onComplete = null
+    )
+    {
+        if (isLoading)
+            return;
+
+        isLoading = true;
+
+        string targetSceneName = sceneType.ToString();
+
+        UIManager.Instance.CloseAllPanels();
+
+        StartCoroutine(LoadOperations(targetSceneName, operations, onComplete));
     }
 
     private IEnumerator LoadSceneRoutine(string targetSceneName, Action onComplete)

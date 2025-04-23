@@ -18,7 +18,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
     private void LoadSkillData()
     {
-        availableSkills = DataSystem.SkillDataSystem.GetAllData();
+        availableSkills = SkillDataManager.Instance.GetAllData();
         Debug.Log($"[SkillManager] Loaded {availableSkills.Count} skills from SkillDataManager");
     }
 
@@ -59,11 +59,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
     {
         Debug.Log($"Updating stats for skill {skill.skillData.Name} to level {targetLevel}");
 
-        newStats = DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-            skill.skillData.ID,
-            targetLevel,
-            skill.skillData.Type
-        );
+        newStats = skill.skillData.GetStatsForLevel(targetLevel);
 
         if (newStats == null)
         {
@@ -94,6 +90,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
             var playerStat =
                 GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
             float currentHpRatio = 1f;
+
             if (playerStat != null)
             {
                 currentHpRatio =
@@ -113,10 +110,11 @@ public class SkillSystem : MonoBehaviour, IInitializable
                     $"Current level: {existingSkill.currentLevel}, Attempting upgrade to level: {nextLevel}"
                 );
 
-                GameObject levelPrefab = DataSystem.SkillDataSystem.GetLevelPrefab(
+                GameObject levelPrefab = SkillDataManager.Instance.GetLevelPrefab(
                     skillData.ID,
                     nextLevel
                 );
+
                 if (levelPrefab != null)
                 {
                     Debug.Log($"Found level {nextLevel} prefab, replacing skill");
@@ -134,7 +132,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
             else
             {
                 GameObject prefab =
-                    DataSystem.SkillDataSystem.GetLevelPrefab(skillData.ID, 1)
+                    SkillDataManager.Instance.GetLevelPrefab(skillData.ID, 1)
                     ?? skillData.BasePrefab;
 
                 if (prefab != null)
@@ -177,7 +175,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
                 );
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error in AddOrUpgradeSkill: {e.Message}\n{e.StackTrace}");
         }
@@ -290,7 +288,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
                     return false;
                 }
 
-                var stats = DataSystem.SkillDataSystem.GetSkillStats(skill.ID, 1);
+                var stats = skill.GetStatsForLevel(1);
                 bool hasStats = stats != null;
                 bool matchesElement = elementType == null || skill.Element == elementType;
 

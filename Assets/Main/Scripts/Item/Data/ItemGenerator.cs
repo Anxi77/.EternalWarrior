@@ -8,7 +8,7 @@ public class ItemGenerator : MonoBehaviour
 {
     public ItemData GenerateItem(string itemId, ItemRarity? targetRarity = null)
     {
-        var newItem = DataSystem.ItemDataSystem.GetData(itemId).Clone();
+        var newItem = ItemDataManager.Instance.GetData(itemId).Clone();
 
         if (targetRarity.HasValue)
         {

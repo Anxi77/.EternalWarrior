@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class PlayerData
 {
-    public PlayerStatData stats;
+    public StatData stats;
     public InventoryData inventory;
     public LevelData levelData;
 }
@@ -17,12 +17,12 @@ public class LevelData
 }
 
 [Serializable]
-public class PlayerStatData
+public class StatData
 {
     public Dictionary<StatType, float> baseStats = new();
     public List<StatModifierSaveData> permanentModifiers = new();
 
-    public PlayerStatData()
+    public StatData()
     {
         InitializeDefaultStats();
     }

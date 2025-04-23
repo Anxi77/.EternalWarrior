@@ -377,7 +377,13 @@ public class Player : MonoBehaviour
     #region Passive Skill Effects
     public void ActivateHoming(bool activate)
     {
-        playerStat.ActivateHoming(activate);
+        foreach (var skill in skills)
+        {
+            if (skill is ProjectileSkills ProjectileSkills)
+            {
+                ProjectileSkills.UpdateHomingState(activate);
+            }
+        }
     }
 
     public void ResetPassiveEffects()

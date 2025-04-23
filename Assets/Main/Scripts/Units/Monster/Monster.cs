@@ -16,13 +16,16 @@ public class Monster : MonoBehaviour
     public float mobEXP = 10f;
     public float damageInterval;
     internal float originalMoveSpeed;
+
     public float hpAmount
     {
         get { return hp / maxHp; }
     }
+
     public float preDamageTime = 0;
     public float attackRange = 1.2f;
     public float preferredDistance = 1.0f;
+
     public ElementType elementType = ElementType.None;
 
     [Header("Defense Stats")]
@@ -30,7 +33,6 @@ public class Monster : MonoBehaviour
     public float currentDefense;
     public float maxDefenseReduction = 0.9f;
     public float defenseDebuffAmount = 0f;
-
     public float moveSpeedDebuffAmount = 0f;
     public bool isStunned = false;
 

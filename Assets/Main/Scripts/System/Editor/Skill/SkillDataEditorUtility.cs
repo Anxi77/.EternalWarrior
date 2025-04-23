@@ -111,9 +111,9 @@ public static class SkillDataEditorUtility
         {
             statDatabase.Clear();
 
-            LoadStatsFromCSV("ProjectileSkillStats", SkillType.Projectile);
-            LoadStatsFromCSV("AreaSkillStats", SkillType.Area);
-            LoadStatsFromCSV("PassiveSkillStats", SkillType.Passive);
+            LoadStatsFromCSV("ProjectileSkillStats");
+            LoadStatsFromCSV("AreaSkillStats");
+            LoadStatsFromCSV("PassiveSkillStats");
         }
         catch (Exception e)
         {
@@ -122,7 +122,7 @@ public static class SkillDataEditorUtility
         }
     }
 
-    private static void LoadStatsFromCSV(string fileName, SkillType expectedType)
+    private static void LoadStatsFromCSV(string fileName)
     {
         var stats = CSVIO<SkillStatData>.LoadBulkData(fileName);
         foreach (var stat in stats)
@@ -473,13 +473,11 @@ public static class SkillDataEditorUtility
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string backupPath = Path.Combine(SKILL_DB_PATH, "Backups", timestamp);
 
-        // JSON 데이터 백업
         foreach (var skill in skillDatabase.Values)
         {
             JSONIO<SkillData>.SaveData($"{backupPath}/{skill.ID}_Data", skill);
         }
 
-        // 스탯 데이터 백업
         string backupStatPath = $"{SKILL_STAT_PATH}/Backups/{timestamp}";
         SaveStatsToBackup(backupStatPath);
 

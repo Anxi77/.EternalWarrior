@@ -261,11 +261,7 @@ public class SkillLevelUpButton : MonoBehaviour
         comparison.AppendLine("Stat Difference:");
 
         var currentLevel = currentStats.baseStat.skillLevel;
-        var nextLevelStats = DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-            skillData.ID,
-            currentLevel + 1,
-            skillData.Type
-        );
+        var nextLevelStats = skillData.GetStatsForLevel(currentLevel + 1);
 
         if (nextLevelStats == null)
             return;

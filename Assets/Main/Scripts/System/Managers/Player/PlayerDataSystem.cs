@@ -2,16 +2,16 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class PlayerDataSystem
+public class PlayerDataSystem : Singleton<PlayerDataSystem>
 {
     private const string SAVE_FOLDER = "PlayerData";
     private string SAVE_PATH => Path.Combine(Application.persistentDataPath, SAVE_FOLDER);
     private const string DEFAULT_SAVE_SLOT = "DefaultSave";
 
-    private PlayerStatData currentPlayerStatData;
+    private StatData currentPlayerStatData;
     private InventoryData currentInventoryData;
     private LevelData currentLevelData = new LevelData { level = 1, exp = 0f };
-    public PlayerStatData CurrentPlayerStatData => currentPlayerStatData;
+    public StatData CurrentPlayerStatData => currentPlayerStatData;
     public InventoryData CurrentInventoryData => currentInventoryData;
 
     public void LoadRuntimeData()
@@ -38,7 +38,7 @@ public class PlayerDataSystem
 
     public void CreateDefaultFiles()
     {
-        currentPlayerStatData = new PlayerStatData();
+        currentPlayerStatData = new StatData();
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
         JSONIO<PlayerData>.SaveData(
@@ -54,7 +54,7 @@ public class PlayerDataSystem
 
     public void ClearAllRuntimeData()
     {
-        currentPlayerStatData = new PlayerStatData();
+        currentPlayerStatData = new StatData();
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
         JSONIO<PlayerData>.DeleteData(DEFAULT_SAVE_SLOT);

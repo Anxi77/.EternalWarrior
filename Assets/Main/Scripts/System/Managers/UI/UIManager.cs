@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Michsky.UI.Heat;
-using TMPro;
 using UnityEngine;
 
 public partial class UIManager : Singleton<UIManager>, IInitializable

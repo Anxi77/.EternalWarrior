@@ -35,7 +35,7 @@ public class Inventory : MonoBehaviour, IInitializable
 
     private void LoadSavedInventory()
     {
-        var savedData = DataSystem.PlayerDataSystem.LoadPlayerData();
+        var savedData = PlayerDataSystem.Instance.LoadPlayerData();
         if (savedData != null)
         {
             LoadInventoryData(savedData.inventory);
@@ -217,7 +217,7 @@ public class Inventory : MonoBehaviour, IInitializable
 
     public void SaveInventoryState()
     {
-        DataSystem.PlayerDataSystem.SaveInventoryData(GetInventoryData());
+        PlayerDataSystem.Instance.SaveInventoryData(GetInventoryData());
     }
 
     public void RestoreEquippedItems()

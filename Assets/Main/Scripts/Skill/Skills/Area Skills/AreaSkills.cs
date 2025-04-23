@@ -68,12 +68,7 @@ public abstract class AreaSkills : Skill
         if (skillData == null)
             return;
 
-        var skillStats =
-            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-                skillData.ID,
-                currentLevel,
-                SkillType.Area
-            ) as AreaSkillStat;
+        var skillStats = skillData.GetStatsForLevel(currentLevel) as AreaSkillStat;
 
         if (skillStats != null)
         {

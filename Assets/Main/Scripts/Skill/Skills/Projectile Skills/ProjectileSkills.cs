@@ -41,11 +41,8 @@ public abstract class ProjectileSkills : Skill
             return;
 
         ProjectileSkillStat statData =
-            DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-                skillData.ID,
-                currentLevel,
-                SkillType.Projectile
-            ) as ProjectileSkillStat;
+            SkillDataManager.Instance.GetSkillStatsForLevel(skillData.ID, currentLevel)
+            as ProjectileSkillStat;
 
         if (statData != null)
         {

@@ -21,6 +21,12 @@ public class CameraSystem : MonoBehaviour, IInitializable
     {
         try
         {
+            virtualCameraPrefab = Resources.Load<GameObject>("Prefabs/Camera/VirtualCamera");
+            if (virtualCameraPrefab == null)
+            {
+                Debug.LogWarning("Virtual Camera Prefab not found!");
+                return;
+            }
             IsInitialized = true;
         }
         catch (Exception e)

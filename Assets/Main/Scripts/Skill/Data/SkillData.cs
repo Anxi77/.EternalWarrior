@@ -108,6 +108,7 @@ public class SkillData : ICloneable
 
             if (StatsByLevel == null)
                 StatsByLevel = new Dictionary<int, ISkillStat>();
+
             StatsByLevel[level] = stats;
 
             Debug.Log($"Successfully set stats for level {level}");

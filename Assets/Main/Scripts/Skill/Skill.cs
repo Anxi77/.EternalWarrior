@@ -138,11 +138,7 @@ public abstract class Skill : MonoBehaviour
                 $"Current stats - Level: {currentStats?.baseStat?.skillLevel}, Damage: {currentStats?.baseStat?.damage}"
             );
 
-            var newStats = DataSystem.SkillDataSystem.GetSkillStatsForLevel(
-                skillData.ID,
-                newLevel,
-                skillData.Type
-            );
+            var newStats = skillData.GetStatsForLevel(newLevel);
 
             if (newStats == null)
             {

@@ -1,36 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 public class PlayerStatSystem : MonoBehaviour
 {
-    public Player player;
     private Dictionary<StatType, float> currentStats = new();
     private Dictionary<SourceType, List<StatModifier>> activeModifiers = new();
-
     public event Action<StatType, float> OnStatChanged;
 
-    private void Start()
+    public float GetCurrentHp() => GetStat(StatType.CurrentHp);
+
+    public float GetMaxHp() => GetStat(StatType.MaxHp);
+
+    public void Initialize()
     {
         InitializeStats();
-        player = GetComponent<Player>();
-        StringBuilder sb = new();
-        foreach (var stat in currentStats)
-        {
-            sb.AppendLine($"{stat.Key}: {stat.Value}");
-        }
-        print(sb);
     }
 
     private void InitializeStats()
     {
-        var defaultData = DataSystem.PlayerDataSystem.CurrentPlayerStatData;
+        var defaultData = PlayerDataSystem.Instance.CurrentPlayerStatData;
         LoadFromSaveData(defaultData);
     }
 
-    public void LoadFromSaveData(PlayerStatData saveData)
+    public void LoadFromSaveData(StatData saveData)
     {
         if (saveData == null)
         {
@@ -44,6 +38,7 @@ public class PlayerStatSystem : MonoBehaviour
         currentStats[StatType.CurrentHp] = maxHp;
 
         activeModifiers.Clear();
+
         foreach (var modifierData in saveData.permanentModifiers)
         {
             AddModifier(
@@ -59,9 +54,9 @@ public class PlayerStatSystem : MonoBehaviour
         RecalculateAllStats();
     }
 
-    public PlayerStatData CreateSaveData()
+    public StatData CreateSaveData()
     {
-        var saveData = new PlayerStatData();
+        var saveData = new StatData();
 
         foreach (var stat in currentStats)
         {
@@ -175,17 +170,6 @@ public class PlayerStatSystem : MonoBehaviour
         }
     }
 
-    public void ActivateHoming(bool activate)
-    {
-        foreach (var skill in player.skills)
-        {
-            if (skill is ProjectileSkills ProjectileSkills)
-            {
-                ProjectileSkills.UpdateHomingState(activate);
-            }
-        }
-    }
-
     public void RemoveStatsBySource(SourceType source)
     {
         if (activeModifiers.ContainsKey(source))
@@ -214,8 +198,4 @@ public class PlayerStatSystem : MonoBehaviour
     {
         // update stats for level
     }
-
-    public float GetCurrentHp() => GetStat(StatType.CurrentHp);
-
-    public float GetMaxHp() => GetStat(StatType.MaxHp);
 }
