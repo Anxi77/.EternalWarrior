@@ -49,7 +49,6 @@ public class BossMonster : Monster
         damage *= enrageDamageMultiplier;
         moveSpeed *= enrageSpeedMultiplier;
 
-        // �ݳ� ����Ʈ ���
         PlayEnrageEffect();
     }
 
@@ -57,7 +56,7 @@ public class BossMonster : Monster
 
     public override void Die()
     {
-        MonsterManager.Instance.OnBossDefeated(transform.position);
+        GameManager.Instance.MonsterSystem.OnBossDefeated(transform.position);
         base.Die();
     }
 

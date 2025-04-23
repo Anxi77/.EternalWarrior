@@ -1,8 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class PlayerDataSystem : Singleton<PlayerDataSystem>
+public class PlayerDataManager : Singleton<PlayerDataManager>
 {
     private const string SAVE_FOLDER = "PlayerData";
     private string SAVE_PATH => Path.Combine(Application.persistentDataPath, SAVE_FOLDER);
@@ -14,26 +15,30 @@ public class PlayerDataSystem : Singleton<PlayerDataSystem>
     public StatData CurrentPlayerStatData => currentPlayerStatData;
     public InventoryData CurrentInventoryData => currentInventoryData;
 
-    public void LoadRuntimeData()
+    public IEnumerator Initialize()
     {
-        try
+        float progress = 0f;
+        yield return progress;
+        yield return new WaitForSeconds(0.5f);
+
+        LoadingManager.Instance.SetLoadingText("Loading Player Data...");
+
+        yield return new WaitForSeconds(0.5f);
+
+        var data = JSONIO<PlayerData>.LoadData(DEFAULT_SAVE_SLOT);
+        if (data != null)
         {
-            var data = JSONIO<PlayerData>.LoadData(DEFAULT_SAVE_SLOT);
-            if (data != null)
-            {
-                currentPlayerStatData = data.stats;
-                currentInventoryData = data.inventory;
-                currentLevelData = data.levelData;
-            }
-            else
-            {
-                CreateDefaultFiles();
-            }
+            currentPlayerStatData = data.stats;
+            currentInventoryData = data.inventory;
+            currentLevelData = data.levelData;
         }
-        catch (System.Exception e)
+        else
         {
-            Debug.LogError($"Error loading PlayerData: {e.Message}");
+            CreateDefaultFiles();
         }
+
+        progress += 1f;
+        yield return progress;
     }
 
     public void CreateDefaultFiles()

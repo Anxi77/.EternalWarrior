@@ -21,7 +21,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
     #region Data Loading
 
-    public IEnumerator InitializeRoutine()
+    public IEnumerator Initialize()
     {
         float progress = 0f;
         int steps;

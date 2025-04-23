@@ -48,7 +48,7 @@ public class TownStateHandler : BaseStateHandler
 
         if (inventory != null)
         {
-            ItemDataManager.Instance.LoadRuntimeData();
+            ItemDataManager.Instance.Initialize();
         }
 
         UIManager.Instance.OpenPanel(PanelType.Inventory);

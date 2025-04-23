@@ -20,7 +20,7 @@ public class PlayerStatSystem : MonoBehaviour
 
     private void InitializeStats()
     {
-        var defaultData = PlayerDataSystem.Instance.CurrentPlayerStatData;
+        var defaultData = PlayerDataManager.Instance.CurrentPlayerStatData;
         LoadFromSaveData(defaultData);
     }
 

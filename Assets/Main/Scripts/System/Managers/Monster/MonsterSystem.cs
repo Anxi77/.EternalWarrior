@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class MonsterManager : Singleton<MonsterManager>, IInitializable
+public class MonsterSystem : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
@@ -31,11 +31,6 @@ public class MonsterManager : Singleton<MonsterManager>, IInitializable
 
     public bool IsBossDefeated => isBossDefeated;
     public Vector3 LastBossPosition => lastBossPosition;
-
-    protected override void Awake()
-    {
-        base.Awake();
-    }
 
     public void Initialize()
     {

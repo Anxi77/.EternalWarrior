@@ -8,7 +8,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
-    private const string PANEL_PATH = "UI/Panels/";
+    private const string PANEL_PATH = "Prefabs/UI/Panels/";
     private List<Panel> panelPrefabs = new List<Panel>();
     private List<Panel> panels = new List<Panel>();
     public List<Panel> Panels => panels;
@@ -95,7 +95,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
         {
             panel.Close(false);
         }
-        if (popUpWindow.isOn)
+        if (popUpWindow != null && popUpWindow.isOn)
         {
             popUpWindow.CloseWindow();
         }

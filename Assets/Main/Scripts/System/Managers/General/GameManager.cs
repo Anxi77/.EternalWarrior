@@ -27,6 +27,8 @@ public class GameManager : Singleton<GameManager>
     public PathFindingSystem PathFindingSystem => pathFindingSystem;
     private PlayerSystem playerSystem;
     public PlayerSystem PlayerSystem => playerSystem;
+    private MonsterSystem monsterSystem;
+    public MonsterSystem MonsterSystem => monsterSystem;
 
     private int lastPlayerLevel = 1;
     private Coroutine levelCheckCoroutine;
@@ -47,49 +49,79 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        List<Func<IEnumerator>> operations = new();
-        operations.Add(LoadSystems);
-        operations.Add(SkillDataManager.Instance.InitializeRoutine);
+        UIManager.Instance.Initialize();
+        LoadingManager.Instance.Initialize();
+
+        List<Func<IEnumerator>> operations = new()
+        {
+            SkillDataManager.Instance.Initialize,
+            ItemDataManager.Instance.Initialize,
+            PlayerDataManager.Instance.Initialize,
+            LoadSystems,
+        };
+
         LoadingManager.Instance.LoadScene(
             SceneType.Main_Title,
             operations,
             () =>
             {
-                UIManager.Instance.OpenPanel(PanelType.Title);
+                ChangeState(GameState.Title);
             }
         );
     }
 
     public IEnumerator LoadSystems()
     {
-        float currentProgress = 0f;
+        float progress = 0f;
+        int steps = 8;
+        yield return progress;
+        yield return LOADING_TIME;
+        LoadingManager.Instance.SetLoadingText("Initializing Skill System...");
+
         skillSystem = new GameObject("SkillSystem").AddComponent<SkillSystem>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        itemSystem = new GameObject("ItemSystem").AddComponent<ItemSystem>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        playerSystem = new GameObject("PlayerSystem").AddComponent<PlayerSystem>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        stageTimer = new GameObject("StageTimer").AddComponent<StageTimer>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        cameraSystem = new GameObject("CameraSystem").AddComponent<CameraSystem>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        pathFindingSystem = new GameObject("PathFindingSystem").AddComponent<PathFindingSystem>();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+        monsterSystem = new GameObject("MonsterSystem").AddComponent<MonsterSystem>();
+        yield return LOADING_TIME;
+        CreateStateHandlers();
+        progress += 1f / steps;
+        yield return progress;
         yield return LOADING_TIME;
 
-        currentProgress += 0.5f;
-
-        yield return currentProgress;
+        progress = 1f;
+        yield return progress;
     }
 
-    private bool CreateStateHandlers()
+    private void CreateStateHandlers()
     {
         stateHandlers = new Dictionary<GameState, IGameState>();
 
-        try
-        {
-            stateHandlers[GameState.Title] = new MainMenuStateHandler();
-            stateHandlers[GameState.Town] = new TownStateHandler();
-            stateHandlers[GameState.Stage] = new StageStateHandler();
-            stateHandlers[GameState.Paused] = new PausedStateHandler();
-            stateHandlers[GameState.GameOver] = new GameOverStateHandler();
-
-            return true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error creating state handlers: {e.Message}\n{e.StackTrace}");
-            return false;
-        }
+        stateHandlers[GameState.Title] = new MainMenuStateHandler();
+        stateHandlers[GameState.Town] = new TownStateHandler();
+        stateHandlers[GameState.Stage] = new StageStateHandler();
+        stateHandlers[GameState.Paused] = new PausedStateHandler();
+        stateHandlers[GameState.GameOver] = new GameOverStateHandler();
     }
 
     public void ChangeState(GameState newState)
@@ -270,7 +302,7 @@ public class GameManager : Singleton<GameManager>
     #region Game State Management
     public void InitializeNewGame()
     {
-        PlayerDataSystem.Instance.LoadPlayerData();
+        PlayerDataManager.Instance.LoadPlayerData();
     }
 
     public void SaveGameData()
@@ -291,12 +323,12 @@ public class GameManager : Singleton<GameManager>
 
     public void ClearGameData()
     {
-        PlayerDataSystem.Instance.ClearAllRuntimeData();
+        PlayerDataManager.Instance.ClearAllRuntimeData();
     }
 
     public bool HasSaveData()
     {
-        return PlayerDataSystem.Instance.HasSaveData();
+        return PlayerDataManager.Instance.HasSaveData();
     }
 
     #endregion

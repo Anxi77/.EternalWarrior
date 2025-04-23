@@ -62,10 +62,7 @@ public class StageStateHandler : BaseStateHandler
     {
         yield return new WaitForSeconds(0.5f);
 
-        if (MonsterManager.Instance != null)
-        {
-            MonsterManager.Instance.StartSpawning();
-        }
+        GameManager.Instance.MonsterSystem.StartSpawning();
     }
 
     public override void OnExit()
@@ -74,7 +71,7 @@ public class StageStateHandler : BaseStateHandler
 
         base.OnExit();
 
-        MonsterManager.Instance?.StopSpawning();
+        GameManager.Instance.MonsterSystem.StopSpawning();
         GameManager.Instance.StageTimer?.PauseTimer();
         GameManager.Instance.StageTimer?.ResetTimer();
         GameManager.Instance.CameraSystem?.ClearCamera();
@@ -100,7 +97,7 @@ public class StageStateHandler : BaseStateHandler
     {
         isBossPhase = true;
         UIManager.Instance.OpenPanel(PanelType.BossWarning);
-        MonsterManager.Instance?.SpawnStageBoss();
+        GameManager.Instance.MonsterSystem.SpawnStageBoss();
     }
 
     public void OnBossDefeated(Vector3 position)

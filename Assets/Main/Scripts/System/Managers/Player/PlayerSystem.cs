@@ -35,7 +35,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
             if (player.playerStat != null)
             {
-                if (PlayerDataSystem.Instance.HasSaveData())
+                if (PlayerDataManager.Instance.HasSaveData())
                 {
                     LoadGameState();
                 }
@@ -95,7 +95,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
             PlayerData data = new PlayerData();
             data.stats = playerStat.CreateSaveData();
             data.inventory = inventory.GetInventoryData();
-            PlayerDataSystem.Instance.SavePlayerData(data);
+            PlayerDataManager.Instance.SavePlayerData(data);
         }
     }
 
@@ -112,7 +112,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
         if (playerStat != null && inventory != null)
         {
-            var savedData = PlayerDataSystem.Instance.LoadPlayerData();
+            var savedData = PlayerDataManager.Instance.LoadPlayerData();
             if (savedData != null)
             {
                 playerStat.LoadFromSaveData(savedData.stats);
