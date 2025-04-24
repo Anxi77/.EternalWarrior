@@ -345,7 +345,7 @@ public class Player : MonoBehaviour
         float damage = playerStat.GetStat(StatType.Damage);
 
         var enemiesInRange = GameManager
-            .Instance.enemies.Where(enemy => enemy != null)
+            .Instance.Monsters.Where(enemy => enemy != null)
             .Where(enemy =>
             {
                 Vector2 directionToEnemy = enemy.transform.position - transform.position;
@@ -367,7 +367,7 @@ public class Player : MonoBehaviour
     private Monster FindNearestEnemy()
     {
         return GameManager
-            .Instance.enemies?.Where(enemy => enemy != null)
+            .Instance.Monsters?.Where(enemy => enemy != null)
             .OrderBy(enemy => Vector2.Distance(transform.position, enemy.transform.position))
             .FirstOrDefault();
     }

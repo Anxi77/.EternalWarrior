@@ -229,10 +229,10 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
 
     private void UpdateEnemyColliders(HashSet<Vector2Int> visibleNodes)
     {
-        if (GameManager.Instance?.enemies == null)
+        if (GameManager.Instance?.Monsters == null)
             return;
 
-        foreach (var enemy in GameManager.Instance.enemies)
+        foreach (var enemy in GameManager.Instance.Monsters)
         {
             Vector2Int enemyGridPos = WorldToGridPosition(enemy.transform.position);
             bool isInVisibleArea = visibleNodes.Contains(enemyGridPos);

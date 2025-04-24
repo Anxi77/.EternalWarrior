@@ -25,7 +25,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
 
         yield return new WaitForSeconds(0.5f);
 
-        var data = JSONIO<PlayerData>.LoadData(DEFAULT_SAVE_SLOT);
+        var data = JSONIO<PlayerData>.LoadData(SAVE_PATH, DEFAULT_SAVE_SLOT);
         if (data != null)
         {
             currentPlayerStatData = data.stats;
@@ -47,6 +47,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
         JSONIO<PlayerData>.SaveData(
+            SAVE_PATH,
             DEFAULT_SAVE_SLOT,
             new PlayerData
             {
@@ -62,17 +63,17 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         currentPlayerStatData = new StatData();
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
-        JSONIO<PlayerData>.DeleteData(DEFAULT_SAVE_SLOT);
+        JSONIO<PlayerData>.DeleteData(SAVE_PATH, DEFAULT_SAVE_SLOT);
     }
 
     public void SavePlayerData(PlayerData data)
     {
-        JSONIO<PlayerData>.SaveData(DEFAULT_SAVE_SLOT, data);
+        JSONIO<PlayerData>.SaveData(SAVE_PATH, DEFAULT_SAVE_SLOT, data);
     }
 
     public PlayerData LoadPlayerData()
     {
-        return JSONIO<PlayerData>.LoadData(DEFAULT_SAVE_SLOT);
+        return JSONIO<PlayerData>.LoadData(SAVE_PATH, DEFAULT_SAVE_SLOT);
     }
 
     public void SaveInventoryData(InventoryData data)
@@ -81,7 +82,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         try
         {
             EnsureDirectoryExists();
-            JSONIO<InventoryData>.SaveData(DEFAULT_SAVE_SLOT, currentInventoryData);
+            JSONIO<InventoryData>.SaveData(SAVE_PATH, DEFAULT_SAVE_SLOT, currentInventoryData);
             Debug.Log($"Successfully saved inventory data to: {DEFAULT_SAVE_SLOT}");
         }
         catch (System.Exception e)

@@ -10,22 +10,7 @@ using UnityEditor;
 public static class JSONIO<T>
     where T : class
 {
-    private static readonly string defaultPath;
-    private static string customPath;
-    private static readonly Dictionary<string, T> cache;
-
-    static JSONIO()
-    {
-        defaultPath = typeof(T).Name;
-        cache = new Dictionary<string, T>();
-    }
-
-    public static void SetCustomPath(string path)
-    {
-        customPath = path;
-    }
-
-    public static void SaveData(string key, T data)
+    public static void SaveData(string path, string key, T data)
     {
         try
         {
@@ -35,13 +20,7 @@ public static class JSONIO<T>
                 return;
             }
 
-            string savePath = customPath ?? defaultPath;
-            string fullPath = Path.Combine(
-                Application.dataPath,
-                "Resources",
-                savePath,
-                $"{key}.json"
-            );
+            string fullPath = Path.Combine(Application.dataPath, "Resources", path, $"{key}.json");
             string directory = Path.GetDirectoryName(fullPath);
 
             if (!Directory.Exists(directory))
@@ -50,7 +29,6 @@ public static class JSONIO<T>
             string jsonData = JsonConvert.SerializeObject(data, Formatting.Indented);
             File.WriteAllText(fullPath, jsonData);
 
-            cache[key] = data;
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
 #endif
@@ -62,21 +40,16 @@ public static class JSONIO<T>
         }
     }
 
-    public static T LoadData(string key)
+    public static T LoadData(string path, string key)
     {
-        if (cache.TryGetValue(key, out T cachedData))
-            return cachedData;
-
         try
         {
-            string savePath = customPath ?? defaultPath;
-            string resourcePath = Path.Combine(savePath, key);
+            string resourcePath = Path.Combine(path, key);
             TextAsset jsonAsset = Resources.Load<TextAsset>(resourcePath);
 
             if (jsonAsset != null)
             {
                 T data = JsonConvert.DeserializeObject<T>(jsonAsset.text);
-                cache[key] = data;
                 return data;
             }
         }
@@ -88,20 +61,14 @@ public static class JSONIO<T>
         return null;
     }
 
-    public static bool DeleteData(string key)
+    public static bool DeleteData(string path, string key)
     {
         try
         {
-            string fullPath = Path.Combine(
-                Application.dataPath,
-                "Resources",
-                defaultPath,
-                $"{key}.json"
-            );
+            string fullPath = Path.Combine(Application.dataPath, "Resources", path, $"{key}.json");
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
-                cache.Remove(key);
 #if UNITY_EDITOR
                 AssetDatabase.Refresh();
 #endif
@@ -115,11 +82,11 @@ public static class JSONIO<T>
         return false;
     }
 
-    public static void ClearAll()
+    public static void ClearAll(string path)
     {
         try
         {
-            string directory = Path.Combine(Application.dataPath, "Resources", defaultPath);
+            string directory = Path.Combine(Application.dataPath, "Resources", path);
             if (Directory.Exists(directory))
             {
                 var files = Directory.GetFiles(directory, "*.json");
@@ -128,7 +95,6 @@ public static class JSONIO<T>
                     File.Delete(file);
                 }
             }
-            cache.Clear();
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
 #endif

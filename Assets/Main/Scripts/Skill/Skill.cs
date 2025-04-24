@@ -9,18 +9,6 @@ public abstract class Skill : MonoBehaviour
     protected bool isInitialized = false;
     public int currentLevel = 1;
 
-    protected virtual void Start()
-    {
-        StartCoroutine(WaitForInitialization());
-    }
-
-    protected virtual IEnumerator WaitForInitialization()
-    {
-        yield return new WaitUntil(() => GameManager.Instance != null && skillData != null);
-
-        Initialize();
-    }
-
     public virtual void Initialize()
     {
         InitializeSkillData();
@@ -181,6 +169,9 @@ public abstract class Skill : MonoBehaviour
         if (!Application.isPlaying)
             return;
 
+        if (!SkillDataManager.Instance.IsInitialized)
+            return;
+
         if (skillData == null)
         {
             Debug.LogError($"Skill data is missing for {GetType().Name}");
@@ -190,6 +181,7 @@ public abstract class Skill : MonoBehaviour
         if (!IsValidSkillData(skillData))
         {
             Debug.LogError($"Invalid skill data for {GetType().Name}");
+
             return;
         }
 

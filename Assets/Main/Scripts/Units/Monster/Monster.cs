@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -125,10 +126,10 @@ public class Monster : MonoBehaviour
         if (
             Application.isPlaying
             && GameManager.Instance != null
-            && !GameManager.Instance.enemies.Contains(this)
+            && !GameManager.Instance.Monsters.Contains(this)
         )
         {
-            GameManager.Instance.enemies.Add(this);
+            GameManager.Instance.Monsters.Add(this);
         }
 
         CalculateFormationOffset();
@@ -179,11 +180,11 @@ public class Monster : MonoBehaviour
             Application.isPlaying
             && !isQuitting
             && GameManager.Instance != null
-            && GameManager.Instance.enemies != null
-            && GameManager.Instance.enemies.Contains(this)
+            && GameManager.Instance.Monsters != null
+            && GameManager.Instance.Monsters.Contains(this)
         )
         {
-            GameManager.Instance.enemies.Remove(this);
+            GameManager.Instance.Monsters.Remove(this);
         }
     }
 
@@ -216,14 +217,14 @@ public class Monster : MonoBehaviour
         if (GameManager.Instance == null)
             return;
 
-        int totalEnemies = GameManager.Instance.enemies.Count;
+        int totalEnemies = GameManager.Instance.Monsters.Count;
         if (totalEnemies == 0)
         {
             formationOffset = Vector2.zero;
             return;
         }
 
-        int index = GameManager.Instance.enemies.IndexOf(this);
+        int index = GameManager.Instance.Monsters.IndexOf(this);
         int rowSize = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(totalEnemies)));
 
         int row = index / rowSize;
@@ -432,11 +433,11 @@ public class Monster : MonoBehaviour
 
     private void UpdateCirclingParameters()
     {
-        int enemyCount = GameManager.Instance.enemies.Count;
+        int enemyCount = GameManager.Instance.Monsters.Count;
         circlingRadius = Mathf.Max(2.0f, Mathf.Min(3.0f, enemyCount * 0.5f));
 
         float baseAngle = Time.time * 20f;
-        int myIndex = GameManager.Instance.enemies.IndexOf(this);
+        int myIndex = GameManager.Instance.Monsters.IndexOf(this);
         float angleStep = 360f / Mathf.Max(1, enemyCount);
         float targetAngle = baseAngle + (myIndex * angleStep);
 
@@ -818,22 +819,19 @@ public class Monster : MonoBehaviour
         Vector2 separation = Vector2.zero;
         int neighborCount = 0;
 
-        foreach (Monster enemy in GameManager.Instance.enemies)
+        foreach (Monster monster in GameManager.Instance.Monsters)
         {
-            if (enemy == this)
+            if (monster == this)
                 continue;
 
-            float distance = Vector2.Distance(currentPos, enemy.transform.position);
+            float distance = Vector2.Distance(currentPos, monster.transform.position);
             if (distance < FORMATION_RADIUS)
             {
-                // 응집력 (Cohesion)
-                cohesion += (Vector2)enemy.transform.position;
+                cohesion += (Vector2)monster.transform.position;
 
-                // 정렬 (Alignment)
-                alignment += enemy.rb.velocity;
+                alignment += monster.rb.velocity;
 
-                // 분리 (Separation)
-                Vector2 diff = currentPos - (Vector2)enemy.transform.position;
+                Vector2 diff = currentPos - (Vector2)monster.transform.position;
                 separation += diff.normalized / Mathf.Max(distance, 0.1f);
 
                 neighborCount++;
@@ -897,9 +895,9 @@ public class Monster : MonoBehaviour
             DropItems();
         }
 
-        if (GameManager.Instance?.enemies != null)
+        if (GameManager.Instance?.Monsters != null)
         {
-            GameManager.Instance.enemies.Remove(this);
+            GameManager.Instance.Monsters.Remove(this);
         }
 
         PoolManager.Instance.Despawn(this);

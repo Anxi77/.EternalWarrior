@@ -2,6 +2,7 @@ using System;
 
 #region Skill
 
+[Serializable]
 public enum SkillType
 {
     None = 0,
@@ -10,6 +11,7 @@ public enum SkillType
     Passive,
 }
 
+[Serializable]
 public enum SkillID
 {
     None = 100000,

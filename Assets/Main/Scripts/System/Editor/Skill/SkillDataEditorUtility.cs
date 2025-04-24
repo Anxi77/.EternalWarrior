@@ -19,12 +19,6 @@ public static class SkillDataEditorUtility
     private static Dictionary<SkillID, Dictionary<int, SkillStatData>> statDatabase = new();
     #endregion
 
-    static SkillDataEditorUtility()
-    {
-        JSONIO<SkillData>.SetCustomPath(SKILL_DB_PATH);
-        CSVIO<SkillStatData>.SetCustomPath(SKILL_STAT_PATH);
-    }
-
     public static Dictionary<SkillID, SkillData> GetSkillDatabase()
     {
         if (!skillDatabase.Any())
@@ -53,7 +47,7 @@ public static class SkillDataEditorUtility
                 if (skillId == SkillID.None)
                     continue;
 
-                var skillData = JSONIO<SkillData>.LoadData(skillId.ToString());
+                var skillData = JSONIO<SkillData>.LoadData(SKILL_DB_PATH, skillId.ToString());
                 if (skillData != null)
                 {
                     if (!string.IsNullOrEmpty(skillData.IconPath))
@@ -124,7 +118,7 @@ public static class SkillDataEditorUtility
 
     private static void LoadStatsFromCSV(string fileName)
     {
-        var stats = CSVIO<SkillStatData>.LoadBulkData(fileName);
+        var stats = CSVIO<SkillStatData>.LoadBulkData(SKILL_STAT_PATH, fileName);
         foreach (var stat in stats)
         {
             if (!statDatabase.ContainsKey(stat.SkillID))
@@ -149,7 +143,7 @@ public static class SkillDataEditorUtility
         {
             SaveSkillResources(skillData);
 
-            JSONIO<SkillData>.SaveData(skillData.ID.ToString(), skillData);
+            JSONIO<SkillData>.SaveData(SKILL_DB_PATH, skillData.ID.ToString(), skillData);
             skillDatabase[skillData.ID] = skillData.Clone() as SkillData;
 
             SaveStatData(skillData);
@@ -242,9 +236,9 @@ public static class SkillDataEditorUtility
             }
         }
 
-        CSVIO<SkillStatData>.SaveBulkData("ProjectileSkillStats", projectileStats);
-        CSVIO<SkillStatData>.SaveBulkData("AreaSkillStats", areaStats);
-        CSVIO<SkillStatData>.SaveBulkData("PassiveSkillStats", passiveStats);
+        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "ProjectileSkillStats", projectileStats);
+        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "AreaSkillStats", areaStats);
+        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "PassiveSkillStats", passiveStats);
     }
 
     public static void DeleteSkillData(SkillID skillId)
@@ -254,7 +248,7 @@ public static class SkillDataEditorUtility
             if (skillDatabase.Remove(skillId))
             {
                 // JSON 파일 삭제
-                JSONIO<SkillData>.DeleteData(skillId.ToString());
+                JSONIO<SkillData>.DeleteData(SKILL_DB_PATH, skillId.ToString());
 
                 // 리소스 파일들 삭제
                 DeleteSkillResources(skillId);
@@ -329,10 +323,10 @@ public static class SkillDataEditorUtility
         try
         {
             // JSON 데이터 삭제
-            JSONIO<SkillData>.ClearAll();
+            JSONIO<SkillData>.ClearAll(SKILL_DB_PATH);
 
             // CSV 데이터 삭제
-            CSVIO<SkillStatData>.ClearAll();
+            CSVIO<SkillStatData>.ClearAll(SKILL_STAT_PATH);
 
             // 리소스 캐시 초기화
             ResourceIO<Sprite>.ClearCache();
@@ -416,9 +410,9 @@ public static class SkillDataEditorUtility
 
         string headerLine = string.Join(",", headers);
 
-        CSVIO<SkillStatData>.CreateDefaultFile("ProjectileSkillStats", headerLine);
-        CSVIO<SkillStatData>.CreateDefaultFile("AreaSkillStats", headerLine);
-        CSVIO<SkillStatData>.CreateDefaultFile("PassiveSkillStats", headerLine);
+        CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "ProjectileSkillStats", headerLine);
+        CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "AreaSkillStats", headerLine);
+        CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "PassiveSkillStats", headerLine);
     }
 
     private static SkillStatData CreateDefaultStatData(SkillData skillData)
@@ -468,56 +462,11 @@ public static class SkillDataEditorUtility
         return defaultStat;
     }
 
-    public static void SaveWithBackup()
+    public static void Save()
     {
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string backupPath = Path.Combine(SKILL_DB_PATH, "Backups", timestamp);
-
         foreach (var skill in skillDatabase.Values)
         {
-            JSONIO<SkillData>.SaveData($"{backupPath}/{skill.ID}_Data", skill);
+            JSONIO<SkillData>.SaveData(SKILL_DB_PATH, skill.ID.ToString(), skill);
         }
-
-        string backupStatPath = $"{SKILL_STAT_PATH}/Backups/{timestamp}";
-        SaveStatsToBackup(backupStatPath);
-
-        Debug.Log($"Backup created at: {backupPath}");
-    }
-
-    private static void SaveStatsToBackup(string backupPath)
-    {
-        var projectileStats = new List<SkillStatData>();
-        var areaStats = new List<SkillStatData>();
-        var passiveStats = new List<SkillStatData>();
-
-        foreach (var skillStats in statDatabase.Values)
-        {
-            foreach (var stat in skillStats.Values)
-            {
-                if (!skillDatabase.ContainsKey(stat.SkillID))
-                    continue;
-
-                var skill = skillDatabase[stat.SkillID];
-                switch (skill.Type)
-                {
-                    case SkillType.Projectile:
-                        projectileStats.Add(stat);
-                        break;
-                    case SkillType.Area:
-                        areaStats.Add(stat);
-                        break;
-                    case SkillType.Passive:
-                        passiveStats.Add(stat);
-                        break;
-                }
-            }
-        }
-
-        string fullBackupPath = Path.Combine("Assets/Resources", backupPath);
-        Directory.CreateDirectory(fullBackupPath);
-
-        CSVIO<SkillStatData>.SaveBulkData($"{backupPath}/ProjectileSkillStats", projectileStats);
-        CSVIO<SkillStatData>.SaveBulkData($"{backupPath}/AreaSkillStats", areaStats);
-        CSVIO<SkillStatData>.SaveBulkData($"{backupPath}/PassiveSkillStats", passiveStats);
     }
 }

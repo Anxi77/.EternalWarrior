@@ -135,6 +135,11 @@ public abstract class AreaSkills : Skill
             return;
         }
 
+        if (!SkillDataManager.Instance.IsInitialized)
+        {
+            return;
+        }
+
         base.OnValidate();
 
         if (skillData == null)

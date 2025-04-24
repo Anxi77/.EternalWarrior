@@ -36,9 +36,9 @@ public class Bind : AreaSkills
 
             List<Monster> affectedEnemies = new List<Monster>();
 
-            if (GameManager.Instance.enemies != null)
+            if (GameManager.Instance.Monsters != null)
             {
-                foreach (Monster enemy in GameManager.Instance.enemies)
+                foreach (Monster enemy in GameManager.Instance.Monsters)
                 {
                     if (enemy != null)
                     {

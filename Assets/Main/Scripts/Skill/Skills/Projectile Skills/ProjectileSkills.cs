@@ -52,6 +52,8 @@ public abstract class ProjectileSkills : Skill
         {
             Debug.LogWarning($"No Stat data found for {skillData.Name}");
         }
+        isInitialized = true;
+        canFire = true;
     }
 
     protected ProjectileSkillStat TypeStat
@@ -86,13 +88,6 @@ public abstract class ProjectileSkills : Skill
             }
             return stats;
         }
-    }
-
-    protected override IEnumerator WaitForInitialization()
-    {
-        yield return base.WaitForInitialization();
-        isInitialized = true;
-        canFire = true;
     }
 
     protected virtual void Update()
@@ -207,7 +202,7 @@ public abstract class ProjectileSkills : Skill
 
     protected virtual bool AreEnemiesInRange()
     {
-        foreach (Monster enemy in GameManager.Instance.enemies)
+        foreach (Monster enemy in GameManager.Instance.Monsters)
         {
             if (Vector2.Distance(transform.position, enemy.transform.position) <= HomingRange)
             {
@@ -222,7 +217,7 @@ public abstract class ProjectileSkills : Skill
         Monster nearestEnemy = null;
         float nearestDistance = float.MaxValue;
 
-        foreach (Monster enemy in GameManager.Instance.enemies)
+        foreach (Monster enemy in GameManager.Instance.Monsters)
         {
             float distance = Vector2.Distance(transform.position, enemy.transform.position);
             if (distance < nearestDistance && distance <= HomingRange)

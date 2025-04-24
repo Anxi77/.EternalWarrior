@@ -131,9 +131,8 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            JSONIO<SerializableItemList>.SetCustomPath("Items/Database");
             var wrapper = new SerializableItemList { items = itemDatabase.Values.ToList() };
-            JSONIO<SerializableItemList>.SaveData("ItemDatabase", wrapper);
+            JSONIO<SerializableItemList>.SaveData("Items/ItemDatabase", "ItemDatabase", wrapper);
             Debug.Log($"Database saved successfully");
             AssetDatabase.Refresh();
         }
@@ -153,9 +152,8 @@ public static class ItemDataEditorUtility
                 return;
             }
 
-            JSONIO<DropTablesWrapper>.SetCustomPath("Items/DropTables");
             var wrapper = new DropTablesWrapper { dropTables = dropTables.Values.ToList() };
-            JSONIO<DropTablesWrapper>.SaveData("DropTables", wrapper);
+            JSONIO<DropTablesWrapper>.SaveData("Items/DropTables", "DropTables", wrapper);
             AssetDatabase.Refresh();
         }
         catch (Exception e)
@@ -264,8 +262,7 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            JSONIO<SerializableItemList>.SetCustomPath("Items/Database");
-            var data = JSONIO<SerializableItemList>.LoadData("ItemDatabase");
+            var data = JSONIO<SerializableItemList>.LoadData("Items/Database", "ItemDatabase");
             if (data != null && data.items != null)
             {
                 itemDatabase = data.items.ToDictionary(item => item.ID);
@@ -288,8 +285,7 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            JSONIO<DropTablesWrapper>.SetCustomPath("Items/DropTables");
-            var data = JSONIO<DropTablesWrapper>.LoadData("DropTables");
+            var data = JSONIO<DropTablesWrapper>.LoadData("Items/DropTables", "DropTables");
             if (data != null && data.dropTables != null)
             {
                 dropTables = data.dropTables.ToDictionary(dt => dt.enemyType);

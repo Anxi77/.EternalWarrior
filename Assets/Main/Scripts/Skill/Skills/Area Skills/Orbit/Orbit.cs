@@ -15,11 +15,6 @@ public class Orbit : AreaSkills
     {
         base.Initialize();
         orbs = GetComponentInChildren<RotatingOrb>();
-    }
-
-    protected override void Start()
-    {
-        base.Start();
         if (orbs != null)
         {
             UpdateOrbCount();

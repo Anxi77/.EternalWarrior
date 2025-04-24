@@ -13,7 +13,8 @@ public interface IGameState
 
 public class GameManager : Singleton<GameManager>
 {
-    internal List<Monster> enemies = new();
+    private List<Monster> monsters = new();
+    public List<Monster> Monsters => monsters;
 
     private StageTimer stageTimer;
     public StageTimer StageTimer => stageTimer;

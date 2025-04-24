@@ -149,10 +149,10 @@ public class Projectile : MonoBehaviour, IPoolable
 
     protected virtual void FindTarget()
     {
-        if (GameManager.Instance.enemies.Count > 0)
+        if (GameManager.Instance.Monsters.Count > 0)
         {
             float targetDistance = float.MaxValue;
-            foreach (Monster enemy in GameManager.Instance.enemies)
+            foreach (Monster enemy in GameManager.Instance.Monsters)
             {
                 float distance = Vector3.Distance(enemy.transform.position, transform.position);
                 if (distance < targetDistance)

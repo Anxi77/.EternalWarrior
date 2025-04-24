@@ -142,7 +142,7 @@ public class SkillDataEditorWindow : EditorWindow
             GUILayout.Space(10);
             if (GUILayout.Button("Create Backup", EditorStyles.toolbarButton, GUILayout.Width(100)))
             {
-                SkillDataEditorUtility.SaveWithBackup();
+                SkillDataEditorUtility.Save();
             }
             GUILayout.Space(10);
             if (
