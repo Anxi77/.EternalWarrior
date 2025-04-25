@@ -5,6 +5,28 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
+// ISkillStat 인터페이스에 대한 커스텀 프로퍼티 드로어
+[CustomPropertyDrawer(typeof(ISkillStat))]
+public class SkillStatDrawer : PropertyDrawer
+{
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        // 시작 위치 기록
+        EditorGUI.BeginProperty(position, label, property);
+
+        // 전체 영역에 기본 필드 그리기
+        EditorGUI.PropertyField(position, property, label, true);
+
+        EditorGUI.EndProperty();
+    }
+
+    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+    {
+        // 기본 Unity 프로퍼티 높이 사용 (모든 하위 요소 포함)
+        return EditorGUI.GetPropertyHeight(property, label, true);
+    }
+}
+
 public static class SkillDataEditorUtility
 {
     #region Constants
@@ -121,11 +143,11 @@ public static class SkillDataEditorUtility
         var stats = CSVIO<SkillStatData>.LoadBulkData(SKILL_STAT_PATH, fileName);
         foreach (var stat in stats)
         {
-            if (!statDatabase.ContainsKey(stat.SkillID))
+            if (!statDatabase.ContainsKey(stat.skillID))
             {
-                statDatabase[stat.SkillID] = new Dictionary<int, SkillStatData>();
+                statDatabase[stat.skillID] = new Dictionary<int, SkillStatData>();
             }
-            statDatabase[stat.SkillID][stat.Level] = stat;
+            statDatabase[stat.skillID][stat.level] = stat;
         }
     }
 
@@ -147,6 +169,9 @@ public static class SkillDataEditorUtility
             skillDatabase[skillData.ID] = skillData.Clone() as SkillData;
 
             SaveStatData(skillData);
+
+            // 모든 스킬 데이터가 준비된 후 한 번만 저장
+            SaveStatDatabase();
         }
         catch (Exception e)
         {
@@ -165,8 +190,6 @@ public static class SkillDataEditorUtility
             var defaultStat = CreateDefaultStatData(skillData);
             statDatabase[skillData.ID][1] = defaultStat;
         }
-
-        SaveStatDatabase();
     }
 
     private static void SaveSkillResources(SkillData skillData)
@@ -213,15 +236,30 @@ public static class SkillDataEditorUtility
         var areaStats = new List<SkillStatData>();
         var passiveStats = new List<SkillStatData>();
 
-        foreach (var skillStats in statDatabase.Values)
+        // 중복 방지 로직 추가
+        HashSet<(SkillID, int)> processedStats = new HashSet<(SkillID, int)>();
+
+        foreach (var skillStatsPair in statDatabase)
         {
-            foreach (var stat in skillStats.Values)
+            SkillID skillId = skillStatsPair.Key;
+            if (!skillDatabase.ContainsKey(skillId))
+                continue;
+
+            var skillData = skillDatabase[skillId];
+            var skillStats = skillStatsPair.Value;
+
+            foreach (var levelStatPair in skillStats)
             {
-                if (!skillDatabase.ContainsKey(stat.SkillID))
+                int level = levelStatPair.Key;
+                SkillStatData stat = levelStatPair.Value;
+
+                // 이미 처리된 데이터면 스킵
+                if (processedStats.Contains((skillId, level)))
                     continue;
 
-                var skill = skillDatabase[stat.SkillID];
-                switch (skill.Type)
+                processedStats.Add((skillId, level));
+
+                switch (skillData.Type)
                 {
                     case SkillType.Projectile:
                         projectileStats.Add(stat);
@@ -236,9 +274,19 @@ public static class SkillDataEditorUtility
             }
         }
 
-        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "ProjectileSkillStats", projectileStats);
-        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "AreaSkillStats", areaStats);
-        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "PassiveSkillStats", passiveStats);
+        // 파일 덮어쓰기 (항상 새로 저장)
+        CSVIO<SkillStatData>.SaveBulkData(
+            SKILL_STAT_PATH,
+            "ProjectileSkillStats",
+            projectileStats,
+            true
+        );
+        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "AreaSkillStats", areaStats, true);
+        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "PassiveSkillStats", passiveStats, true);
+
+        Debug.Log(
+            $"스킬 데이터 저장 완료 - 프로젝타일: {projectileStats.Count}, 영역: {areaStats.Count}, 패시브: {passiveStats.Count}"
+        );
     }
 
     public static void DeleteSkillData(SkillID skillId)
@@ -281,7 +329,7 @@ public static class SkillDataEditorUtility
         var stats = GetStatDatabase().GetValueOrDefault(skillId);
         if (stats != null)
         {
-            int maxLevel = stats.Values.Max(s => s.MaxSkillLevel);
+            int maxLevel = stats.Values.Max(s => s.maxSkillLevel);
             for (int i = 1; i <= maxLevel; i++)
             {
                 ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}_Level_{i}");
@@ -293,21 +341,17 @@ public static class SkillDataEditorUtility
     {
         try
         {
-            // 기존 데이터 정리
             ClearAllData();
 
-            // 데이터베이스 초기화
             skillDatabase = new Dictionary<SkillID, SkillData>();
             statDatabase = new Dictionary<SkillID, Dictionary<int, SkillStatData>>();
 
-            // Resources 폴더 내의 모든 관련 디렉토리 정리
             string resourceRoot = Path.Combine(Application.dataPath, "Resources");
             CleanDirectory(Path.Combine(resourceRoot, SKILL_DB_PATH));
             CleanDirectory(Path.Combine(resourceRoot, SKILL_ICON_PATH));
             CleanDirectory(Path.Combine(resourceRoot, SKILL_PREFAB_PATH));
             CleanDirectory(Path.Combine(resourceRoot, SKILL_STAT_PATH));
 
-            // 기본 CSV 파일 생성
             CreateDefaultCSVFiles();
 
             AssetDatabase.Refresh();
@@ -322,21 +366,15 @@ public static class SkillDataEditorUtility
     {
         try
         {
-            // JSON 데이터 삭제
             JSONIO<SkillData>.ClearAll(SKILL_DB_PATH);
-
-            // CSV 데이터 삭제
             CSVIO<SkillStatData>.ClearAll(SKILL_STAT_PATH);
-
-            // 리소스 캐시 초기화
+            CSVIO<SkillStatData>.ClearAll(SKILL_STAT_PATH);
             ResourceIO<Sprite>.ClearCache();
             ResourceIO<GameObject>.ClearCache();
 
-            // 데이터베이스 초기화
             skillDatabase.Clear();
             statDatabase.Clear();
 
-            // Resources 폴더 정리
             string resourceRoot = Path.Combine(Application.dataPath, "Resources");
             if (Directory.Exists(resourceRoot))
             {
@@ -367,7 +405,6 @@ public static class SkillDataEditorUtility
         {
             try
             {
-                // 디렉토리 내의 모든 파일 삭제
                 string[] files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
                 foreach (string file in files)
                 {
@@ -382,7 +419,6 @@ public static class SkillDataEditorUtility
                     }
                 }
 
-                // 디렉토리 재생성
                 Directory.Delete(path, true);
                 Directory.CreateDirectory(path);
             }
@@ -399,14 +435,33 @@ public static class SkillDataEditorUtility
 
     private static void CreateDefaultCSVFiles()
     {
-        var headers = new List<string> { "skillname", "skilltype", "skillid", "description" };
-        headers.AddRange(
-            typeof(SkillStatData)
-                .GetProperties()
-                .Where(p => p.CanRead && p.CanWrite && p.Name != "SkillID")
-                .OrderBy(p => p.Name)
-                .Select(p => p.Name.ToLower())
-        );
+        var headers = new List<string>()
+        {
+            "skillid",
+            "level",
+            "damage",
+            "maxskilllevel",
+            "element",
+            "elementalpower",
+        };
+
+        var propertyNames = typeof(SkillStatData)
+            .GetProperties()
+            .Where(p =>
+                p.CanRead
+                && p.CanWrite
+                && !headers.Contains(p.Name.ToLower())
+                && p.Name != "SkillID"
+                && p.Name != "Level"
+                && p.Name != "Damage"
+                && p.Name != "MaxSkillLevel"
+                && p.Name != "Element"
+                && p.Name != "ElementalPower"
+            )
+            .OrderBy(p => p.Name)
+            .Select(p => p.Name.ToLower());
+
+        headers.AddRange(propertyNames);
 
         string headerLine = string.Join(",", headers);
 
@@ -424,35 +479,35 @@ public static class SkillDataEditorUtility
 
         var defaultStat = new SkillStatData
         {
-            SkillID = skillData.ID,
-            Level = 1,
-            MaxSkillLevel = 5,
-            Damage = 10f,
-            ElementalPower = 1f,
-            Element = skillData.Element,
+            skillID = skillData.ID,
+            level = 1,
+            maxSkillLevel = 5,
+            damage = 10f,
+            elementalPower = 1f,
+            element = skillData.Element,
         };
 
         switch (skillData.Type)
         {
             case SkillType.Projectile:
-                defaultStat.ProjectileSpeed = 10f;
-                defaultStat.ProjectileScale = 1f;
-                defaultStat.ShotInterval = 0.5f;
-                defaultStat.PierceCount = 1;
-                defaultStat.AttackRange = 10f;
+                defaultStat.projectileSpeed = 10f;
+                defaultStat.projectileScale = 1f;
+                defaultStat.shotInterval = 0.5f;
+                defaultStat.pierceCount = 1;
+                defaultStat.attackRange = 10f;
                 break;
 
             case SkillType.Area:
-                defaultStat.Radius = 5f;
-                defaultStat.Duration = 3f;
-                defaultStat.TickRate = 1f;
-                defaultStat.IsPersistent = false;
+                defaultStat.radius = 5f;
+                defaultStat.duration = 3f;
+                defaultStat.tickRate = 1f;
+                defaultStat.isPersistent = false;
                 break;
 
             case SkillType.Passive:
-                defaultStat.EffectDuration = 5f;
-                defaultStat.Cooldown = 10f;
-                defaultStat.TriggerChance = 1f;
+                defaultStat.effectDuration = 5f;
+                defaultStat.cooldown = 10f;
+                defaultStat.triggerChance = 1f;
                 break;
 
             default:

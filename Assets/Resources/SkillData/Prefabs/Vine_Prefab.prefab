@@ -44,6 +44,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7773986693d7e246a18285a328ff07e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skillData:
+    ID: 100000
+    Name: None
+    Description: None
+    Type: 0
+    Element: 0
+    Tier: 0
+    Tags: []
+    BasePrefab: {fileID: 0}
+    BasePrefabPath: 
+    levelDataList: []
+    Icon: {fileID: 0}
+    IconPath: 
+    ProjectilePrefab: {fileID: 0}
+    ProjectilePath: 
+    PrefabsByLevel: []
+    PrefabsByLevelPaths: []
   currentLevel: 1
   _damage: 0.1
   _elementalPower: 1

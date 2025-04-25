@@ -49,14 +49,12 @@ public static class CSVIO<T>
                 Directory.CreateDirectory(directory);
 
             var csv = new StringBuilder();
-            var properties = typeof(T).GetProperties(
-                System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance
-            );
+            var fields = typeof(T).GetFields();
 
-            var headerLine = string.Join(",", properties.Select(p => p.Name.ToLower()));
+            var headers = fields.Select(f => f.Name).Distinct().ToList();
+            var headerLine = string.Join(",", headers);
             csv.AppendLine(headerLine);
 
-            int count = 0;
             foreach (var data in dataList)
             {
                 if (data == null)
@@ -65,9 +63,9 @@ public static class CSVIO<T>
                     continue;
                 }
 
-                var values = properties.Select(p =>
+                var values = fields.Select(f =>
                 {
-                    var value = p.GetValue(data);
+                    var value = f.GetValue(data);
                     if (value == null)
                         return "";
 
@@ -82,11 +80,11 @@ public static class CSVIO<T>
 
                 var line = string.Join(",", values);
                 csv.AppendLine(line);
-                count++;
             }
 
             File.WriteAllText(fullPath, csv.ToString());
-            Debug.Log($"Successfully saved {count} entries to {fullPath}");
+            Debug.Log($"Successfully saved data to {fullPath}");
+
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
 #endif
@@ -154,38 +152,16 @@ public static class CSVIO<T>
             return resultList;
         }
 
-        Debug.Log($"[CSVIO] 성공: CSV 파일 로드됨, 크기: {csvFile.text.Length} 바이트");
-
         string[] lines = csvFile.text.Split('\n');
-        Debug.Log($"[CSVIO] 총 {lines.Length} 행 발견");
-
         if (lines.Length <= 1)
         {
             Debug.LogError("[CSVIO] 오류: CSV 파일에 데이터가 없습니다 (헤더만 있거나 빈 파일)");
             return resultList;
         }
 
-        // 헤더 분석
         string[] headers = lines[0].Trim().Split(',');
-        Debug.Log($"[CSVIO] 헤더: {string.Join(", ", headers)}");
+        var fields = typeof(T).GetFields();
 
-        // 모든 속성 정보 가져오기
-        var properties = typeof(T).GetProperties();
-        Debug.Log($"[CSVIO] 클래스 {typeof(T).Name}의 속성 수: {properties.Length}");
-
-        // Enum 속성 확인
-        foreach (var prop in properties)
-        {
-            if (prop.PropertyType.IsEnum)
-            {
-                Debug.Log($"[CSVIO] Enum 속성 발견: {prop.Name}, 타입: {prop.PropertyType.Name}");
-                Debug.Log(
-                    $"[CSVIO] 가능한 Enum 값: {string.Join(", ", Enum.GetNames(prop.PropertyType))}"
-                );
-            }
-        }
-
-        // 각 행 처리
         for (int i = 1; i < lines.Length; i++)
         {
             string line = lines[i].Trim();
@@ -193,65 +169,66 @@ public static class CSVIO<T>
                 continue;
 
             string[] values = line.Split(',');
-            Debug.Log($"[CSVIO] 행 {i}: 값 수 = {values.Length}, 첫번째 값 = {values[0]}");
-
             T item = new T();
 
             for (int j = 0; j < headers.Length && j < values.Length; j++)
             {
                 string header = headers[j];
-                string value = values[j];
+                string value = values[j].Trim();
 
-                // 속성 찾기
-                var property = properties.FirstOrDefault(p =>
-                    string.Equals(p.Name, header, StringComparison.OrdinalIgnoreCase)
+                var field = fields.FirstOrDefault(f =>
+                    string.Equals(f.Name, header, StringComparison.OrdinalIgnoreCase)
                 );
 
-                if (property == null)
+                if (field == null)
                 {
                     Debug.LogWarning(
-                        $"[CSVIO] 경고: 헤더 '{header}'에 해당하는 속성이 클래스에 없습니다"
+                        $"[CSVIO] 경고: 헤더 '{header}'에 해당하는 필드가 클래스에 없습니다"
                     );
                     continue;
                 }
 
                 try
                 {
-                    // Enum 처리
-                    if (property.PropertyType.IsEnum)
-                    {
-                        Debug.Log(
-                            $"[CSVIO] Enum 변환 시도: '{value}' -> {property.PropertyType.Name}"
-                        );
+                    if (string.IsNullOrEmpty(value))
+                        continue;
 
-                        if (Enum.TryParse(property.PropertyType, value, true, out object enumValue))
+                    if (field.FieldType.IsEnum)
+                    {
+                        if (Enum.TryParse(field.FieldType, value, true, out object enumValue))
                         {
-                            Debug.Log($"[CSVIO] Enum 변환 성공: '{value}' -> {enumValue}");
-                            property.SetValue(item, enumValue);
+                            field.SetValue(item, enumValue);
                         }
                         else
                         {
-                            Debug.LogError(
-                                $"[CSVIO] Enum 변환 실패: '{value}'는 {property.PropertyType.Name}의 유효한 값이 아닙니다"
-                            );
-                            // 기본값 0 설정 (보통 None에 해당)
-                            property.SetValue(item, 0);
+                            field.SetValue(item, 0);
                         }
                     }
-                    // 다른 타입 처리
+                    else if (field.FieldType == typeof(bool))
+                    {
+                        field.SetValue(item, value == "1");
+                    }
+                    else if (field.FieldType == typeof(int))
+                    {
+                        field.SetValue(item, int.Parse(value));
+                    }
+                    else if (field.FieldType == typeof(float))
+                    {
+                        field.SetValue(item, float.Parse(value));
+                    }
+                    else if (field.FieldType == typeof(string))
+                    {
+                        field.SetValue(item, value.Trim('"'));
+                    }
                     else
                     {
-                        // 타입 변환 처리 (기존 코드 사용)
-                        // ...
-
-                        // 간단한 디버그 메시지
-                        Debug.Log($"[CSVIO] 값 설정: {header} = {value}");
+                        field.SetValue(item, Convert.ChangeType(value, field.FieldType));
                     }
                 }
                 catch (Exception ex)
                 {
                     Debug.LogError(
-                        $"[CSVIO] 오류: {header} 속성에 '{value}' 값 설정 중 예외 발생: {ex.Message}"
+                        $"[CSVIO] 오류: {header} 필드에 '{value}' 값 설정 중 예외 발생: {ex.Message}"
                     );
                 }
             }

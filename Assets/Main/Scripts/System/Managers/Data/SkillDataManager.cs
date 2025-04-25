@@ -43,78 +43,17 @@ public class SkillDataManager : Singleton<SkillDataManager>
     public IEnumerator Initialize()
     {
         float progress = 0f;
-        int steps;
         yield return progress;
         yield return new WaitForSeconds(0.5f);
-        LoadingManager.Instance.SetLoadingText("Initializing Skill Data...");
+        LoadingManager.Instance.SetLoadingText("스킬 데이터 초기화 중...");
 
-        List<Sprite> icons = Resources.LoadAll<Sprite>(ICON_PATH).ToList();
-        List<GameObject> prefabs = Resources.LoadAll<GameObject>(PREFAB_PATH).ToList();
-        List<TextAsset> jsonFiles = Resources.LoadAll<TextAsset>(JSON_PATH).ToList();
+        // 1. 자원 로드 (아이콘, 프리팹)
+        yield return LoadResources();
 
-        steps = icons.Count + prefabs.Count + jsonFiles.Count;
+        // 2. 스킬 데이터 로드 (JSON, CSV)
+        yield return LoadSkillData();
 
-        foreach (var icon in icons)
-        {
-            iconCache[icon.name] = icon;
-            progress += 1f / steps;
-            yield return progress;
-            LoadingManager.Instance.SetLoadingText($"Loading Assets... {progress * 100f:F0}%");
-        }
-
-        List<GameObject> basePrefabs = new();
-        foreach (var prefab in prefabs)
-        {
-            if (!prefab.name.Contains("Level"))
-            {
-                basePrefabs.Add(prefab);
-            }
-            else
-            {
-                prefabCache[prefab.name] = prefab;
-            }
-        }
-        foreach (var prefab in basePrefabs)
-        {
-            prefabCache[prefab.name] = prefab;
-
-            progress += 1f / steps;
-            yield return progress;
-            LoadingManager.Instance.SetLoadingText($"Loading Assets... {progress * 100f:F0}%");
-            foreach (var jsonAsset in jsonFiles)
-            {
-                string skillName = jsonAsset.name;
-
-                if (Enum.TryParse(skillName, out SkillID skillId))
-                {
-                    Debug.Log($"[skilldatamanager] Loading SkillData: {skillName}");
-
-                    var skillData = JSONIO<SkillData>.LoadData(JSON_PATH, jsonAsset.name);
-
-                    if (skillData != null)
-                    {
-                        LoadSkillResources(skillId, skillData);
-
-                        LoadSkillStats(skillId, skillData);
-
-                        LoadLevelPrefabs(skillId, skillData);
-
-                        skillDatabase[skillId] = skillData;
-
-                        progress += 1f / steps;
-                        yield return progress;
-                        LoadingManager.Instance.SetLoadingText(
-                            $"Loading Assets... {progress * 100f:F0}%"
-                        );
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"스킬 ID 파싱 실패: {skillName}");
-                }
-            }
-        }
-
+        // 3. 최종 처리
         foreach (var skill in skillDatabase)
         {
             Debug.Log($"스킬 로드 성공: {skill.Value.Name} (ID: {skill.Key})");
@@ -122,6 +61,140 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
 
         isInitialized = true;
+    }
+
+    private IEnumerator LoadResources()
+    {
+        float progress = 0f;
+
+        // 아이콘 로드
+        List<Sprite> icons = Resources.LoadAll<Sprite>(ICON_PATH).ToList();
+        for (int i = 0; i < icons.Count; i++)
+        {
+            iconCache[icons[i].name] = icons[i];
+            progress = (float)i / icons.Count * 0.3f; // 30% 진행률 할당
+            yield return progress;
+            LoadingManager.Instance.SetLoadingText($"아이콘 로드 중... {progress * 100f:F0}%");
+        }
+
+        // 프리팹 로드
+        List<GameObject> prefabs = Resources.LoadAll<GameObject>(PREFAB_PATH).ToList();
+        for (int i = 0; i < prefabs.Count; i++)
+        {
+            var prefab = prefabs[i];
+            prefabCache[prefab.name] = prefab;
+            progress = 0.3f + (float)i / prefabs.Count * 0.3f; // 30%~60% 진행률
+            yield return progress;
+            LoadingManager.Instance.SetLoadingText($"프리팹 로드 중... {progress * 100f:F0}%");
+        }
+    }
+
+    private IEnumerator LoadSkillData()
+    {
+        float progress = 0.6f;
+
+        List<TextAsset> jsonFiles = Resources.LoadAll<TextAsset>(JSON_PATH).ToList();
+
+        Dictionary<SkillID, SkillData> tempDatabase = new Dictionary<SkillID, SkillData>();
+
+        for (int i = 0; i < jsonFiles.Count; i++)
+        {
+            var jsonAsset = jsonFiles[i];
+            string skillName = jsonAsset.name;
+
+            if (Enum.TryParse(skillName, out SkillID skillId))
+            {
+                Debug.Log($"[SkillDataManager] 스킬 데이터 로드: {skillName}");
+                var skillData = JSONIO<SkillData>.LoadData(JSON_PATH, skillName);
+
+                if (skillData != null)
+                {
+                    tempDatabase[skillId] = skillData;
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"스킬 ID 파싱 실패: {skillName}");
+            }
+
+            progress = 0.6f + (float)i / jsonFiles.Count * 0.2f; // 60%~80% 진행률
+            yield return progress;
+            LoadingManager.Instance.SetLoadingText(
+                $"스킬 기본 데이터 로드 중... {progress * 100f:F0}%"
+            );
+        }
+
+        // 스킬 타입별 CSV 데이터 한 번만 로드
+        Dictionary<SkillType, List<SkillStatData>> statsByType =
+            new Dictionary<SkillType, List<SkillStatData>>();
+
+        statsByType[SkillType.Projectile] = LoadSkillStats("ProjectileSkillStats");
+        statsByType[SkillType.Area] = LoadSkillStats("AreaSkillStats");
+        statsByType[SkillType.Passive] = LoadSkillStats("PassiveSkillStats");
+
+        // 각 스킬에 CSV 데이터 적용 및 리소스 연결
+        int skillCount = tempDatabase.Count;
+        int current = 0;
+
+        foreach (var pair in tempDatabase)
+        {
+            SkillID skillId = pair.Key;
+            SkillData skillData = pair.Value;
+
+            LoadSkillResources(skillId, skillData);
+
+            if (statsByType.TryGetValue(skillData.Type, out var statsForType))
+            {
+                ApplySkillStats(skillId, skillData, statsForType);
+            }
+
+            LoadLevelPrefabs(skillId, skillData);
+
+            skillDatabase[skillId] = skillData;
+
+            current++;
+            progress = 0.8f + (float)current / skillCount * 0.2f;
+            yield return progress;
+            LoadingManager.Instance.SetLoadingText($"스킬 데이터 처리 중... {progress * 100f:F0}%");
+        }
+    }
+
+    private List<SkillStatData> LoadSkillStats(string statsFileName)
+    {
+        return CSVIO<SkillStatData>.LoadBulkData(STAT_PATH, statsFileName);
+    }
+
+    private void ApplySkillStats(SkillID skillId, SkillData skillData, List<SkillStatData> allStats)
+    {
+        var statsForSkill = allStats
+            .Where(stat =>
+                string.Equals(
+                    stat.skillID.ToString(),
+                    skillId.ToString(),
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            .GroupBy(stat => stat.level)
+            .ToDictionary(group => group.Key, group => group.First());
+
+        Debug.Log(
+            $"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터 수: {statsForSkill.Count}"
+        );
+
+        if (statsForSkill.Count == 0)
+        {
+            Debug.LogWarning($"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터가 없습니다!");
+            return;
+        }
+
+        foreach (var levelStat in statsForSkill)
+        {
+            int level = levelStat.Key;
+            var statData = levelStat.Value;
+
+            var skillStat = statData.CreateSkillStat(skillData.Type);
+            skillData.SetStatsForLevel(level, skillStat);
+        }
     }
 
     private void LoadSkillResources(SkillID skillId, SkillData skillData)
@@ -148,82 +221,12 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
     }
 
-    private void LoadSkillStats(SkillID skillId, SkillData skillData)
-    {
-        string statsFileName = skillData.Type switch
-        {
-            SkillType.Projectile => "ProjectileSkillStats",
-            SkillType.Area => "AreaSkillStats",
-            SkillType.Passive => "PassiveSkillStats",
-            _ => null,
-        };
-
-        if (statsFileName == null)
-        {
-            Debug.LogError($"[SkillDataManager] 유효하지 않은 스킬 타입: {skillData.Type}");
-            return;
-        }
-
-        var loadedStats = CSVIO<SkillStatData>.LoadBulkData(STAT_PATH, statsFileName);
-        foreach (var stat in loadedStats)
-        {
-            Debug.Log($"[SkillDataManager] {stat.SkillID}, {stat.Level}, {stat.MaxSkillLevel}");
-        }
-
-        var stats = loadedStats
-            .Where(stat => stat.SkillID == skillId)
-            .ToDictionary(stat => stat.Level, stat => stat);
-
-        Debug.Log($"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터 수: {stats.Count}");
-
-        if (stats.Count == 0)
-        {
-            Debug.LogError($"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터가 없습니다!");
-            return;
-        }
-
-        foreach (var levelStat in stats)
-        {
-            int level = levelStat.Key;
-            var statData = levelStat.Value;
-
-            Debug.Log($"[SkillDataManager] 스탯 상세 정보 - SkillID: {skillId}, Level: {level}");
-            // statData 필드 내용 출력 (주요 필드들만)
-
-            var skillStat = statData.CreateSkillStat(skillData.Type);
-
-            // 생성된 스킬 스탯 확인
-            Debug.Log(
-                $"[SkillDataManager] 생성된 스킬 스탯 타입: {skillStat.GetType().Name}, baseStat 존재: {skillStat.baseStat != null}"
-            );
-
-            if (skillStat.baseStat == null)
-            {
-                Debug.LogError(
-                    $"[SkillDataManager] CreateSkillStat()에서 baseStat이 null로 생성됨! SkillID: {skillId}, Level: {level}"
-                );
-            }
-
-            skillData.SetStatsForLevel(level, skillStat);
-
-            // 설정 후 다시 확인
-            var checkStat = skillData.GetStatsForLevel(level);
-            Debug.Log(
-                $"[SkillDataManager] 설정 후 스탯 확인 - null 여부: {checkStat == null}, baseStat 존재: {checkStat?.baseStat != null}"
-            );
-        }
-    }
-
     private void LoadLevelPrefabs(SkillID skillId, SkillData skillData)
     {
         try
         {
             int maxLevel = 1;
             var stat = skillData.GetStatsForLevel(1);
-
-            Debug.Log(
-                $"[SkillDataManager] 스킬 {skillId} 스탯 로드 점검: stat 객체 존재 여부: {stat != null}"
-            );
 
             if (stat == null)
             {
@@ -236,21 +239,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
                 return;
             }
 
-            Debug.Log(
-                $"[SkillDataManager] 스킬 {skillId} 스탯 로드 점검: baseStat 존재 여부: {stat.baseStat != null}"
-            );
-
             if (stat.baseStat == null)
             {
-                Debug.LogError(
-                    $"[SkillDataManager] 스킬 {skillId}의 baseStat이 null입니다. 스탯 타입: {stat.GetType().Name}"
-                );
                 return;
             }
-
-            Debug.Log(
-                $"[SkillDataManager] 스킬 {skillId} 스탯 로드 점검: maxSkillLevel 값: {stat.baseStat.maxSkillLevel}"
-            );
 
             if (stat.baseStat.maxSkillLevel <= 0)
             {
@@ -261,9 +253,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
             if (stat?.baseStat != null)
             {
-                Debug.Log(
-                    $"[SkillDataManager] 스킬 {skillId} 레벨 최대 값: {stat.baseStat.maxSkillLevel}"
-                );
                 maxLevel = stat.baseStat.maxSkillLevel;
             }
 

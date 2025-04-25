@@ -44,6 +44,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7773986693d7e246a18285a328ff07e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skillData:
+    ID: 100000
+    Name: None
+    Description: None
+    Type: 0
+    Element: 0
+    Tier: 0
+    Tags: []
+    BasePrefab: {fileID: 0}
+    BasePrefabPath: 
+    Icon: {fileID: 0}
+    IconPath: 
+    ProjectilePrefab: {fileID: 0}
+    ProjectilePath: 
+    PrefabsByLevel: []
+    PrefabsByLevelPaths: []
+    BaseStats:
+      damage: 10
+      skillName: 
+      skillLevel: 1
+      maxSkillLevel: 5
+      element: 0
+      elementalPower: 1
+    ProjectileStat:
+      projectileSpeed: 0
+      projectileScale: 0
+      shotInterval: 0
+      pierceCount: 0
+      attackRange: 0
+      homingRange: 0
+      isHoming: 0
+      explosionRad: 0
+      projectileCount: 0
+      innerInterval: 0
+    AreaStat:
+      radius: 0
+      duration: 0
+      tickRate: 0
+      isPersistent: 0
+      moveSpeed: 0
+    PassiveStat:
+      effectDuration: 5
+      cooldown: 10
+      triggerChance: 100
+      damageIncrease: 0
+      defenseIncrease: 0
+      expAreaIncrease: 0
+      homingActivate: 0
+      hpIncrease: 0
+      moveSpeedIncrease: 0
+      attackSpeedIncrease: 0
+      attackRangeIncrease: 0
+      hpRegenIncrease: 0
+      isPermanent: 0
   currentLevel: 1
   _damage: 0.1
   _elementalPower: 1

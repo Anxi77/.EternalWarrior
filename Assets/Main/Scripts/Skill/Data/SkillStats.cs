@@ -10,7 +10,6 @@ public interface ISkillStat
 public class BaseSkillStat
 {
     public float damage;
-    public string skillName;
     public int skillLevel;
     public int maxSkillLevel;
     public ElementType element;
@@ -28,7 +27,6 @@ public class BaseSkillStat
     public BaseSkillStat(BaseSkillStat source)
     {
         damage = source.damage;
-        skillName = source.skillName;
         skillLevel = source.skillLevel;
         maxSkillLevel = source.maxSkillLevel;
         element = source.element;

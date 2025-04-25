@@ -331,14 +331,14 @@ public class SkillDataEditorWindow : EditorWindow
                 EditorGUI.BeginChangeCheck();
                 int newMaxLevel = EditorGUILayout.IntField(
                     "Max Skill Level",
-                    firstStat.MaxSkillLevel
+                    firstStat.maxSkillLevel
                 );
 
                 if (EditorGUI.EndChangeCheck())
                 {
                     foreach (var levelStat in stats.Values)
                     {
-                        levelStat.MaxSkillLevel = newMaxLevel;
+                        levelStat.maxSkillLevel = newMaxLevel;
                     }
 
                     if (
@@ -368,12 +368,12 @@ public class SkillDataEditorWindow : EditorWindow
                         {
                             var newStat = new SkillStatData
                             {
-                                SkillID = CurrentSkill.ID,
-                                Level = level,
-                                MaxSkillLevel = newMaxLevel,
-                                Damage = 10f + (level - 1) * 5f,
-                                ElementalPower = 1f + (level - 1) * 0.2f,
-                                Element = CurrentSkill.Element,
+                                skillID = CurrentSkill.ID,
+                                level = level,
+                                maxSkillLevel = newMaxLevel,
+                                damage = 10f + (level - 1) * 5f,
+                                elementalPower = 1f + (level - 1) * 0.2f,
+                                element = CurrentSkill.Element,
                             };
                             currentStats[level] = newStat;
                         }
@@ -384,15 +384,16 @@ public class SkillDataEditorWindow : EditorWindow
                         currentStats.Remove(level);
                     }
 
-                    SkillDataEditorUtility.SaveStatDatabase();
                     SaveCurrentSkill();
                 }
             }
 
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Save"))
             {
                 SaveCurrentSkill();
             }
+            EditorGUILayout.EndHorizontal();
 
             EditorGUI.indentLevel--;
         }
@@ -520,7 +521,7 @@ public class SkillDataEditorWindow : EditorWindow
             var stats = statDatabase.GetValueOrDefault(CurrentSkill.ID);
             if (stats != null && stats.Any())
             {
-                var maxLevel = stats.Values.First().MaxSkillLevel;
+                var maxLevel = stats.Values.First().maxSkillLevel;
                 if (
                     CurrentSkill.PrefabsByLevel == null
                     || CurrentSkill.PrefabsByLevel.Length != maxLevel
@@ -598,7 +599,7 @@ public class SkillDataEditorWindow : EditorWindow
             {
                 EditorGUI.BeginChangeCheck();
 
-                foreach (var levelStat in stats.Values.OrderBy(s => s.Level))
+                foreach (var levelStat in stats.Values.OrderBy(s => s.level))
                 {
                     if (!levelFoldouts.ContainsKey(CurrentSkill.ID))
                         levelFoldouts[CurrentSkill.ID] = false;
@@ -607,7 +608,7 @@ public class SkillDataEditorWindow : EditorWindow
                     {
                         levelFoldouts[CurrentSkill.ID] = EditorGUILayout.Foldout(
                             levelFoldouts[CurrentSkill.ID],
-                            $"Level {levelStat.Level}",
+                            $"Level {levelStat.level}",
                             true
                         );
 
@@ -624,7 +625,7 @@ public class SkillDataEditorWindow : EditorWindow
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SkillDataEditorUtility.SaveStatDatabase();
+                    SaveCurrentSkill();
                 }
             }
         }
@@ -633,8 +634,8 @@ public class SkillDataEditorWindow : EditorWindow
 
     private void DrawStatFields(SkillStatData stat)
     {
-        stat.Damage = EditorGUILayout.FloatField("Damage", stat.Damage);
-        stat.ElementalPower = EditorGUILayout.FloatField("Elemental Power", stat.ElementalPower);
+        stat.damage = EditorGUILayout.FloatField("Damage", stat.damage);
+        stat.elementalPower = EditorGUILayout.FloatField("Elemental Power", stat.elementalPower);
 
         switch (CurrentSkill.Type)
         {
@@ -657,19 +658,19 @@ public class SkillDataEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.ProjectileSpeed = EditorGUILayout.FloatField("Speed", stat.ProjectileSpeed);
-            stat.ProjectileScale = EditorGUILayout.FloatField("Scale", stat.ProjectileScale);
-            stat.ShotInterval = EditorGUILayout.FloatField("Shot Interval", stat.ShotInterval);
-            stat.PierceCount = EditorGUILayout.IntField("Pierce Count", stat.PierceCount);
-            stat.AttackRange = EditorGUILayout.FloatField("Attack Range", stat.AttackRange);
-            stat.HomingRange = EditorGUILayout.FloatField("Homing Range", stat.HomingRange);
-            stat.IsHoming = EditorGUILayout.Toggle("Is Homing", stat.IsHoming);
-            stat.ExplosionRad = EditorGUILayout.FloatField("Explosion Radius", stat.ExplosionRad);
-            stat.ProjectileCount = EditorGUILayout.IntField(
+            stat.projectileSpeed = EditorGUILayout.FloatField("Speed", stat.projectileSpeed);
+            stat.projectileScale = EditorGUILayout.FloatField("Scale", stat.projectileScale);
+            stat.shotInterval = EditorGUILayout.FloatField("Shot Interval", stat.shotInterval);
+            stat.pierceCount = EditorGUILayout.IntField("Pierce Count", stat.pierceCount);
+            stat.attackRange = EditorGUILayout.FloatField("Attack Range", stat.attackRange);
+            stat.homingRange = EditorGUILayout.FloatField("Homing Range", stat.homingRange);
+            stat.isHoming = EditorGUILayout.Toggle("Is Homing", stat.isHoming);
+            stat.explosionRad = EditorGUILayout.FloatField("Explosion Radius", stat.explosionRad);
+            stat.projectileCount = EditorGUILayout.IntField(
                 "Projectile Count",
-                stat.ProjectileCount
+                stat.projectileCount
             );
-            stat.InnerInterval = EditorGUILayout.FloatField("Inner Interval", stat.InnerInterval);
+            stat.innerInterval = EditorGUILayout.FloatField("Inner Interval", stat.innerInterval);
         }
         EditorGUILayout.EndVertical();
     }
@@ -681,11 +682,11 @@ public class SkillDataEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.Radius = EditorGUILayout.FloatField("Radius", stat.Radius);
-            stat.Duration = EditorGUILayout.FloatField("Duration", stat.Duration);
-            stat.TickRate = EditorGUILayout.FloatField("Tick Rate", stat.TickRate);
-            stat.IsPersistent = EditorGUILayout.Toggle("Is Persistent", stat.IsPersistent);
-            stat.MoveSpeed = EditorGUILayout.FloatField("Move Speed", stat.MoveSpeed);
+            stat.radius = EditorGUILayout.FloatField("Radius", stat.radius);
+            stat.duration = EditorGUILayout.FloatField("Duration", stat.duration);
+            stat.tickRate = EditorGUILayout.FloatField("Tick Rate", stat.tickRate);
+            stat.isPersistent = EditorGUILayout.Toggle("Is Persistent", stat.isPersistent);
+            stat.moveSpeed = EditorGUILayout.FloatField("Move Speed", stat.moveSpeed);
         }
         EditorGUILayout.EndVertical();
     }
@@ -697,12 +698,12 @@ public class SkillDataEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.EffectDuration = EditorGUILayout.FloatField(
+            stat.effectDuration = EditorGUILayout.FloatField(
                 "Effect Duration",
-                stat.EffectDuration
+                stat.effectDuration
             );
-            stat.Cooldown = EditorGUILayout.FloatField("Cooldown", stat.Cooldown);
-            stat.TriggerChance = EditorGUILayout.FloatField("Trigger Chance", stat.TriggerChance);
+            stat.cooldown = EditorGUILayout.FloatField("Cooldown", stat.cooldown);
+            stat.triggerChance = EditorGUILayout.FloatField("Trigger Chance", stat.triggerChance);
         }
         EditorGUILayout.EndVertical();
 
@@ -711,35 +712,35 @@ public class SkillDataEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.DamageIncrease = EditorGUILayout.FloatField(
+            stat.damageIncrease = EditorGUILayout.FloatField(
                 "Damage Increase (%)",
-                stat.DamageIncrease
+                stat.damageIncrease
             );
-            stat.DefenseIncrease = EditorGUILayout.FloatField(
+            stat.defenseIncrease = EditorGUILayout.FloatField(
                 "Defense Increase (%)",
-                stat.DefenseIncrease
+                stat.defenseIncrease
             );
-            stat.ExpAreaIncrease = EditorGUILayout.FloatField(
+            stat.expAreaIncrease = EditorGUILayout.FloatField(
                 "Exp Area Increase (%)",
-                stat.ExpAreaIncrease
+                stat.expAreaIncrease
             );
-            stat.HomingActivate = EditorGUILayout.Toggle("Homing Activate", stat.HomingActivate);
-            stat.HpIncrease = EditorGUILayout.FloatField("HP Increase (%)", stat.HpIncrease);
-            stat.MoveSpeedIncrease = EditorGUILayout.FloatField(
+            stat.homingActivate = EditorGUILayout.Toggle("Homing Activate", stat.homingActivate);
+            stat.hpIncrease = EditorGUILayout.FloatField("HP Increase (%)", stat.hpIncrease);
+            stat.moveSpeedIncrease = EditorGUILayout.FloatField(
                 "Move Speed Increase (%)",
-                stat.MoveSpeedIncrease
+                stat.moveSpeedIncrease
             );
-            stat.AttackSpeedIncrease = EditorGUILayout.FloatField(
+            stat.attackSpeedIncrease = EditorGUILayout.FloatField(
                 "Attack Speed Increase (%)",
-                stat.AttackSpeedIncrease
+                stat.attackSpeedIncrease
             );
-            stat.AttackRangeIncrease = EditorGUILayout.FloatField(
+            stat.attackRangeIncrease = EditorGUILayout.FloatField(
                 "Attack Range Increase (%)",
-                stat.AttackRangeIncrease
+                stat.attackRangeIncrease
             );
-            stat.HpRegenIncrease = EditorGUILayout.FloatField(
+            stat.hpRegenIncrease = EditorGUILayout.FloatField(
                 "HP Regen Increase (%)",
-                stat.HpRegenIncrease
+                stat.hpRegenIncrease
             );
         }
         EditorGUILayout.EndVertical();
@@ -870,11 +871,18 @@ public class SkillDataEditorWindow : EditorWindow
 
     private void SaveCurrentSkill()
     {
-        if (CurrentSkill != null)
+        if (
+            CurrentSkill == null
+            || string.IsNullOrEmpty(CurrentSkill.Name)
+            || CurrentSkill.ID == SkillID.None
+        )
         {
-            SkillDataEditorUtility.SaveSkillData(CurrentSkill);
-            RefreshData();
+            EditorUtility.DisplayDialog("Error", "Cannot save skill with empty name or ID", "OK");
+            return;
         }
+
+        SkillDataEditorUtility.SaveSkillData(CurrentSkill);
+        RefreshData();
     }
 
     private void SaveAllData()

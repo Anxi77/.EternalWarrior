@@ -6,7 +6,7 @@
   "Element": 4,
   "Tier": 0,
   "Tags": [],
-  "BasePrefabPath": null,
+  "BasePrefabPath": "SkillData/Prefabs/Vine_Prefab",
   "IconPath": "SkillData/Icons/Vine_Icon",
   "ProjectilePath": "",
   "PrefabsByLevelPaths": [

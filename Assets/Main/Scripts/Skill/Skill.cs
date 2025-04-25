@@ -62,24 +62,6 @@ public abstract class Skill : MonoBehaviour
         return true;
     }
 
-    protected T GetTypeStats<T>()
-        where T : ISkillStat
-    {
-        if (skillData == null)
-            return default(T);
-
-        var currentStats = skillData.GetSkillStats();
-        if (currentStats == null)
-            return default(T);
-
-        if (currentStats is T typedStats)
-        {
-            return typedStats;
-        }
-        Debug.LogWarning($"Current skill is not of type {typeof(T)}");
-        return default(T);
-    }
-
     public virtual void SetSkillData(SkillData data)
     {
         skillData = data;

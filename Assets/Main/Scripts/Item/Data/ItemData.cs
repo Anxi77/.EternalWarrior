@@ -19,21 +19,21 @@ public class DropTablesWrapper
 [Serializable]
 public class ItemData
 {
-    public string ID { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public ItemType Type { get; set; }
-    public ItemRarity Rarity { get; set; }
-    public ElementType Element { get; set; }
-    public int MaxStack { get; set; } = 1;
-    public float DropRate { get; set; }
-    public int MinAmount { get; set; } = 1;
-    public int MaxAmount { get; set; } = 1;
-    public string IconPath { get; set; }
-    public ItemStatRangeData StatRanges { get; set; } = new();
-    public List<StatModifier> Stats { get; set; } = new();
-    public ItemEffectRangeData EffectRanges { get; set; } = new();
-    public List<ItemEffectData> Effects { get; set; } = new();
+    public string ID;
+    public string Name;
+    public string Description;
+    public ItemType Type;
+    public ItemRarity Rarity;
+    public ElementType Element;
+    public int MaxStack;
+    public float DropRate;
+    public int MinAmount = 1;
+    public int MaxAmount = 1;
+    public string IconPath;
+    public ItemStatRangeData StatRanges = new();
+    public List<StatModifier> Stats = new();
+    public ItemEffectRangeData EffectRanges = new();
+    public List<ItemEffectData> Effects = new();
 
     [JsonIgnore]
     private Sprite _icon;

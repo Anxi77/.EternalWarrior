@@ -242,7 +242,7 @@ public abstract class ProjectileSkills : Skill
         }
         else
         {
-            _homingRange = skillData.ProjectileStat.homingRange;
+            _homingRange = HomingRange;
         }
 
         Debug.Log($"Homing state updated for {skillData.Name}: {activate}");

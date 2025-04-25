@@ -1,51 +1,97 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+
+[Serializable]
+public class SkillLevelData
+{
+    public int level;
+
+    public BaseSkillStat baseSkillStat;
+
+    [SerializeReference]
+    public ISkillStat skillStat;
+
+    public ISkillStat GetStats(SkillType type)
+    {
+        switch (type)
+        {
+            case SkillType.Projectile:
+                baseSkillStat = skillStat.baseStat;
+                return skillStat as ProjectileSkillStat;
+            case SkillType.Area:
+                baseSkillStat = skillStat.baseStat;
+                return skillStat as AreaSkillStat;
+            case SkillType.Passive:
+                baseSkillStat = skillStat.baseStat;
+                return skillStat as PassiveSkillStat;
+            default:
+                return null;
+        }
+    }
+
+    public void SetStats(ISkillStat stats)
+    {
+        if (stats == null)
+            return;
+
+        switch (stats)
+        {
+            case ProjectileSkillStat projectile:
+                skillStat = new ProjectileSkillStat(projectile);
+                baseSkillStat = skillStat.baseStat;
+                break;
+            case AreaSkillStat area:
+                skillStat = new AreaSkillStat(area);
+                baseSkillStat = skillStat.baseStat;
+                break;
+            case PassiveSkillStat passive:
+                skillStat = new PassiveSkillStat(passive);
+                baseSkillStat = skillStat.baseStat;
+                break;
+        }
+    }
+}
 
 [Serializable]
 public class SkillData : ICloneable
 {
     #region Properties
-    public SkillID ID { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public SkillType Type { get; set; }
-    public ElementType Element { get; set; }
-    public int Tier { get; set; }
-    public string[] Tags { get; set; }
+    public SkillID ID;
+    public string Name;
+    public string Description;
+    public SkillType Type;
+    public ElementType Element;
+    public int Tier;
+    public string[] Tags;
 
     [JsonIgnore]
-    public GameObject BasePrefab { get; set; }
-    public string BasePrefabPath { get; set; }
+    public GameObject BasePrefab;
+    public string BasePrefabPath;
 
     [JsonIgnore]
-    private Dictionary<int, ISkillStat> StatsByLevel { get; set; }
+    public List<SkillLevelData> levelDataList = new();
 
     [JsonIgnore]
-    public Sprite Icon { get; set; }
-    public string IconPath { get; set; }
+    public Sprite Icon;
+    public string IconPath;
 
     [JsonIgnore]
-    public GameObject ProjectilePrefab { get; set; }
-    public string ProjectilePath { get; set; }
+    public GameObject ProjectilePrefab;
+    public string ProjectilePath;
 
     [JsonIgnore]
-    public GameObject[] PrefabsByLevel { get; set; }
+    public GameObject[] PrefabsByLevel;
+    public string[] PrefabsByLevelPaths;
 
-    public string[] PrefabsByLevelPaths { get; set; }
+    [Header("Current Stat")]
+    public BaseSkillStat currentBaseSkillStat;
 
-    [JsonIgnore]
-    public BaseSkillStat BaseStats { get; set; }
+    [SerializeReference]
+    public ISkillStat currentSkillStat;
 
-    [JsonIgnore]
-    public ProjectileSkillStat ProjectileStat { get; set; }
-
-    [JsonIgnore]
-    public AreaSkillStat AreaStat { get; set; }
-
-    [JsonIgnore]
-    public PassiveSkillStat PassiveStat { get; set; }
     #endregion
 
     public SkillData()
@@ -57,27 +103,26 @@ public class SkillData : ICloneable
         Element = ElementType.None;
         Tier = 0;
         Tags = new string[0];
-        BaseStats = new BaseSkillStat();
-        StatsByLevel = new Dictionary<int, ISkillStat>();
+        levelDataList = new List<SkillLevelData>();
         PrefabsByLevel = new GameObject[0];
-        ProjectileStat = new ProjectileSkillStat { baseStat = BaseStats };
-        AreaStat = new AreaSkillStat { baseStat = BaseStats };
-        PassiveStat = new PassiveSkillStat { baseStat = BaseStats };
+
+        InitializeSkillStat();
+    }
+
+    private void InitializeSkillStat()
+    {
+        currentSkillStat = CreateDefaultStats();
     }
 
     public ISkillStat GetStatsForLevel(int level)
     {
-        if (StatsByLevel == null)
-        {
-            StatsByLevel = new Dictionary<int, ISkillStat>();
-            Debug.LogWarning($"StatsByLevel was null for skill {Name ?? "Unknown"}");
-        }
+        var stats = levelDataList.FirstOrDefault(x => x.level == level)?.GetStats(Type);
 
-        if (StatsByLevel.TryGetValue(level, out var stats))
+        if (stats != null)
             return stats;
 
         var defaultStats = CreateDefaultStats();
-        StatsByLevel[level] = defaultStats;
+        SetStatsForLevel(level, defaultStats);
         return defaultStats;
     }
 
@@ -91,25 +136,20 @@ public class SkillData : ICloneable
 
         try
         {
-            BaseStats = new BaseSkillStat(stats.baseStat);
+            UpdateCurrentStat(stats);
 
-            switch (stats)
+            var existingData = levelDataList.FirstOrDefault(x => x.level == level);
+
+            if (existingData != null)
             {
-                case ProjectileSkillStat projectileStats:
-                    ProjectileStat = new ProjectileSkillStat(projectileStats);
-                    break;
-                case AreaSkillStat areaStats:
-                    AreaStat = new AreaSkillStat(areaStats);
-                    break;
-                case PassiveSkillStat passiveStats:
-                    PassiveStat = new PassiveSkillStat(passiveStats);
-                    break;
+                existingData.SetStats(stats);
             }
-
-            if (StatsByLevel == null)
-                StatsByLevel = new Dictionary<int, ISkillStat>();
-
-            StatsByLevel[level] = stats;
+            else
+            {
+                var newLevelData = new SkillLevelData { level = level };
+                newLevelData.SetStats(stats);
+                levelDataList.Add(newLevelData);
+            }
 
             Debug.Log($"Successfully set stats for level {level}");
         }
@@ -119,19 +159,28 @@ public class SkillData : ICloneable
         }
     }
 
+    private void UpdateCurrentStat(ISkillStat stats)
+    {
+        switch (stats)
+        {
+            case ProjectileSkillStat projectileStats:
+                currentSkillStat = new ProjectileSkillStat(projectileStats);
+                break;
+            case AreaSkillStat areaStats:
+                currentSkillStat = new AreaSkillStat(areaStats);
+                break;
+            case PassiveSkillStat passiveStats:
+                currentSkillStat = new PassiveSkillStat(passiveStats);
+                break;
+            default:
+                Debug.LogWarning($"Unknown skill stat type: {stats.GetType()}");
+                break;
+        }
+    }
+
     public ISkillStat GetSkillStats()
     {
-        switch (Type)
-        {
-            case SkillType.Projectile:
-                return ProjectileStat;
-            case SkillType.Area:
-                return AreaStat;
-            case SkillType.Passive:
-                return PassiveStat;
-            default:
-                return null;
-        }
+        return currentSkillStat;
     }
 
     private ISkillStat CreateDefaultStats()
@@ -140,14 +189,12 @@ public class SkillData : ICloneable
         {
             case SkillType.Projectile:
                 return new ProjectileSkillStat();
-
             case SkillType.Area:
                 return new AreaSkillStat();
             case SkillType.Passive:
                 return new PassiveSkillStat();
             default:
-                Debug.LogWarning($"Creating default ProjectileSkillStat for unknown type: {Type}");
-                return new ProjectileSkillStat();
+                return null;
         }
     }
 
