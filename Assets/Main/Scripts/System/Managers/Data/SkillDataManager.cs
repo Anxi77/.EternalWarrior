@@ -30,7 +30,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
     public List<SkillList> skillList = new();
 
     private Dictionary<string, Sprite> iconCache = new();
-
     private Dictionary<string, GameObject> prefabCache = new();
 
     private bool isInitialized = false;
@@ -47,13 +46,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
         yield return new WaitForSeconds(0.5f);
         LoadingManager.Instance.SetLoadingText("스킬 데이터 초기화 중...");
 
-        // 1. 자원 로드 (아이콘, 프리팹)
         yield return LoadResources();
 
-        // 2. 스킬 데이터 로드 (JSON, CSV)
         yield return LoadSkillData();
 
-        // 3. 최종 처리
         foreach (var skill in skillDatabase)
         {
             Debug.Log($"스킬 로드 성공: {skill.Value.Name} (ID: {skill.Key})");
@@ -67,25 +63,23 @@ public class SkillDataManager : Singleton<SkillDataManager>
     {
         float progress = 0f;
 
-        // 아이콘 로드
         List<Sprite> icons = Resources.LoadAll<Sprite>(ICON_PATH).ToList();
         for (int i = 0; i < icons.Count; i++)
         {
             iconCache[icons[i].name] = icons[i];
-            progress = (float)i / icons.Count * 0.3f; // 30% 진행률 할당
+            progress = (float)i / icons.Count * 0.3f;
             yield return progress;
-            LoadingManager.Instance.SetLoadingText($"아이콘 로드 중... {progress * 100f:F0}%");
+            LoadingManager.Instance.SetLoadingText($"Loading Icon... {progress * 100f:F0}%");
         }
 
-        // 프리팹 로드
         List<GameObject> prefabs = Resources.LoadAll<GameObject>(PREFAB_PATH).ToList();
         for (int i = 0; i < prefabs.Count; i++)
         {
             var prefab = prefabs[i];
             prefabCache[prefab.name] = prefab;
-            progress = 0.3f + (float)i / prefabs.Count * 0.3f; // 30%~60% 진행률
+            progress = 0.3f + (float)i / prefabs.Count * 0.3f;
             yield return progress;
-            LoadingManager.Instance.SetLoadingText($"프리팹 로드 중... {progress * 100f:F0}%");
+            LoadingManager.Instance.SetLoadingText($"Loading Prefab... {progress * 100f:F0}%");
         }
     }
 
@@ -104,7 +98,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
             if (Enum.TryParse(skillName, out SkillID skillId))
             {
-                Debug.Log($"[SkillDataManager] 스킬 데이터 로드: {skillName}");
+                Debug.Log($"[SkillDataManager] Loading Skill Data: {skillName}");
                 var skillData = JSONIO<SkillData>.LoadData(JSON_PATH, skillName);
 
                 if (skillData != null)
@@ -117,14 +111,11 @@ public class SkillDataManager : Singleton<SkillDataManager>
                 Debug.LogWarning($"스킬 ID 파싱 실패: {skillName}");
             }
 
-            progress = 0.6f + (float)i / jsonFiles.Count * 0.2f; // 60%~80% 진행률
+            progress = 0.6f + (float)i / jsonFiles.Count * 0.2f;
             yield return progress;
-            LoadingManager.Instance.SetLoadingText(
-                $"스킬 기본 데이터 로드 중... {progress * 100f:F0}%"
-            );
+            LoadingManager.Instance.SetLoadingText($"Loading Skill Data... {progress * 100f:F0}%");
         }
 
-        // 스킬 타입별 CSV 데이터 한 번만 로드
         Dictionary<SkillType, List<SkillStatData>> statsByType =
             new Dictionary<SkillType, List<SkillStatData>>();
 
@@ -132,7 +123,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
         statsByType[SkillType.Area] = LoadSkillStats("AreaSkillStats");
         statsByType[SkillType.Passive] = LoadSkillStats("PassiveSkillStats");
 
-        // 각 스킬에 CSV 데이터 적용 및 리소스 연결
         int skillCount = tempDatabase.Count;
         int current = 0;
 
@@ -155,7 +145,9 @@ public class SkillDataManager : Singleton<SkillDataManager>
             current++;
             progress = 0.8f + (float)current / skillCount * 0.2f;
             yield return progress;
-            LoadingManager.Instance.SetLoadingText($"스킬 데이터 처리 중... {progress * 100f:F0}%");
+            LoadingManager.Instance.SetLoadingText(
+                $"Processing Skill Data... {progress * 100f:F0}%"
+            );
         }
     }
 

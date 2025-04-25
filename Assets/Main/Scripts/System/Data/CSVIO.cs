@@ -148,14 +148,12 @@ public static class CSVIO<T>
 
         if (csvFile == null)
         {
-            Debug.LogError($"[CSVIO] 오류: {path}/{fileName}.csv 파일을 찾을 수 없습니다");
             return resultList;
         }
 
         string[] lines = csvFile.text.Split('\n');
         if (lines.Length <= 1)
         {
-            Debug.LogError("[CSVIO] 오류: CSV 파일에 데이터가 없습니다 (헤더만 있거나 빈 파일)");
             return resultList;
         }
 

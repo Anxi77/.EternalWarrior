@@ -1,19 +1,11 @@
 {
   "ID": 100001,
-  "Name": "Vine",
-  "Description": "Withers Enemy",
+  "Name": "New Area Skill",
+  "Description": "New Area skill description",
   "Type": 2,
-  "Element": 4,
+  "Element": 0,
   "Tier": 0,
   "Tags": [],
-  "BasePrefabPath": "SkillData/Prefabs/Vine_Prefab",
-  "IconPath": "SkillData/Icons/Vine_Icon",
-  "ProjectilePath": "",
-  "PrefabsByLevelPaths": [
-    "SkillData/Prefabs/Vine_Level_1",
-    "SkillData/Prefabs/Vine_Level_2",
-    "SkillData/Prefabs/Vine_Level_3",
-    "SkillData/Prefabs/Vine_Level_4",
-    "SkillData/Prefabs/Vine_Level_5"
-  ]
+  "currentBaseSkillStat": null,
+  "currentSkillStat": null
 }

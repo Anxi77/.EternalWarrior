@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -17,11 +18,17 @@ public class SkillDataEditorWindow : EditorWindow
     private GUIStyle headerStyle;
     private Vector2 skillListScrollPosition;
     private Vector2 skillDetailScrollPosition;
-    private Dictionary<SkillID, bool> levelFoldouts = new();
+    private Dictionary<string, bool> levelFoldouts = new();
     private bool showBasicInfo = true;
     private bool showResources = true;
     private bool showLevelStats = true;
+    private bool wasModified = false;
     #endregion
+
+    private const string SKILL_DB_PATH = "SkillData/Json";
+    private const string SKILL_ICON_PATH = "SkillData/Icons";
+    private const string SKILL_PREFAB_PATH = "SkillData/Prefabs";
+    private const string SKILL_STAT_PATH = "SkillData/Stats";
 
     #region Properties
     private SkillData CurrentSkill
@@ -51,31 +58,48 @@ public class SkillDataEditorWindow : EditorWindow
 
         foreach (var skill in skillDatabase.Values)
         {
-            if (!string.IsNullOrEmpty(skill.IconPath))
+            if (skill.Icon != null)
             {
-                skill.Icon = ResourceIO<Sprite>.LoadData(skill.IconPath);
+                skill.Icon = ResourceIO<Sprite>.LoadData(
+                    $"{SKILL_ICON_PATH}/{skill.ID}/{skill.ID}_Icon"
+                );
+            }
+            if (File.Exists($"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Prefab"))
+            {
+                skill.BasePrefab = ResourceIO<GameObject>.LoadData(
+                    $"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Prefab"
+                );
             }
 
-            if (!string.IsNullOrEmpty(skill.BasePrefabPath))
+            if (File.Exists($"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Projectile"))
             {
-                skill.BasePrefab = ResourceIO<GameObject>.LoadData(skill.BasePrefabPath);
+                skill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
+                    $"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Projectile"
+                );
             }
 
-            if (skill.Type == SkillType.Projectile && !string.IsNullOrEmpty(skill.ProjectilePath))
+            if (skill.Type == SkillType.Projectile)
             {
-                skill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(skill.ProjectilePath);
-            }
-
-            if (skill.PrefabsByLevelPaths != null)
-            {
-                skill.PrefabsByLevel = new GameObject[skill.PrefabsByLevelPaths.Length];
-                for (int i = 0; i < skill.PrefabsByLevelPaths.Length; i++)
+                if (File.Exists($"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Projectile"))
                 {
-                    if (!string.IsNullOrEmpty(skill.PrefabsByLevelPaths[i]))
+                    skill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
+                        $"{SKILL_PREFAB_PATH}/{skill.ID}/{skill.ID}_Projectile"
+                    );
+                }
+            }
+
+            var prefabs = Resources.LoadAll<GameObject>($"{SKILL_PREFAB_PATH}/{skill.ID}/");
+
+            if (prefabs.Length > 0)
+            {
+                skill.PrefabsByLevel = new GameObject[prefabs.Length - 1];
+                int cnt = 0;
+                foreach (var prefab in prefabs)
+                {
+                    if (prefab.name.Contains("Level_"))
                     {
-                        skill.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
-                            skill.PrefabsByLevelPaths[i]
-                        );
+                        skill.PrefabsByLevel[cnt] = prefab;
+                        cnt++;
                     }
                 }
             }
@@ -347,11 +371,9 @@ public class SkillDataEditorWindow : EditorWindow
                     )
                     {
                         var prefabs = CurrentSkill.PrefabsByLevel;
-                        var paths = CurrentSkill.PrefabsByLevelPaths;
+
                         Array.Resize(ref prefabs, newMaxLevel);
-                        Array.Resize(ref paths, newMaxLevel);
                         CurrentSkill.PrefabsByLevel = prefabs;
-                        CurrentSkill.PrefabsByLevelPaths = paths;
                     }
 
                     if (!statDatabase.ContainsKey(CurrentSkill.ID))
@@ -405,6 +427,7 @@ public class SkillDataEditorWindow : EditorWindow
         if (CurrentSkill == null)
             return;
 
+        wasModified = false;
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
             EditorGUILayout.LabelField("Resources", EditorStyles.boldLabel);
@@ -421,97 +444,72 @@ public class SkillDataEditorWindow : EditorWindow
                 EditorGUILayout.Space(5);
             }
 
-            EditorGUI.BeginChangeCheck();
-            var newIcon = (Sprite)
-                EditorGUILayout.ObjectField("Icon", CurrentSkill.Icon, typeof(Sprite), false);
+            Sprite oldIcon = CurrentSkill.Icon;
+            Sprite newIcon = (Sprite)
+                EditorGUILayout.ObjectField("Icon", oldIcon, typeof(Sprite), false);
 
-            if (EditorGUI.EndChangeCheck() && newIcon != null)
+            if (newIcon != oldIcon && newIcon != null)
             {
-                string resourcePath = $"SkillData/Icons/{CurrentSkill.ID}_Icon";
+                string resourcePath = $"SkillData/Icons/{CurrentSkill.ID}/{CurrentSkill.ID}_Icon";
                 ResourceIO<Sprite>.SaveData(resourcePath, newIcon);
-                CurrentSkill.IconPath = resourcePath;
-                CurrentSkill.Icon = ResourceIO<Sprite>.LoadData(resourcePath);
-
-                SaveCurrentSkill();
-
-                var currentId = selectedSkillId;
-                EditorApplication.delayCall += () =>
-                {
-                    RefreshData();
-                    selectedSkillId = currentId;
-                    Repaint();
-                };
+                CurrentSkill.Icon = newIcon;
+                wasModified = true;
             }
 
             EditorGUILayout.Space(5);
 
-            EditorGUI.BeginChangeCheck();
-            var newPrefab = (GameObject)
+            GameObject oldBasePrefab = CurrentSkill.BasePrefab;
+            GameObject newBasePrefab = (GameObject)
                 EditorGUILayout.ObjectField(
                     "Base Prefab",
-                    CurrentSkill.BasePrefab,
+                    oldBasePrefab,
                     typeof(GameObject),
                     false
                 );
 
-            if (EditorGUI.EndChangeCheck() && newPrefab != null)
+            if (newBasePrefab != oldBasePrefab && newBasePrefab != null)
             {
-                if (PrefabUtility.GetPrefabAssetType(newPrefab) == PrefabAssetType.NotAPrefab)
+                if (PrefabUtility.GetPrefabAssetType(newBasePrefab) == PrefabAssetType.NotAPrefab)
                 {
                     Debug.LogError(
                         "Please select a prefab from the Project window, not a scene object."
                     );
-                    return;
                 }
-
-                string resourcePath = $"SkillData/Prefabs/{CurrentSkill.ID}_Prefab";
-                try
+                else
                 {
-                    ResourceIO<GameObject>.SaveData(resourcePath, newPrefab);
-                    CurrentSkill.BasePrefabPath = resourcePath;
-                    CurrentSkill.BasePrefab = ResourceIO<GameObject>.LoadData(resourcePath);
-                    SaveCurrentSkill();
-
-                    var currentId = selectedSkillId;
-                    EditorApplication.delayCall += () =>
+                    string resourcePath =
+                        $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Prefab";
+                    try
                     {
-                        RefreshData();
-                        selectedSkillId = currentId;
-                        Repaint();
-                    };
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Failed to save prefab: {e.Message}");
+                        ResourceIO<GameObject>.SaveData(resourcePath, newBasePrefab);
+                        CurrentSkill.BasePrefab = newBasePrefab;
+                        wasModified = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"Failed to save prefab: {e.Message}");
+                    }
                 }
             }
 
             if (CurrentSkill.Type == SkillType.Projectile)
             {
-                EditorGUI.BeginChangeCheck();
-                var newProjectilePrefab = (GameObject)
+                GameObject oldProjectilePrefab = CurrentSkill.ProjectilePrefab;
+                GameObject newProjectilePrefab = (GameObject)
                     EditorGUILayout.ObjectField(
                         "Projectile Prefab",
-                        CurrentSkill.ProjectilePrefab,
+                        oldProjectilePrefab,
                         typeof(GameObject),
                         false
                     );
 
-                if (EditorGUI.EndChangeCheck() && newProjectilePrefab != null)
+                if (newProjectilePrefab != oldProjectilePrefab && newProjectilePrefab != null)
                 {
-                    string resourcePath = $"SkillData/Prefabs/{CurrentSkill.ID}_Projectile";
+                    string resourcePath =
+                        $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Projectile";
                     ResourceIO<GameObject>.SaveData(resourcePath, newProjectilePrefab);
-                    CurrentSkill.ProjectilePath = resourcePath;
-                    CurrentSkill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(resourcePath);
-                    SaveCurrentSkill();
-
-                    var currentId = selectedSkillId;
-                    EditorApplication.delayCall += () =>
-                    {
-                        RefreshData();
-                        selectedSkillId = currentId;
-                        Repaint();
-                    };
+                    CurrentSkill.ProjectilePrefab = newProjectilePrefab;
+                    wasModified = true;
                 }
             }
 
@@ -528,12 +526,9 @@ public class SkillDataEditorWindow : EditorWindow
                 )
                 {
                     var prefabs = CurrentSkill.PrefabsByLevel;
-                    var paths = CurrentSkill.PrefabsByLevelPaths;
                     Array.Resize(ref prefabs, maxLevel);
-                    Array.Resize(ref paths, maxLevel);
                     CurrentSkill.PrefabsByLevel = prefabs;
-                    CurrentSkill.PrefabsByLevelPaths = paths;
-                    SaveCurrentSkill();
+                    wasModified = true;
                 }
 
                 if (CurrentSkill.PrefabsByLevel != null)
@@ -541,33 +536,22 @@ public class SkillDataEditorWindow : EditorWindow
                     EditorGUI.indentLevel++;
                     for (int i = 0; i < CurrentSkill.PrefabsByLevel.Length; i++)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        var newLevelPrefab = (GameObject)
+                        GameObject oldLevelPrefab = CurrentSkill.PrefabsByLevel[i];
+                        GameObject newLevelPrefab = (GameObject)
                             EditorGUILayout.ObjectField(
                                 $"Level {i + 1}",
-                                CurrentSkill.PrefabsByLevel[i],
+                                oldLevelPrefab,
                                 typeof(GameObject),
                                 false
                             );
 
-                        if (EditorGUI.EndChangeCheck() && newLevelPrefab != null)
+                        if (newLevelPrefab != oldLevelPrefab && newLevelPrefab != null)
                         {
                             string resourcePath =
-                                $"SkillData/Prefabs/{CurrentSkill.ID}_Level_{i + 1}";
+                                $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Level_{i + 1}";
                             ResourceIO<GameObject>.SaveData(resourcePath, newLevelPrefab);
-                            CurrentSkill.PrefabsByLevelPaths[i] = resourcePath;
-                            CurrentSkill.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
-                                resourcePath
-                            );
-                            SaveCurrentSkill();
-
-                            var currentId = selectedSkillId;
-                            EditorApplication.delayCall += () =>
-                            {
-                                RefreshData();
-                                selectedSkillId = currentId;
-                                Repaint();
-                            };
+                            CurrentSkill.PrefabsByLevel[i] = newLevelPrefab;
+                            wasModified = true;
                         }
                     }
                     EditorGUI.indentLevel--;
@@ -575,6 +559,53 @@ public class SkillDataEditorWindow : EditorWindow
             }
         }
         EditorGUILayout.EndVertical();
+
+        if (wasModified && Event.current.type == EventType.Used)
+        {
+            var currentId = selectedSkillId;
+            var currentIcon = CurrentSkill.Icon;
+            var currentBasePrefab = CurrentSkill.BasePrefab;
+            var currentProjectilePrefab = CurrentSkill.ProjectilePrefab;
+            GameObject[] currentPrefabsByLevel = null;
+
+            if (CurrentSkill.PrefabsByLevel != null)
+            {
+                currentPrefabsByLevel = new GameObject[CurrentSkill.PrefabsByLevel.Length];
+                Array.Copy(
+                    CurrentSkill.PrefabsByLevel,
+                    currentPrefabsByLevel,
+                    CurrentSkill.PrefabsByLevel.Length
+                );
+            }
+
+            EditorApplication.delayCall += () =>
+            {
+                SaveCurrentSkill();
+                wasModified = false;
+
+                if (skillDatabase.TryGetValue(currentId, out var skill))
+                {
+                    skill.Icon = currentIcon;
+                    skill.BasePrefab = currentBasePrefab;
+                    skill.ProjectilePrefab = currentProjectilePrefab;
+
+                    if (
+                        currentPrefabsByLevel != null
+                        && skill.PrefabsByLevel != null
+                        && currentPrefabsByLevel.Length == skill.PrefabsByLevel.Length
+                    )
+                    {
+                        Array.Copy(
+                            currentPrefabsByLevel,
+                            skill.PrefabsByLevel,
+                            currentPrefabsByLevel.Length
+                        );
+                    }
+                }
+
+                Repaint();
+            };
+        }
     }
 
     private void DrawLevelStats()
@@ -601,18 +632,20 @@ public class SkillDataEditorWindow : EditorWindow
 
                 foreach (var levelStat in stats.Values.OrderBy(s => s.level))
                 {
-                    if (!levelFoldouts.ContainsKey(CurrentSkill.ID))
-                        levelFoldouts[CurrentSkill.ID] = false;
+                    string levelKey = $"{CurrentSkill.ID}_{levelStat.level}";
+
+                    if (!levelFoldouts.ContainsKey(levelKey))
+                        levelFoldouts[levelKey] = false;
 
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     {
-                        levelFoldouts[CurrentSkill.ID] = EditorGUILayout.Foldout(
-                            levelFoldouts[CurrentSkill.ID],
+                        levelFoldouts[levelKey] = EditorGUILayout.Foldout(
+                            levelFoldouts[levelKey],
                             $"Level {levelStat.level}",
                             true
                         );
 
-                        if (levelFoldouts[CurrentSkill.ID])
+                        if (levelFoldouts[levelKey])
                         {
                             EditorGUILayout.Space(5);
                             DrawStatFields(levelStat);
@@ -775,10 +808,6 @@ public class SkillDataEditorWindow : EditorWindow
                         Description = $"New {selectedType} skill description",
                         Type = selectedType,
                         Element = ElementType.None,
-                        IconPath = "",
-                        BasePrefabPath = "",
-                        ProjectilePath = "",
-                        PrefabsByLevelPaths = new string[0],
                     };
 
                     SkillDataEditorUtility.SaveSkillData(newSkill);

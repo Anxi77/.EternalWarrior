@@ -13,7 +13,6 @@ using UnityEditor;
 public static class ResourceIO<T>
     where T : Object
 {
-    // 상수 정의
     private const string RESOURCES_PATH = "Assets/Resources/";
     private const string LOG_PREFIX = "[ResourceIO] ";
 
@@ -64,7 +63,7 @@ public static class ResourceIO<T>
                 Debug.Log($"{LOG_PREFIX}Saved resource to: {path}");
                 return true;
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Debug.LogError($"{LOG_PREFIX}Error saving resource: {e.Message}\n{e.StackTrace}");
                 return false;
@@ -84,7 +83,7 @@ public static class ResourceIO<T>
                 return cachedData;
 
 #if UNITY_EDITOR
-            string assetPath = $"Assets/Resources/{key}.{GetExtensionForType()}";
+            string assetPath = Path.Combine(RESOURCES_PATH, key);
             if (File.Exists(assetPath))
             {
                 T data = AssetDatabase.LoadAssetAtPath<T>(assetPath);
@@ -118,7 +117,7 @@ public static class ResourceIO<T>
         try
         {
 #if UNITY_EDITOR
-            string assetPath = $"Assets/Resources/{key}.{GetExtensionForType()}";
+            string assetPath = Path.Combine(RESOURCES_PATH, key);
             if (File.Exists(assetPath))
             {
                 AssetDatabase.DeleteAsset(assetPath);
@@ -155,7 +154,7 @@ public static class ResourceIO<T>
                 return;
             }
 
-            string targetPath = $"Assets/Resources/{path}.png";
+            string targetPath = Path.Combine(RESOURCES_PATH, path + '.' + GetExtensionForType());
             string directory = Path.GetDirectoryName(targetPath);
 
             if (!Directory.Exists(directory))

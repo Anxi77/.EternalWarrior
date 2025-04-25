@@ -5,28 +5,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-// ISkillStat 인터페이스에 대한 커스텀 프로퍼티 드로어
-[CustomPropertyDrawer(typeof(ISkillStat))]
-public class SkillStatDrawer : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
-        // 시작 위치 기록
-        EditorGUI.BeginProperty(position, label, property);
-
-        // 전체 영역에 기본 필드 그리기
-        EditorGUI.PropertyField(position, property, label, true);
-
-        EditorGUI.EndProperty();
-    }
-
-    public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-    {
-        // 기본 Unity 프로퍼티 높이 사용 (모든 하위 요소 포함)
-        return EditorGUI.GetPropertyHeight(property, label, true);
-    }
-}
-
 public static class SkillDataEditorUtility
 {
     #region Constants
@@ -72,40 +50,35 @@ public static class SkillDataEditorUtility
                 var skillData = JSONIO<SkillData>.LoadData(SKILL_DB_PATH, skillId.ToString());
                 if (skillData != null)
                 {
-                    if (!string.IsNullOrEmpty(skillData.IconPath))
-                    {
-                        skillData.Icon = ResourceIO<Sprite>.LoadData(skillData.IconPath);
-                    }
+                    skillData.Icon = ResourceIO<Sprite>.LoadData(
+                        $"{SKILL_ICON_PATH}/{skillData.ID}/{skillData.ID}_Icon"
+                    );
 
-                    if (!string.IsNullOrEmpty(skillData.BasePrefabPath))
-                    {
-                        skillData.BasePrefab = ResourceIO<GameObject>.LoadData(
-                            skillData.BasePrefabPath
-                        );
-                    }
+                    skillData.BasePrefab = ResourceIO<GameObject>.LoadData(
+                        $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Prefab"
+                    );
 
-                    if (
-                        skillData.Type == SkillType.Projectile
-                        && !string.IsNullOrEmpty(skillData.ProjectilePath)
-                    )
+                    if (skillData.Type == SkillType.Projectile)
                     {
                         skillData.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
-                            skillData.ProjectilePath
+                            $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Projectile"
                         );
                     }
 
-                    if (skillData.PrefabsByLevelPaths != null)
+                    var prefabs = Resources.LoadAll<GameObject>(
+                        $"{SKILL_PREFAB_PATH}/{skillData.ID}/"
+                    );
+
+                    if (prefabs.Length > 0)
                     {
-                        skillData.PrefabsByLevel = new GameObject[
-                            skillData.PrefabsByLevelPaths.Length
-                        ];
-                        for (int i = 0; i < skillData.PrefabsByLevelPaths.Length; i++)
+                        skillData.PrefabsByLevel = new GameObject[prefabs.Length - 1];
+                        int cnt = 0;
+                        foreach (var prefab in prefabs)
                         {
-                            if (!string.IsNullOrEmpty(skillData.PrefabsByLevelPaths[i]))
+                            if (prefab.name.Contains("Level_"))
                             {
-                                skillData.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
-                                    skillData.PrefabsByLevelPaths[i]
-                                );
+                                skillData.PrefabsByLevel[cnt] = prefab;
+                                cnt++;
                             }
                         }
                     }
@@ -170,7 +143,6 @@ public static class SkillDataEditorUtility
 
             SaveStatData(skillData);
 
-            // 모든 스킬 데이터가 준비된 후 한 번만 저장
             SaveStatDatabase();
         }
         catch (Exception e)
@@ -187,22 +159,64 @@ public static class SkillDataEditorUtility
         if (!statDatabase.ContainsKey(skillData.ID))
         {
             statDatabase[skillData.ID] = new Dictionary<int, SkillStatData>();
-            var defaultStat = CreateDefaultStatData(skillData);
-            statDatabase[skillData.ID][1] = defaultStat;
+
+            int maxLevel = 5;
+
+            for (int level = 1; level <= maxLevel; level++)
+            {
+                var newStat = new SkillStatData
+                {
+                    skillID = skillData.ID,
+                    level = level,
+                    maxSkillLevel = maxLevel,
+                    damage = 10f + (level - 1) * 5f,
+                    elementalPower = 1f + (level - 1) * 0.2f,
+                    element = skillData.Element,
+                };
+
+                switch (skillData.Type)
+                {
+                    case SkillType.Projectile:
+                        newStat.projectileSpeed = 10f;
+                        newStat.projectileScale = 1f;
+                        newStat.shotInterval = 0.5f;
+                        newStat.pierceCount = 1;
+                        newStat.attackRange = 10f;
+                        break;
+
+                    case SkillType.Area:
+                        newStat.radius = 5f;
+                        newStat.duration = 3f;
+                        newStat.tickRate = 1f;
+                        newStat.isPersistent = false;
+                        break;
+
+                    case SkillType.Passive:
+                        newStat.effectDuration = 5f;
+                        newStat.cooldown = 10f;
+                        newStat.triggerChance = 1f;
+                        break;
+                }
+
+                statDatabase[skillData.ID][level] = newStat;
+            }
         }
     }
 
     private static void SaveSkillResources(SkillData skillData)
     {
-        if (skillData.Icon != null && string.IsNullOrEmpty(skillData.IconPath))
+        if (skillData.Icon != null)
         {
-            skillData.IconPath = $"{SKILL_ICON_PATH}/{skillData.ID}_Icon";
+            ResourceIO<Sprite>.SaveData(
+                $"{SKILL_ICON_PATH}/{skillData.ID}/{skillData.ID}_Icon",
+                skillData.Icon
+            );
         }
 
         if (skillData.BasePrefab != null)
         {
             ResourceIO<GameObject>.SaveData(
-                $"{SKILL_PREFAB_PATH}/{skillData.ID}_Prefab",
+                $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Prefab",
                 skillData.BasePrefab
             );
         }
@@ -210,7 +224,7 @@ public static class SkillDataEditorUtility
         if (skillData.Type == SkillType.Projectile && skillData.ProjectilePrefab != null)
         {
             ResourceIO<GameObject>.SaveData(
-                $"{SKILL_PREFAB_PATH}/{skillData.ID}_Projectile",
+                $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Projectile",
                 skillData.ProjectilePrefab
             );
         }
@@ -222,7 +236,7 @@ public static class SkillDataEditorUtility
                 if (skillData.PrefabsByLevel[i] != null)
                 {
                     ResourceIO<GameObject>.SaveData(
-                        $"{SKILL_PREFAB_PATH}/{skillData.ID}_Level_{i + 1}",
+                        $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Level_{i + 1}",
                         skillData.PrefabsByLevel[i]
                     );
                 }
@@ -236,7 +250,6 @@ public static class SkillDataEditorUtility
         var areaStats = new List<SkillStatData>();
         var passiveStats = new List<SkillStatData>();
 
-        // 중복 방지 로직 추가
         HashSet<(SkillID, int)> processedStats = new HashSet<(SkillID, int)>();
 
         foreach (var skillStatsPair in statDatabase)
@@ -253,7 +266,6 @@ public static class SkillDataEditorUtility
                 int level = levelStatPair.Key;
                 SkillStatData stat = levelStatPair.Value;
 
-                // 이미 처리된 데이터면 스킵
                 if (processedStats.Contains((skillId, level)))
                     continue;
 
@@ -274,7 +286,6 @@ public static class SkillDataEditorUtility
             }
         }
 
-        // 파일 덮어쓰기 (항상 새로 저장)
         CSVIO<SkillStatData>.SaveBulkData(
             SKILL_STAT_PATH,
             "ProjectileSkillStats",
@@ -295,13 +306,10 @@ public static class SkillDataEditorUtility
         {
             if (skillDatabase.Remove(skillId))
             {
-                // JSON 파일 삭제
                 JSONIO<SkillData>.DeleteData(SKILL_DB_PATH, skillId.ToString());
 
-                // 리소스 파일들 삭제
                 DeleteSkillResources(skillId);
 
-                // 스탯 데이터 삭제
                 statDatabase.Remove(skillId);
                 SaveStatDatabase();
 
@@ -316,23 +324,21 @@ public static class SkillDataEditorUtility
 
     private static void DeleteSkillResources(SkillID skillId)
     {
-        // 아이콘 삭제
-        ResourceIO<Sprite>.DeleteData($"{SKILL_ICON_PATH}/{skillId}_Icon");
+        ResourceIO<Sprite>.DeleteData($"{SKILL_ICON_PATH}/{skillId}/{skillId}_Icon");
 
-        // 프리팹 삭제
-        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}_Prefab");
+        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Prefab");
 
-        // 프로젝타일 프리팹 삭제
-        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}_Projectile");
+        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Projectile");
 
-        // 레벨별 프리팹 삭제
         var stats = GetStatDatabase().GetValueOrDefault(skillId);
         if (stats != null)
         {
             int maxLevel = stats.Values.Max(s => s.maxSkillLevel);
             for (int i = 1; i <= maxLevel; i++)
             {
-                ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}_Level_{i}");
+                ResourceIO<GameObject>.DeleteData(
+                    $"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Level_{i}"
+                );
             }
         }
     }

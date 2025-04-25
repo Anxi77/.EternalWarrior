@@ -69,22 +69,18 @@ public class SkillData : ICloneable
 
     [JsonIgnore]
     public GameObject BasePrefab;
-    public string BasePrefabPath;
 
     [JsonIgnore]
     public List<SkillLevelData> levelDataList = new();
 
     [JsonIgnore]
     public Sprite Icon;
-    public string IconPath;
 
     [JsonIgnore]
     public GameObject ProjectilePrefab;
-    public string ProjectilePath;
 
     [JsonIgnore]
     public GameObject[] PrefabsByLevel;
-    public string[] PrefabsByLevelPaths;
 
     [Header("Current Stat")]
     public BaseSkillStat currentBaseSkillStat;
@@ -210,10 +206,6 @@ public class SkillData : ICloneable
             Element = this.Element,
             Tier = this.Tier,
             Tags = (string[])this.Tags?.Clone(),
-            BasePrefabPath = this.BasePrefabPath,
-            IconPath = this.IconPath,
-            ProjectilePath = this.ProjectilePath,
-            PrefabsByLevelPaths = (string[])this.PrefabsByLevelPaths?.Clone(),
         };
     }
     #endregion
