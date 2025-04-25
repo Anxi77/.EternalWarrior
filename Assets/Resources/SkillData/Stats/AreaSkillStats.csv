@@ -1,6 +1,6 @@
-skillID,level,damage,maxSkillLevel,element,elementalPower,projectileSpeed,projectileScale,shotInterval,pierceCount,attackRange,homingRange,isHoming,explosionRad,projectileCount,innerInterval,radius,duration,tickRate,isPersistent,moveSpeed,effectDuration,cooldown,triggerChance,damageIncrease,defenseIncrease,expAreaIncrease,homingActivate,hpIncrease,moveSpeedIncrease,attackSpeedIncrease,attackRangeIncrease,hpRegenIncrease
-Vine,1,10,5,None,1,10,1,1,1,10,5,0,0,1,0.1,5,3,1,0,0,5,10,100,0,0,0,0,0,0,0,0,0
-Vine,2,15,5,None,1.2,10,1,1,1,10,5,0,0,1,0.1,5,3,1,0,0,5,10,100,0,0,0,0,0,0,0,0,0
-Vine,3,20,5,None,1.4,10,1,1,1,10,5,0,0,1,0.1,5,3,1,0,0,5,10,100,0,0,0,0,0,0,0,0,0
-Vine,4,25,5,None,1.6,10,1,1,1,10,5,0,0,1,0.1,5,3,1,0,0,5,10,100,0,0,0,0,0,0,0,0,0
-Vine,5,30,5,None,1.8,10,1,1,1,10,5,0,0,1,0.1,5,3,1,0,0,5,10,100,0,0,0,0,0,0,0,0,0
+skillID,level,damage,maxSkillLevel,element,elementalPower,radius,duration,tickRate,isPersistent,moveSpeed
+Vine,1,11,5,Earth,1,5,3,1,0,0
+Vine,2,15,5,Earth,1.2,5,3,1,0,0
+Vine,3,20,5,Earth,1.4,5,3,1,0,0
+Vine,4,25,5,Earth,1.6,5,3,1,0,0
+Vine,5,30,5,Earth,1.8,5,3,1,0,0

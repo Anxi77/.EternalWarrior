@@ -6,7 +6,6 @@ public abstract class EquipmentItem : Item, ISkillModifier
 {
     protected EquipmentSlot equipmentSlot;
     protected List<ISkillInteractionEffect> skillEffects = new();
-    protected new ItemData itemData;
 
     protected EquipmentItem(ItemData itemData)
     {

@@ -2,17 +2,33 @@ using System;
 
 public class StatModifier
 {
-    public StatType Type { get; }
-    public SourceType Source { get; }
-    public IncreaseType IncreaseType { get; }
-    public float Value { get; }
+    private StatType type;
+    private SourceType source;
+    private IncreaseType increaseType;
+    private float value;
+    public StatType Type
+    {
+        get => type;
+    }
+    public SourceType Source
+    {
+        get => source;
+    }
+    public IncreaseType IncreaseType
+    {
+        get => increaseType;
+    }
+    public float Value
+    {
+        get => value;
+    }
 
     public StatModifier(StatType type, SourceType source, IncreaseType increaseType, float value)
     {
-        Type = type;
-        Source = source;
-        IncreaseType = increaseType;
-        Value = value;
+        this.type = type;
+        this.source = source;
+        this.increaseType = increaseType;
+        this.value = value;
     }
 
     public override bool Equals(object obj)

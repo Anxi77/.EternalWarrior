@@ -13,7 +13,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
     #endregion
 
     #region Fields
-    private static Dictionary<string, ItemData> itemDatabase = new();
+    private static Dictionary<Guid, ItemData> itemDatabase = new();
     private static Dictionary<MonsterType, DropTableData> dropTables = new();
     #endregion
 
@@ -122,7 +122,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
 
     #region Data Access
 
-    public ItemData GetData(string itemId)
+    public ItemData GetData(Guid itemId)
     {
         if (itemDatabase.TryGetValue(itemId, out var itemData))
         {
@@ -132,14 +132,14 @@ public class ItemDataManager : Singleton<ItemDataManager>
         return null;
     }
 
-    public bool HasData(string itemId)
+    public bool HasData(Guid itemId)
     {
         return itemDatabase.ContainsKey(itemId);
     }
 
-    public Dictionary<string, ItemData> GetDatabase()
+    public Dictionary<Guid, ItemData> GetDatabase()
     {
-        return new Dictionary<string, ItemData>(itemDatabase);
+        return new Dictionary<Guid, ItemData>(itemDatabase);
     }
 
     public Dictionary<MonsterType, DropTableData> GetDropTables()

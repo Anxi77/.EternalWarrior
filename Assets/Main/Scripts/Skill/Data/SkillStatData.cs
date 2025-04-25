@@ -1,4 +1,76 @@
 ﻿using System;
+using System.Collections.Generic;
+
+public static class SkillStatFilters
+{
+    private static readonly List<string> CommonSkillFields = new List<string>
+    {
+        "skillID",
+        "level",
+        "damage",
+        "maxSkillLevel",
+        "element",
+        "elementalPower",
+    };
+
+    private static readonly List<string> ProjectileSkillFields = new List<string>
+    {
+        "projectileSpeed",
+        "projectileScale",
+        "shotInterval",
+        "pierceCount",
+        "attackRange",
+        "homingRange",
+        "isHoming",
+        "explosionRad",
+        "projectileCount",
+        "innerInterval",
+    };
+
+    private static readonly List<string> AreaSkillFields = new List<string>
+    {
+        "radius",
+        "duration",
+        "tickRate",
+        "isPersistent",
+        "moveSpeed",
+    };
+
+    private static readonly List<string> PassiveSkillFields = new List<string>
+    {
+        "effectDuration",
+        "cooldown",
+        "triggerChance",
+        "damageIncrease",
+        "defenseIncrease",
+        "expAreaIncrease",
+        "homingActivate",
+        "hpIncrease",
+        "moveSpeedIncrease",
+        "attackSpeedIncrease",
+        "attackRangeIncrease",
+        "hpRegenIncrease",
+    };
+
+    public static List<string> GetFieldsForSkillType(SkillType type)
+    {
+        var skillFields = new List<string>(CommonSkillFields);
+        switch (type)
+        {
+            case SkillType.Projectile:
+                skillFields.AddRange(ProjectileSkillFields);
+                return skillFields;
+            case SkillType.Area:
+                skillFields.AddRange(AreaSkillFields);
+                return skillFields;
+            case SkillType.Passive:
+                skillFields.AddRange(PassiveSkillFields);
+                return skillFields;
+            default:
+                return skillFields;
+        }
+    }
+}
 
 [Serializable]
 public class SkillStatData

@@ -113,7 +113,25 @@ public static class SkillDataEditorUtility
 
     private static void LoadStatsFromCSV(string fileName)
     {
-        var stats = CSVIO<SkillStatData>.LoadBulkData(SKILL_STAT_PATH, fileName);
+        SkillType skillType = SkillType.None;
+
+        if (fileName.Contains("ProjectileSkillStats"))
+        {
+            skillType = SkillType.Projectile;
+        }
+        else if (fileName.Contains("AreaSkillStats"))
+        {
+            skillType = SkillType.Area;
+        }
+        else if (fileName.Contains("PassiveSkillStats"))
+        {
+            skillType = SkillType.Passive;
+        }
+
+        // 스킬 타입에 맞는 필드 목록 가져오기
+        var includeFields = SkillStatFilters.GetFieldsForSkillType(skillType);
+
+        var stats = CSVIO<SkillStatData>.LoadBulkData(SKILL_STAT_PATH, fileName, includeFields);
         foreach (var stat in stats)
         {
             if (!statDatabase.ContainsKey(stat.skillID))
@@ -290,13 +308,28 @@ public static class SkillDataEditorUtility
             SKILL_STAT_PATH,
             "ProjectileSkillStats",
             projectileStats,
-            true
+            true,
+            SkillStatFilters.GetFieldsForSkillType(SkillType.Projectile)
         );
-        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "AreaSkillStats", areaStats, true);
-        CSVIO<SkillStatData>.SaveBulkData(SKILL_STAT_PATH, "PassiveSkillStats", passiveStats, true);
+
+        CSVIO<SkillStatData>.SaveBulkData(
+            SKILL_STAT_PATH,
+            "AreaSkillStats",
+            areaStats,
+            true,
+            SkillStatFilters.GetFieldsForSkillType(SkillType.Area)
+        );
+
+        CSVIO<SkillStatData>.SaveBulkData(
+            SKILL_STAT_PATH,
+            "PassiveSkillStats",
+            passiveStats,
+            true,
+            SkillStatFilters.GetFieldsForSkillType(SkillType.Passive)
+        );
 
         Debug.Log(
-            $"스킬 데이터 저장 완료 - 프로젝타일: {projectileStats.Count}, 영역: {areaStats.Count}, 패시브: {passiveStats.Count}"
+            $"Saved Stat Database - Projectile: {projectileStats.Count}, Area: {areaStats.Count}, Passive: {passiveStats.Count}"
         );
     }
 

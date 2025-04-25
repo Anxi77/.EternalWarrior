@@ -1,9 +1,9 @@
 {
   "ID": 100001,
-  "Name": "New Area Skill",
-  "Description": "New Area skill description",
+  "Name": "Vine",
+  "Description": "Withers Enemy",
   "Type": 2,
-  "Element": 0,
+  "Element": 4,
   "Tier": 0,
   "Tags": [],
   "currentBaseSkillStat": null,

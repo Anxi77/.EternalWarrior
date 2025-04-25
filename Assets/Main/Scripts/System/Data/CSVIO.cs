@@ -32,7 +32,8 @@ public static class CSVIO<T>
         string path,
         string key,
         IEnumerable<T> dataList,
-        bool overwrite = true
+        bool overwrite = true,
+        IEnumerable<string> includeFields = null
     )
     {
         try
@@ -50,6 +51,19 @@ public static class CSVIO<T>
 
             var csv = new StringBuilder();
             var fields = typeof(T).GetFields();
+
+            // 필드 필터링 적용 - 일반적인 방식으로 변경
+            if (includeFields != null && includeFields.Any())
+            {
+                // 포함할 필드만 선택
+                fields = fields
+                    .Where(f =>
+                        includeFields.Any(name =>
+                            string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
+                    .ToArray();
+            }
 
             var headers = fields.Select(f => f.Name).Distinct().ToList();
             var headerLine = string.Join(",", headers);
@@ -139,7 +153,11 @@ public static class CSVIO<T>
         return data;
     }
 
-    public static List<T> LoadBulkData(string path, string fileName)
+    public static List<T> LoadBulkData(
+        string path,
+        string fileName,
+        IEnumerable<string> includeFields = null
+    )
     {
         Debug.Log($"[CSVIO] 시작: {path}/{fileName}.csv 로드 시도");
 
@@ -159,6 +177,17 @@ public static class CSVIO<T>
 
         string[] headers = lines[0].Trim().Split(',');
         var fields = typeof(T).GetFields();
+
+        if (includeFields != null && includeFields.Any())
+        {
+            fields = fields
+                .Where(f =>
+                    includeFields.Any(name =>
+                        string.Equals(f.Name, name, StringComparison.OrdinalIgnoreCase)
+                    )
+                )
+                .ToArray();
+        }
 
         for (int i = 1; i < lines.Length; i++)
         {

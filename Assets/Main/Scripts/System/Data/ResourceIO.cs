@@ -162,6 +162,12 @@ public static class ResourceIO<T>
                 Directory.CreateDirectory(directory);
             }
 
+            if (sourcePath.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.Log($"Source and target are the same, skipping copy: {targetPath}");
+                return;
+            }
+
             if (File.Exists(targetPath))
             {
                 AssetDatabase.DeleteAsset(targetPath);

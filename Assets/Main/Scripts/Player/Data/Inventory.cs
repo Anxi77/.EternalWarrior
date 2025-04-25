@@ -252,7 +252,7 @@ public class Inventory : MonoBehaviour, IInitializable
         savedState = null;
     }
 
-    public void RemoveItem(string itemId)
+    public void RemoveItem(Guid itemId)
     {
         var slot = slots.Find(s => s.itemData.ID == itemId);
         if (slot != null)

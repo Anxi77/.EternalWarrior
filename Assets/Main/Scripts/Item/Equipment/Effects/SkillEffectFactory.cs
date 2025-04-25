@@ -30,8 +30,7 @@ public static class SkillEffectFactory
             EffectType.AreaRadius => new SkillStatAmplifierEffect(effectData),
             EffectType.AreaDuration => new SkillStatAmplifierEffect(effectData),
             EffectType.ElementalPower => new ElementalAmplifierEffect(effectData),
-            _ => null
+            _ => null,
         };
     }
 }
-

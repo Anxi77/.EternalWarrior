@@ -119,9 +119,12 @@ public class SkillDataManager : Singleton<SkillDataManager>
         Dictionary<SkillType, List<SkillStatData>> statsByType =
             new Dictionary<SkillType, List<SkillStatData>>();
 
-        statsByType[SkillType.Projectile] = LoadSkillStats("ProjectileSkillStats");
-        statsByType[SkillType.Area] = LoadSkillStats("AreaSkillStats");
-        statsByType[SkillType.Passive] = LoadSkillStats("PassiveSkillStats");
+        statsByType[SkillType.Projectile] = LoadSkillStats(
+            "ProjectileSkillStats",
+            SkillType.Projectile
+        );
+        statsByType[SkillType.Area] = LoadSkillStats("AreaSkillStats", SkillType.Area);
+        statsByType[SkillType.Passive] = LoadSkillStats("PassiveSkillStats", SkillType.Passive);
 
         int skillCount = tempDatabase.Count;
         int current = 0;
@@ -151,9 +154,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
     }
 
-    private List<SkillStatData> LoadSkillStats(string statsFileName)
+    private List<SkillStatData> LoadSkillStats(string statsFileName, SkillType skillType)
     {
-        return CSVIO<SkillStatData>.LoadBulkData(STAT_PATH, statsFileName);
+        List<string> skillFields = SkillStatFilters.GetFieldsForSkillType(skillType);
+        return CSVIO<SkillStatData>.LoadBulkData(STAT_PATH, statsFileName, skillFields);
     }
 
     private void ApplySkillStats(SkillID skillId, SkillData skillData, List<SkillStatData> allStats)

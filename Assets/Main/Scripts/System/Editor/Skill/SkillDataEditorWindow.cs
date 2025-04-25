@@ -342,8 +342,26 @@ public class SkillDataEditorWindow : EditorWindow
                 CurrentSkill.Description
             );
             CurrentSkill.Type = (SkillType)EditorGUILayout.EnumPopup("Type", CurrentSkill.Type);
-            CurrentSkill.Element = (ElementType)
+
+            EditorGUI.BeginChangeCheck();
+            ElementType newElement = (ElementType)
                 EditorGUILayout.EnumPopup("Element", CurrentSkill.Element);
+            if (EditorGUI.EndChangeCheck() && newElement != CurrentSkill.Element)
+            {
+                CurrentSkill.Element = newElement;
+
+                var elementStats = statDatabase.GetValueOrDefault(CurrentSkill.ID);
+                if (elementStats != null && elementStats.Any())
+                {
+                    foreach (var levelStat in elementStats.Values)
+                    {
+                        levelStat.element = newElement;
+                    }
+
+                    SkillDataEditorUtility.SaveStatDatabase();
+                    SkillDataEditorUtility.SaveSkillData(CurrentSkill);
+                }
+            }
 
             EditorGUILayout.Space(5);
             EditorGUILayout.LabelField("Base Stats", EditorStyles.boldLabel);
@@ -658,7 +676,7 @@ public class SkillDataEditorWindow : EditorWindow
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SaveCurrentSkill();
+                    SkillDataEditorUtility.SaveStatDatabase();
                 }
             }
         }
@@ -667,76 +685,219 @@ public class SkillDataEditorWindow : EditorWindow
 
     private void DrawStatFields(SkillStatData stat)
     {
-        stat.damage = EditorGUILayout.FloatField("Damage", stat.damage);
-        stat.elementalPower = EditorGUILayout.FloatField("Elemental Power", stat.elementalPower);
+        EditorGUI.BeginChangeCheck();
+
+        float newDamage = EditorGUILayout.FloatField("Damage", stat.damage);
+        float newElementalPower = EditorGUILayout.FloatField(
+            "Elemental Power",
+            stat.elementalPower
+        );
+
+        bool statsChanged = false;
+        if (newDamage != stat.damage)
+        {
+            stat.damage = newDamage;
+            statsChanged = true;
+        }
+        if (newElementalPower != stat.elementalPower)
+        {
+            stat.elementalPower = newElementalPower;
+            statsChanged = true;
+        }
 
         switch (CurrentSkill.Type)
         {
             case SkillType.Projectile:
-                DrawProjectileStats(stat);
+                statsChanged |= DrawProjectileStats(stat);
                 break;
             case SkillType.Area:
-                DrawAreaStats(stat);
+                statsChanged |= DrawAreaStats(stat);
                 break;
             case SkillType.Passive:
-                DrawPassiveStats(stat);
+                statsChanged |= DrawPassiveStats(stat);
                 break;
+        }
+
+        if (EditorGUI.EndChangeCheck() && statsChanged)
+        {
+            SkillDataEditorUtility.SaveStatDatabase();
         }
     }
 
-    private void DrawProjectileStats(SkillStatData stat)
+    private bool DrawProjectileStats(SkillStatData stat)
     {
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("Projectile Stats", EditorStyles.boldLabel);
+        bool changed = false;
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.projectileSpeed = EditorGUILayout.FloatField("Speed", stat.projectileSpeed);
-            stat.projectileScale = EditorGUILayout.FloatField("Scale", stat.projectileScale);
-            stat.shotInterval = EditorGUILayout.FloatField("Shot Interval", stat.shotInterval);
-            stat.pierceCount = EditorGUILayout.IntField("Pierce Count", stat.pierceCount);
-            stat.attackRange = EditorGUILayout.FloatField("Attack Range", stat.attackRange);
-            stat.homingRange = EditorGUILayout.FloatField("Homing Range", stat.homingRange);
-            stat.isHoming = EditorGUILayout.Toggle("Is Homing", stat.isHoming);
-            stat.explosionRad = EditorGUILayout.FloatField("Explosion Radius", stat.explosionRad);
-            stat.projectileCount = EditorGUILayout.IntField(
+            float newSpeed = EditorGUILayout.FloatField("Speed", stat.projectileSpeed);
+            if (newSpeed != stat.projectileSpeed)
+            {
+                stat.projectileSpeed = newSpeed;
+                changed = true;
+            }
+
+            float newScale = EditorGUILayout.FloatField("Scale", stat.projectileScale);
+            if (newScale != stat.projectileScale)
+            {
+                stat.projectileScale = newScale;
+                changed = true;
+            }
+
+            float newInterval = EditorGUILayout.FloatField("Shot Interval", stat.shotInterval);
+            if (newInterval != stat.shotInterval)
+            {
+                stat.shotInterval = newInterval;
+                changed = true;
+            }
+
+            int newPierceCount = EditorGUILayout.IntField("Pierce Count", stat.pierceCount);
+            if (newPierceCount != stat.pierceCount)
+            {
+                stat.pierceCount = newPierceCount;
+                changed = true;
+            }
+
+            float newRange = EditorGUILayout.FloatField("Attack Range", stat.attackRange);
+            if (newRange != stat.attackRange)
+            {
+                stat.attackRange = newRange;
+                changed = true;
+            }
+
+            float newHomingRange = EditorGUILayout.FloatField("Homing Range", stat.homingRange);
+            if (newHomingRange != stat.homingRange)
+            {
+                stat.homingRange = newHomingRange;
+                changed = true;
+            }
+
+            bool newIsHoming = EditorGUILayout.Toggle("Is Homing", stat.isHoming);
+            if (newIsHoming != stat.isHoming)
+            {
+                stat.isHoming = newIsHoming;
+                changed = true;
+            }
+
+            float newExplosionRad = EditorGUILayout.FloatField(
+                "Explosion Radius",
+                stat.explosionRad
+            );
+            if (newExplosionRad != stat.explosionRad)
+            {
+                stat.explosionRad = newExplosionRad;
+                changed = true;
+            }
+
+            int newProjectileCount = EditorGUILayout.IntField(
                 "Projectile Count",
                 stat.projectileCount
             );
-            stat.innerInterval = EditorGUILayout.FloatField("Inner Interval", stat.innerInterval);
+            if (newProjectileCount != stat.projectileCount)
+            {
+                stat.projectileCount = newProjectileCount;
+                changed = true;
+            }
+
+            float newInnerInterval = EditorGUILayout.FloatField(
+                "Inner Interval",
+                stat.innerInterval
+            );
+            if (newInnerInterval != stat.innerInterval)
+            {
+                stat.innerInterval = newInnerInterval;
+                changed = true;
+            }
         }
         EditorGUILayout.EndVertical();
+
+        return changed;
     }
 
-    private void DrawAreaStats(SkillStatData stat)
+    private bool DrawAreaStats(SkillStatData stat)
     {
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("Area Stats", EditorStyles.boldLabel);
+        bool changed = false;
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.radius = EditorGUILayout.FloatField("Radius", stat.radius);
-            stat.duration = EditorGUILayout.FloatField("Duration", stat.duration);
-            stat.tickRate = EditorGUILayout.FloatField("Tick Rate", stat.tickRate);
-            stat.isPersistent = EditorGUILayout.Toggle("Is Persistent", stat.isPersistent);
-            stat.moveSpeed = EditorGUILayout.FloatField("Move Speed", stat.moveSpeed);
+            float newRadius = EditorGUILayout.FloatField("Radius", stat.radius);
+            if (newRadius != stat.radius)
+            {
+                stat.radius = newRadius;
+                changed = true;
+            }
+
+            float newDuration = EditorGUILayout.FloatField("Duration", stat.duration);
+            if (newDuration != stat.duration)
+            {
+                stat.duration = newDuration;
+                changed = true;
+            }
+
+            float newTickRate = EditorGUILayout.FloatField("Tick Rate", stat.tickRate);
+            if (newTickRate != stat.tickRate)
+            {
+                stat.tickRate = newTickRate;
+                changed = true;
+            }
+
+            bool newIsPersistent = EditorGUILayout.Toggle("Is Persistent", stat.isPersistent);
+            if (newIsPersistent != stat.isPersistent)
+            {
+                stat.isPersistent = newIsPersistent;
+                changed = true;
+            }
+
+            float newMoveSpeed = EditorGUILayout.FloatField("Move Speed", stat.moveSpeed);
+            if (newMoveSpeed != stat.moveSpeed)
+            {
+                stat.moveSpeed = newMoveSpeed;
+                changed = true;
+            }
         }
         EditorGUILayout.EndVertical();
+
+        return changed;
     }
 
-    private void DrawPassiveStats(SkillStatData stat)
+    private bool DrawPassiveStats(SkillStatData stat)
     {
         EditorGUILayout.Space(5);
         EditorGUILayout.LabelField("Passive Stats", EditorStyles.boldLabel);
+        bool changed = false;
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.effectDuration = EditorGUILayout.FloatField(
+            float newEffectDuration = EditorGUILayout.FloatField(
                 "Effect Duration",
                 stat.effectDuration
             );
-            stat.cooldown = EditorGUILayout.FloatField("Cooldown", stat.cooldown);
-            stat.triggerChance = EditorGUILayout.FloatField("Trigger Chance", stat.triggerChance);
+            if (newEffectDuration != stat.effectDuration)
+            {
+                stat.effectDuration = newEffectDuration;
+                changed = true;
+            }
+
+            float newCooldown = EditorGUILayout.FloatField("Cooldown", stat.cooldown);
+            if (newCooldown != stat.cooldown)
+            {
+                stat.cooldown = newCooldown;
+                changed = true;
+            }
+
+            float newTriggerChance = EditorGUILayout.FloatField(
+                "Trigger Chance",
+                stat.triggerChance
+            );
+            if (newTriggerChance != stat.triggerChance)
+            {
+                stat.triggerChance = newTriggerChance;
+                changed = true;
+            }
         }
         EditorGUILayout.EndVertical();
 
@@ -745,38 +906,93 @@ public class SkillDataEditorWindow : EditorWindow
 
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         {
-            stat.damageIncrease = EditorGUILayout.FloatField(
+            float newDamageInc = EditorGUILayout.FloatField(
                 "Damage Increase (%)",
                 stat.damageIncrease
             );
-            stat.defenseIncrease = EditorGUILayout.FloatField(
+            if (newDamageInc != stat.damageIncrease)
+            {
+                stat.damageIncrease = newDamageInc;
+                changed = true;
+            }
+
+            float newDefenseInc = EditorGUILayout.FloatField(
                 "Defense Increase (%)",
                 stat.defenseIncrease
             );
-            stat.expAreaIncrease = EditorGUILayout.FloatField(
+            if (newDefenseInc != stat.defenseIncrease)
+            {
+                stat.defenseIncrease = newDefenseInc;
+                changed = true;
+            }
+
+            float newExpAreaInc = EditorGUILayout.FloatField(
                 "Exp Area Increase (%)",
                 stat.expAreaIncrease
             );
-            stat.homingActivate = EditorGUILayout.Toggle("Homing Activate", stat.homingActivate);
-            stat.hpIncrease = EditorGUILayout.FloatField("HP Increase (%)", stat.hpIncrease);
-            stat.moveSpeedIncrease = EditorGUILayout.FloatField(
+            if (newExpAreaInc != stat.expAreaIncrease)
+            {
+                stat.expAreaIncrease = newExpAreaInc;
+                changed = true;
+            }
+
+            bool newHomingActivate = EditorGUILayout.Toggle("Homing Activate", stat.homingActivate);
+            if (newHomingActivate != stat.homingActivate)
+            {
+                stat.homingActivate = newHomingActivate;
+                changed = true;
+            }
+
+            float newHpInc = EditorGUILayout.FloatField("HP Increase (%)", stat.hpIncrease);
+            if (newHpInc != stat.hpIncrease)
+            {
+                stat.hpIncrease = newHpInc;
+                changed = true;
+            }
+
+            float newMoveSpeedInc = EditorGUILayout.FloatField(
                 "Move Speed Increase (%)",
                 stat.moveSpeedIncrease
             );
-            stat.attackSpeedIncrease = EditorGUILayout.FloatField(
+            if (newMoveSpeedInc != stat.moveSpeedIncrease)
+            {
+                stat.moveSpeedIncrease = newMoveSpeedInc;
+                changed = true;
+            }
+
+            float newAttackSpeedInc = EditorGUILayout.FloatField(
                 "Attack Speed Increase (%)",
                 stat.attackSpeedIncrease
             );
-            stat.attackRangeIncrease = EditorGUILayout.FloatField(
+            if (newAttackSpeedInc != stat.attackSpeedIncrease)
+            {
+                stat.attackSpeedIncrease = newAttackSpeedInc;
+                changed = true;
+            }
+
+            float newAttackRangeInc = EditorGUILayout.FloatField(
                 "Attack Range Increase (%)",
                 stat.attackRangeIncrease
             );
-            stat.hpRegenIncrease = EditorGUILayout.FloatField(
+            if (newAttackRangeInc != stat.attackRangeIncrease)
+            {
+                stat.attackRangeIncrease = newAttackRangeInc;
+                changed = true;
+            }
+
+            float newHpRegenInc = EditorGUILayout.FloatField(
                 "HP Regen Increase (%)",
                 stat.hpRegenIncrease
             );
+            if (newHpRegenInc != stat.hpRegenIncrease)
+            {
+                stat.hpRegenIncrease = newHpRegenInc;
+                changed = true;
+            }
         }
         EditorGUILayout.EndVertical();
+
+        return changed;
     }
 
     private List<SkillData> FilterSkills()
@@ -795,7 +1011,7 @@ public class SkillDataEditorWindow : EditorWindow
 
     private void CreateNewSkill()
     {
-        var window = EditorWindow.GetWindow<SkillCreationPopup>("Create New Skill");
+        var window = GetWindow<SkillCreationPopup>("Create New Skill");
         window.Initialize(
             (selectedId, selectedType) =>
             {
@@ -910,8 +1126,46 @@ public class SkillDataEditorWindow : EditorWindow
             return;
         }
 
+        var currentId = selectedSkillId;
         SkillDataEditorUtility.SaveSkillData(CurrentSkill);
-        RefreshData();
+
+        // 데이터베이스 리로드
+        skillDatabase = SkillDataEditorUtility.GetSkillDatabase();
+
+        // 현재 스킬의 리소스 명시적 리로드
+        if (skillDatabase.TryGetValue(currentId, out var skill))
+        {
+            skill.Icon = ResourceIO<Sprite>.LoadData(
+                $"{SKILL_ICON_PATH}/{currentId}/{currentId}_Icon"
+            );
+            skill.BasePrefab = ResourceIO<GameObject>.LoadData(
+                $"{SKILL_PREFAB_PATH}/{currentId}/{currentId}_Prefab"
+            );
+
+            if (skill.Type == SkillType.Projectile)
+            {
+                skill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
+                    $"{SKILL_PREFAB_PATH}/{currentId}/{currentId}_Projectile"
+                );
+            }
+
+            var stats = statDatabase.GetValueOrDefault(currentId);
+            if (stats != null && stats.Any())
+            {
+                int maxLevel = stats.Values.First().maxSkillLevel;
+                skill.PrefabsByLevel = new GameObject[maxLevel];
+
+                for (int i = 0; i < maxLevel; i++)
+                {
+                    skill.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
+                        $"{SKILL_PREFAB_PATH}/{currentId}/{currentId}_Level_{i + 1}"
+                    );
+                }
+            }
+        }
+
+        selectedSkillId = currentId;
+        Repaint();
     }
 
     private void SaveAllData()

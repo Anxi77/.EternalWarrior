@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -9,6 +10,16 @@ using UnityEditor;
 public static class JSONIO<T>
     where T : class
 {
+    private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
+    {
+        Formatting = Formatting.Indented,
+        NullValueHandling = NullValueHandling.Ignore,
+        Converters = new JsonConverter[]
+        {
+            new StringEnumConverter(), // Enum을 문자열로 변환
+        },
+    };
+
     public static void SaveData(string path, string key, T data)
     {
         try
@@ -25,7 +36,7 @@ public static class JSONIO<T>
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            string jsonData = JsonConvert.SerializeObject(data, Formatting.Indented);
+            string jsonData = JsonConvert.SerializeObject(data, jsonSettings);
             File.WriteAllText(fullPath, jsonData);
 
 #if UNITY_EDITOR
@@ -48,7 +59,7 @@ public static class JSONIO<T>
 
             if (jsonAsset != null)
             {
-                T data = JsonConvert.DeserializeObject<T>(jsonAsset.text);
+                T data = JsonConvert.DeserializeObject<T>(jsonAsset.text, jsonSettings);
                 return data;
             }
         }

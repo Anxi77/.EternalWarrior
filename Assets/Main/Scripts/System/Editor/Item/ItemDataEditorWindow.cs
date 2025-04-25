@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -13,12 +14,12 @@ public class ItemDataEditorWindow : EditorWindow
     }
 
     #region Fields
-    private Dictionary<string, ItemData> itemDatabase = new();
+    private Dictionary<Guid, ItemData> itemDatabase = new();
     private Dictionary<MonsterType, DropTableData> dropTables = new();
     private string searchText = "";
     private ItemType typeFilter = ItemType.None;
     private ItemRarity rarityFilter = ItemRarity.Common;
-    private string selectedItemId;
+    private Guid selectedItemId;
     private Vector2 mainScrollPosition;
     private EditorTab currentTab;
     private GUIStyle headerStyle;
@@ -38,7 +39,7 @@ public class ItemDataEditorWindow : EditorWindow
     {
         get
         {
-            if (string.IsNullOrEmpty(selectedItemId))
+            if (selectedItemId == Guid.Empty)
                 return null;
             return itemDatabase.TryGetValue(selectedItemId, out var item) ? item : null;
         }
@@ -65,7 +66,6 @@ public class ItemDataEditorWindow : EditorWindow
 
     private void RefreshItemDatabase()
     {
-        Debug.Log("RefreshItemDatabase called");
         itemDatabase = ItemDataEditorUtility.GetItemDatabase();
     }
 
@@ -183,7 +183,7 @@ public class ItemDataEditorWindow : EditorWindow
                 )
                 {
                     ItemDataEditorUtility.InitializeDefaultData();
-                    selectedItemId = null;
+                    selectedItemId = Guid.Empty;
 
                     EditorApplication.delayCall += () =>
                     {
@@ -285,16 +285,9 @@ public class ItemDataEditorWindow : EditorWindow
                     EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                     {
                         EditorGUI.BeginChangeCheck();
-                        string newId = EditorGUILayout.TextField("ID", CurrentItem.ID);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            if (!string.IsNullOrEmpty(newId) && newId != CurrentItem.ID)
-                            {
-                                CurrentItem.ID = newId;
-                                selectedItemId = newId;
-                                EditorUtility.SetDirty(this);
-                            }
-                        }
+                        EditorGUI.BeginDisabledGroup(true);
+                        EditorGUILayout.TextField("ID", CurrentItem.ID.ToString());
+                        EditorGUI.EndDisabledGroup();
 
                         CurrentItem.Name = EditorGUILayout.TextField("Name", CurrentItem.Name);
                         CurrentItem.Description = EditorGUILayout.TextField(
@@ -303,6 +296,16 @@ public class ItemDataEditorWindow : EditorWindow
                         );
                         CurrentItem.Type = (ItemType)
                             EditorGUILayout.EnumPopup("Type", CurrentItem.Type);
+
+                        if (CurrentItem.Type == ItemType.Accessory)
+                        {
+                            CurrentItem.AccessoryType = (AccessoryType)
+                                EditorGUILayout.EnumPopup(
+                                    "Accessory Type",
+                                    CurrentItem.AccessoryType
+                                );
+                        }
+
                         CurrentItem.Rarity = (ItemRarity)
                             EditorGUILayout.EnumPopup("Rarity", CurrentItem.Rarity);
                         CurrentItem.MaxStack = EditorGUILayout.IntField(
@@ -644,31 +647,51 @@ public class ItemDataEditorWindow : EditorWindow
                 EditorGUILayout.Space(5);
             }
 
+            EditorGUILayout.LabelField(
+                "Icon Resource Path:",
+                CurrentItem.IconResourceName ?? "None"
+            );
+
             EditorGUI.BeginChangeCheck();
-            var newIcon = (Sprite)
-                EditorGUILayout.ObjectField("Icon", CurrentItem.Icon, typeof(Sprite), false);
 
-            if (EditorGUI.EndChangeCheck() && newIcon != null)
+            Sprite oldIcon = null;
+            if (!string.IsNullOrEmpty(CurrentItem.IconResourceName))
             {
-                string sourceAssetPath = AssetDatabase.GetAssetPath(newIcon);
-                if (!string.IsNullOrEmpty(sourceAssetPath))
+                oldIcon = Resources.Load<Sprite>(CurrentItem.IconResourceName);
+            }
+
+            var newIcon = (Sprite)
+                EditorGUILayout.ObjectField("Select Icon", oldIcon, typeof(Sprite), false);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (newIcon != null)
                 {
-                    CurrentItem.IconPath = sourceAssetPath;
-
-                    ItemDataEditorUtility.SaveItemData(CurrentItem);
-
-                    string currentId = CurrentItem.ID;
-
-                    Resources.UnloadUnusedAssets();
-                    EditorApplication.delayCall += () =>
+                    string assetPath = AssetDatabase.GetAssetPath(newIcon);
+                    if (assetPath.StartsWith("Assets/Resources/"))
                     {
-                        RefreshItemDatabase();
-                        selectedItemId = currentId;
-                        Repaint();
-                    };
+                        string resourcePath = assetPath.Substring("Assets/Resources/".Length);
+                        resourcePath = Path.ChangeExtension(resourcePath, null);
 
+                        CurrentItem.IconResourceName = resourcePath;
+
+                        ItemDataEditorUtility.SaveItemData(CurrentItem);
+                        EditorUtility.SetDirty(this);
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog(
+                            "유효하지 않은 경로",
+                            "아이콘은 Resources 폴더 내에 위치해야 합니다.",
+                            "확인"
+                        );
+                    }
+                }
+                else
+                {
+                    CurrentItem.IconResourceName = null;
+                    ItemDataEditorUtility.SaveItemData(CurrentItem);
                     EditorUtility.SetDirty(this);
-                    GUI.changed = true;
                 }
             }
         }
@@ -692,12 +715,13 @@ public class ItemDataEditorWindow : EditorWindow
     private void CreateNewItem()
     {
         var newItem = new ItemData();
-        newItem.ID = "NEW_ITEM_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+        newItem.ID = Guid.NewGuid();
         newItem.Name = "New Item";
         newItem.Description = "New item description";
         newItem.Type = ItemType.None;
         newItem.Rarity = ItemRarity.Common;
         newItem.MaxStack = 1;
+        newItem.AccessoryType = AccessoryType.None;
 
         ItemDataEditorUtility.SaveItemData(newItem);
 
@@ -722,9 +746,9 @@ public class ItemDataEditorWindow : EditorWindow
                 )
             )
             {
-                string itemId = CurrentItem.ID;
+                Guid itemId = CurrentItem.ID;
                 ItemDataEditorUtility.DeleteItemData(itemId);
-                selectedItemId = null;
+                selectedItemId = Guid.Empty;
 
                 EditorApplication.delayCall += () =>
                 {
@@ -750,16 +774,13 @@ public class ItemDataEditorWindow : EditorWindow
 
         try
         {
-            string previousSelectedId = selectedItemId;
+            Guid previousSelectedId = selectedItemId;
 
             RefreshData();
 
-            if (
-                !string.IsNullOrEmpty(previousSelectedId)
-                && !itemDatabase.ContainsKey(previousSelectedId)
-            )
+            if (previousSelectedId != Guid.Empty && !itemDatabase.ContainsKey(previousSelectedId))
             {
-                selectedItemId = null;
+                selectedItemId = Guid.Empty;
             }
 
             Debug.Log("All data loaded successfully!");
@@ -847,15 +868,9 @@ public class ItemDataEditorWindow : EditorWindow
                 {
                     var effectRange = CurrentItem.EffectRanges.possibleEffects[i];
 
-                    string newEffectId = EditorGUILayout.TextField(
-                        "Effect ID",
-                        effectRange.effectId
-                    );
-                    if (newEffectId != effectRange.effectId)
-                    {
-                        effectRange.effectId = newEffectId;
-                        changed = true;
-                    }
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.TextField("ID", effectRange.effectId.ToString());
+                    EditorGUI.EndDisabledGroup();
 
                     string newEffectName = EditorGUILayout.TextField(
                         "Name",

@@ -16,16 +16,16 @@ public static class ItemDataEditorUtility
     #endregion
 
     #region Data Management
-    private static Dictionary<string, ItemData> itemDatabase = new();
+    private static Dictionary<Guid, ItemData> itemDatabase = new();
     private static Dictionary<MonsterType, DropTableData> dropTables = new();
 
-    public static Dictionary<string, ItemData> GetItemDatabase()
+    public static Dictionary<Guid, ItemData> GetItemDatabase()
     {
         if (!itemDatabase.Any())
         {
             LoadItemDatabase();
         }
-        return new Dictionary<string, ItemData>(itemDatabase);
+        return new Dictionary<Guid, ItemData>(itemDatabase);
     }
 
     public static Dictionary<MonsterType, DropTableData> GetDropTables()
@@ -44,32 +44,10 @@ public static class ItemDataEditorUtility
 
         try
         {
-            if (!string.IsNullOrEmpty(itemData.IconPath))
-            {
-                string sourceAssetPath = itemData.IconPath;
-                if (!string.IsNullOrEmpty(sourceAssetPath))
-                {
-                    if (sourceAssetPath.Contains("/Resources/"))
-                    {
-                        itemData.IconPath = GetResourcePath(sourceAssetPath);
-                    }
-                    else
-                    {
-                        var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(sourceAssetPath);
-                        if (sprite != null)
-                        {
-                            string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
-                            ResourceIO<Sprite>.SaveData(resourcePath, sprite);
-                            itemData.IconPath = resourcePath;
-                            Debug.Log($"Icon saved to Resources path: {resourcePath}");
-                        }
-                    }
-                }
-            }
-
             var clonedData = itemData.Clone();
             itemDatabase[itemData.ID] = clonedData;
 
+            SaveResource(itemData);
             SaveDatabase();
         }
         catch (Exception e)
@@ -78,18 +56,29 @@ public static class ItemDataEditorUtility
         }
     }
 
-    public static void DeleteItemData(string itemId)
+    public static void SaveResource(ItemData itemData)
     {
-        if (string.IsNullOrEmpty(itemId))
+        if (!File.Exists(ItemDataExtensions.ICON_PATH + itemData.ID + ".png"))
+        {
+            string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
+            ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
+            Debug.Log($"Icon saved to Resources path: {resourcePath}");
+        }
+    }
+
+    public static void DeleteItemData(Guid itemId)
+    {
+        if (itemId == Guid.Empty)
             return;
 
         try
         {
             if (itemDatabase.TryGetValue(itemId, out var item) && itemDatabase.Remove(itemId))
             {
-                if (!string.IsNullOrEmpty(item.IconPath))
+                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
                 {
-                    string iconPath = $"Assets/Resources/{item.IconPath}.png";
+                    string iconPath =
+                        $"Assets/Resources/{ItemDataExtensions.ICON_PATH + item.ID + ".png"}";
                     if (File.Exists(iconPath))
                     {
                         AssetDatabase.DeleteAsset(iconPath);
@@ -132,7 +121,7 @@ public static class ItemDataEditorUtility
         try
         {
             var wrapper = new SerializableItemList { items = itemDatabase.Values.ToList() };
-            JSONIO<SerializableItemList>.SaveData("Items/ItemDatabase", "ItemDatabase", wrapper);
+            JSONIO<SerializableItemList>.SaveData(ITEM_DB_PATH, "ItemDatabase", wrapper);
             Debug.Log($"Database saved successfully");
             AssetDatabase.Refresh();
         }
@@ -153,7 +142,7 @@ public static class ItemDataEditorUtility
             }
 
             var wrapper = new DropTablesWrapper { dropTables = dropTables.Values.ToList() };
-            JSONIO<DropTablesWrapper>.SaveData("Items/DropTables", "DropTables", wrapper);
+            JSONIO<DropTablesWrapper>.SaveData(DROP_TABLES_PATH, "DropTables", wrapper);
             AssetDatabase.Refresh();
         }
         catch (Exception e)
@@ -271,13 +260,13 @@ public static class ItemDataEditorUtility
             else
             {
                 Debug.LogWarning("No item database found or empty database");
-                itemDatabase = new Dictionary<string, ItemData>();
+                itemDatabase = new Dictionary<Guid, ItemData>();
             }
         }
         catch (Exception e)
         {
             Debug.LogError($"Error loading item database: {e.Message}\n{e.StackTrace}");
-            itemDatabase = new Dictionary<string, ItemData>();
+            itemDatabase = new Dictionary<Guid, ItemData>();
         }
     }
 
@@ -303,81 +292,17 @@ public static class ItemDataEditorUtility
         }
     }
 
-    public static void SaveItemResources(ItemData itemData)
-    {
-        Debug.Log($"SaveItemResources called for item {itemData?.ID}");
-        if (itemData == null)
-            return;
-
-        try
-        {
-            if (!string.IsNullOrEmpty(itemData.IconPath))
-            {
-                string sourceAssetPath = itemData.IconPath;
-                Debug.Log($"Source asset path: {sourceAssetPath}");
-
-                // 이미 Resources 폴더에 있는 경우 경로만 업데이트
-                if (sourceAssetPath.Contains("/Resources/"))
-                {
-                    itemData.IconPath = GetResourcePath(sourceAssetPath);
-                    Debug.Log(
-                        $"Asset already in Resources folder. Updated path to: {itemData.IconPath}"
-                    );
-                    return;
-                }
-
-                // Resources 폴더로 복사
-                string targetPath = Path.Combine(
-                        RESOURCE_ROOT,
-                        ITEM_ICON_PATH,
-                        $"{itemData.ID}_Icon{Path.GetExtension(sourceAssetPath)}"
-                    )
-                    .Replace('\\', '/');
-                Debug.Log($"Target path: {targetPath}");
-
-                // 디렉토리 생성
-                string directory = Path.GetDirectoryName(targetPath);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                    Debug.Log($"Created directory: {directory}");
-                }
-
-                // 기존 파일이 있다면 삭제
-                if (File.Exists(targetPath))
-                {
-                    AssetDatabase.DeleteAsset(targetPath);
-                    Debug.Log($"Deleted existing file: {targetPath}");
-                }
-
-                // 파일 복사
-                AssetDatabase.CopyAsset(sourceAssetPath, targetPath);
-                AssetDatabase.Refresh();
-                Debug.Log($"Copied asset from {sourceAssetPath} to {targetPath}");
-
-                // Resources 폴더 기준 상대 경로로 변환
-                string resourcePath = GetResourcePath(targetPath);
-                itemData.IconPath = resourcePath;
-                Debug.Log($"Updated IconPath to: {itemData.IconPath}");
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError(
-                $"Error saving item resources for {itemData.ID}: {e.Message}\n{e.StackTrace}"
-            );
-        }
-    }
-
     private static void LoadItemResources()
     {
         foreach (var item in itemDatabase.Values)
         {
             try
             {
-                if (!string.IsNullOrEmpty(item.IconPath))
+                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
                 {
-                    var icon = ResourceIO<Sprite>.LoadData(item.IconPath);
+                    var icon = ResourceIO<Sprite>.LoadData(
+                        ItemDataExtensions.ICON_PATH + item.ID + ".png"
+                    );
                     if (icon != null)
                     {
                         Debug.Log($"Successfully loaded icon for item {item.ID}");
@@ -390,7 +315,6 @@ public static class ItemDataEditorUtility
 
                         if (icon != null)
                         {
-                            item.IconPath = alternativePath;
                             Debug.Log(
                                 $"Successfully loaded icon from alternative path for item {item.ID}"
                             );
@@ -398,7 +322,7 @@ public static class ItemDataEditorUtility
                         else
                         {
                             Debug.LogWarning(
-                                $"Failed to load icon for item {item.ID}. Paths tried:\n1. {item.IconPath}\n2. {alternativePath}"
+                                $"Failed to load icon for item {item.ID}. Paths tried:\n1. {ItemDataExtensions.ICON_PATH + item.ID + ".png"}\n2. {alternativePath}"
                             );
                         }
                     }
@@ -415,29 +339,6 @@ public static class ItemDataEditorUtility
                 );
             }
         }
-    }
-
-    public static string GetResourcePath(string fullPath)
-    {
-        if (string.IsNullOrEmpty(fullPath))
-            return string.Empty;
-
-        // 백슬래시를 슬래시로 변환
-        fullPath = fullPath.Replace('\\', '/');
-
-        // Resources/ 이후의 경로 추출
-        int resourcesIndex = fullPath.IndexOf("Resources/");
-        if (resourcesIndex == -1)
-            return fullPath;
-
-        string relativePath = fullPath.Substring(resourcesIndex + "Resources/".Length);
-
-        // 확장자 제거
-        relativePath = Path.ChangeExtension(relativePath, null);
-
-        Debug.Log($"Converting path:\nFull path: {fullPath}\nResource path: {relativePath}");
-
-        return relativePath;
     }
 
     private static void CreateDefaultDropTables()
@@ -487,9 +388,10 @@ public static class ItemDataEditorUtility
             // 기존 아이템들의 리소스 정리
             foreach (var item in itemDatabase.Values)
             {
-                if (!string.IsNullOrEmpty(item.IconPath))
+                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
                 {
-                    string iconPath = $"Assets/Resources/{item.IconPath}.png";
+                    string iconPath =
+                        $"Assets/Resources/{ItemDataExtensions.ICON_PATH + item.ID + ".png"}";
                     if (File.Exists(iconPath))
                     {
                         AssetDatabase.DeleteAsset(iconPath);

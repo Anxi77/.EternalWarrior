@@ -6,7 +6,25 @@ using Random = UnityEngine.Random;
 
 public class ItemGenerator : MonoBehaviour
 {
-    public ItemData GenerateItem(string itemId, ItemRarity? targetRarity = null)
+    public Dictionary<ItemRarity, int> additionalEffectsByRarity = new Dictionary<ItemRarity, int>
+    {
+        { ItemRarity.Common, 0 },
+        { ItemRarity.Uncommon, 1 },
+        { ItemRarity.Rare, 2 },
+        { ItemRarity.Epic, 3 },
+        { ItemRarity.Legendary, 4 },
+    };
+
+    public Dictionary<ItemRarity, int> additionalStatsByRarity = new()
+    {
+        { ItemRarity.Common, 0 },
+        { ItemRarity.Uncommon, 1 },
+        { ItemRarity.Rare, 2 },
+        { ItemRarity.Epic, 3 },
+        { ItemRarity.Legendary, 4 },
+    };
+
+    public ItemData GenerateItem(Guid itemId, ItemRarity? targetRarity = null)
     {
         var newItem = ItemDataManager.Instance.GetData(itemId).Clone();
 
@@ -28,16 +46,13 @@ public class ItemGenerator : MonoBehaviour
     {
         if (item.StatRanges == null || item.StatRanges.possibleStats == null)
         {
-            Debug.LogWarning($"No stat ranges defined for item: {item.ID}");
+            Debug.LogWarning($"No stat ranges defined for item: {item.Name}");
             return;
         }
 
         item.Stats.Clear();
 
-        int additionalStats = item.StatRanges.additionalStatsByRarity.GetValueOrDefault(
-            item.Rarity,
-            0
-        );
+        int additionalStats = additionalStatsByRarity.GetValueOrDefault(item.Rarity, 0);
         int statCount = Random.Range(
             item.StatRanges.minStatCount,
             Mathf.Min(
@@ -46,7 +61,7 @@ public class ItemGenerator : MonoBehaviour
             )
         );
 
-        Debug.Log($"Generating {statCount} stats for item {item.ID}");
+        Debug.Log($"Generating {statCount} stats for item {item.Name}");
 
         var availableStats = item.StatRanges.possibleStats.ToList();
 
@@ -72,16 +87,13 @@ public class ItemGenerator : MonoBehaviour
     {
         if (item.EffectRanges == null || item.EffectRanges.possibleEffects == null)
         {
-            Debug.LogWarning($"No effect ranges defined for item: {item.ID}");
+            Debug.LogWarning($"No effect ranges defined for item: {item.Name}");
             return;
         }
 
         item.Effects.Clear();
 
-        int additionalEffects = item.EffectRanges.additionalEffectsByRarity.GetValueOrDefault(
-            item.Rarity,
-            0
-        );
+        int additionalEffects = additionalEffectsByRarity.GetValueOrDefault(item.Rarity, 0);
         int effectCount = Random.Range(
             item.EffectRanges.minEffectCount,
             Mathf.Min(
@@ -90,7 +102,7 @@ public class ItemGenerator : MonoBehaviour
             )
         );
 
-        Debug.Log($"Generating {effectCount} effects for item {item.ID}");
+        Debug.Log($"Generating {effectCount} effects for item {item.Name}");
 
         var availableEffects = item.EffectRanges.possibleEffects.ToList();
 

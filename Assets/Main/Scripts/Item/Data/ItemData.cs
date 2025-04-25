@@ -1,8 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
+
+public static class ItemDataExtensions
+{
+    public const string ICON_PATH = "Items/Icons/";
+    public const string DATABASE_PATH = "Items/Database/";
+    public const string DROP_TABLES_PATH = "Items/DropTables/";
+}
 
 [Serializable]
 public class SerializableItemList
@@ -19,28 +27,51 @@ public class DropTablesWrapper
 [Serializable]
 public class ItemData
 {
-    public string ID;
+    public Guid ID = Guid.NewGuid();
     public string Name;
     public string Description;
     public ItemType Type;
     public ItemRarity Rarity;
     public ElementType Element;
+    public AccessoryType AccessoryType = AccessoryType.None;
     public int MaxStack;
-    public float DropRate;
-    public int MinAmount = 1;
-    public int MaxAmount = 1;
-    public string IconPath;
     public ItemStatRangeData StatRanges = new();
-    public List<StatModifier> Stats = new();
     public ItemEffectRangeData EffectRanges = new();
+
+    public ItemData()
+    {
+        ID = Guid.NewGuid();
+        Name = "New Item";
+        Type = ItemType.None;
+        Rarity = ItemRarity.Common;
+        Element = ElementType.None;
+        AccessoryType = AccessoryType.None;
+        MaxStack = 1;
+        StatRanges = new ItemStatRangeData();
+        EffectRanges = new ItemEffectRangeData();
+    }
+
+    [JsonIgnore]
+    public List<StatModifier> Stats = new();
+
+    [JsonIgnore]
     public List<ItemEffectData> Effects = new();
 
     [JsonIgnore]
     private Sprite _icon;
 
     [JsonIgnore]
-    public Sprite Icon =>
-        _icon ??= !string.IsNullOrEmpty(IconPath) ? Resources.Load<Sprite>(IconPath) : null;
+    public Sprite Icon
+    {
+        get
+        {
+            if (_icon == null && !string.IsNullOrEmpty(IconResourceName))
+            {
+                _icon = Resources.Load<Sprite>(IconResourceName);
+            }
+            return _icon;
+        }
+    }
 
     [JsonIgnore]
     public int amount = 1;
@@ -74,9 +105,9 @@ public class ItemData
         Effects.Add(effect);
     }
 
-    public void RemoveEffect(string effectId) => Effects.RemoveAll(e => e.effectId == effectId);
+    public void RemoveEffect(Guid effectId) => Effects.RemoveAll(e => e.effectId == effectId);
 
-    public ItemEffectData GetEffect(string effectId) =>
+    public ItemEffectData GetEffect(Guid effectId) =>
         Effects.FirstOrDefault(e => e.effectId == effectId);
 
     public List<ItemEffectData> GetEffectsByType(EffectType type) =>
@@ -87,6 +118,7 @@ public class ItemData
 
     public List<ItemEffectData> GetEffectsForElement(ElementType elementType) =>
         Effects.Where(e => e.applicableElements?.Contains(elementType) ?? false).ToList();
+
     #endregion
 
     #region Cloning
@@ -95,6 +127,18 @@ public class ItemData
         return JsonConvert.DeserializeObject<ItemData>(JsonConvert.SerializeObject(this));
     }
     #endregion
+
+    public override bool Equals(object obj)
+    {
+        if (obj is ItemData other)
+            return ID.Equals(other.ID);
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return ID.GetHashCode();
+    }
 }
 
 #region Stat & Effects
@@ -114,21 +158,12 @@ public class ItemStatRangeData
     public List<ItemStatRange> possibleStats = new();
     public int minStatCount = 1;
     public int maxStatCount = 4;
-
-    public Dictionary<ItemRarity, int> additionalStatsByRarity = new()
-    {
-        { ItemRarity.Common, 0 },
-        { ItemRarity.Uncommon, 1 },
-        { ItemRarity.Rare, 2 },
-        { ItemRarity.Epic, 3 },
-        { ItemRarity.Legendary, 4 },
-    };
 }
 
 [Serializable]
 public class ItemEffectRange
 {
-    public string effectId;
+    public Guid effectId = Guid.NewGuid();
     public string effectName;
     public string description;
     public EffectType effectType;
@@ -142,26 +177,15 @@ public class ItemEffectRange
 [Serializable]
 public class ItemEffectRangeData
 {
-    public string itemId;
-    public ItemType itemType;
     public List<ItemEffectRange> possibleEffects = new List<ItemEffectRange>();
     public int minEffectCount = 1;
     public int maxEffectCount = 3;
-
-    public Dictionary<ItemRarity, int> additionalEffectsByRarity = new Dictionary<ItemRarity, int>
-    {
-        { ItemRarity.Common, 0 },
-        { ItemRarity.Uncommon, 1 },
-        { ItemRarity.Rare, 2 },
-        { ItemRarity.Epic, 3 },
-        { ItemRarity.Legendary, 4 },
-    };
 }
 
 [Serializable]
 public class ItemEffectData
 {
-    public string effectId;
+    public Guid effectId = Guid.NewGuid();
     public string effectName;
     public EffectType effectType;
     public float value;
@@ -203,7 +227,7 @@ public class ItemEffectData
 public class DropTableEntry
 {
     [SerializeField]
-    public string itemId;
+    public Guid itemId;
 
     [SerializeField]
     public float dropRate;

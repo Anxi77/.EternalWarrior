@@ -61,9 +61,9 @@ public class ItemSystem : MonoBehaviour, IInitializable
         return itemGenerator.GenerateDrops(dropTable, luckMultiplier);
     }
 
-    public ItemData GetItem(string itemId)
+    public ItemData GetItem(Guid itemId)
     {
-        if (string.IsNullOrEmpty(itemId))
+        if (itemId == Guid.Empty)
         {
             Debug.LogError($"[ItemManager] Attempted to get item with null or empty ID");
             return null;
