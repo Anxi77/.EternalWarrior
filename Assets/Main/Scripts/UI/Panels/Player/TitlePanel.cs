@@ -1,3 +1,4 @@
+using Michsky.UI.Heat;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,13 +7,13 @@ public class TitlePanel : Panel
     public override PanelType PanelType => PanelType.Title;
 
     [SerializeField]
-    private Button startGameButton;
+    private ButtonManager startGameButton;
 
     [SerializeField]
-    private Button loadGameButton;
+    private ButtonManager loadGameButton;
 
     [SerializeField]
-    private Button exitButton;
+    private ButtonManager exitButton;
 
     public override void Open()
     {
@@ -50,7 +51,7 @@ public class TitlePanel : Panel
     public void UpdateButtons(bool hasSaveData)
     {
         if (loadGameButton != null)
-            loadGameButton.interactable = hasSaveData;
+            loadGameButton.Interactable(hasSaveData);
     }
 
     public override void Close(bool objActive = true)

@@ -175,10 +175,6 @@ public class LoadingManager : Singleton<LoadingManager>
 
         yield return new WaitUntil(() => loadLoadingScene.isDone);
 
-        GameManager.Instance.PlayerSystem.SpawnPlayer(Vector3.zero);
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player != null);
-
         AsyncOperation loadTargetScene = SceneManager.LoadSceneAsync(targetSceneName);
 
         loadTargetScene.allowSceneActivation = false;

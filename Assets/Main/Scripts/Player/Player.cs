@@ -60,7 +60,7 @@ public class Player : MonoBehaviour
 
     #region References
     public PlayerStatSystem playerStat;
-    private Rigidbody2D rb;
+    public Rigidbody2D rb;
     private float x = 0;
     private float y = 0;
     public SPUM_Prefabs characterControl;
@@ -74,14 +74,15 @@ public class Player : MonoBehaviour
 
     public void Initialize()
     {
-        playerStat = GetComponent<PlayerStatSystem>();
-        rb = GetComponent<Rigidbody2D>();
-
+        gameObject.name = "Player";
         if (rb != null)
         {
             rb.gravityScale = 0f;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
+
+        characterControl.Initialize();
+        playerStat.Initialize();
     }
 
     private void OnEnable()
@@ -183,7 +184,7 @@ public class Player : MonoBehaviour
             if (velocity != Vector2.zero)
             {
                 characterControl.transform.localScale = new Vector3(
-                    x > 0 ? 1 : (x < 0 ? -1 : characterControl.transform.localScale.x),
+                    x > 0 ? -1 : (x < 0 ? 1 : characterControl.transform.localScale.x),
                     1,
                     1
                 );

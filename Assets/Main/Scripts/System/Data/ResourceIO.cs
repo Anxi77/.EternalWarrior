@@ -183,7 +183,6 @@ public static class ResourceIO<T>
                     importer.spriteImportMode = SpriteImportMode.Single;
                     importer.SaveAndReimport();
                 }
-                Debug.Log($"Successfully saved sprite to: {targetPath}");
             }
             else
             {

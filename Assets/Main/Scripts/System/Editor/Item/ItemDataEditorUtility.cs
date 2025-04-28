@@ -58,12 +58,9 @@ public static class ItemDataEditorUtility
 
     public static void SaveResource(ItemData itemData)
     {
-        if (!File.Exists(ItemDataExtensions.ICON_PATH + itemData.ID + ".png"))
-        {
-            string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
-            ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
-            Debug.Log($"Icon saved to Resources path: {resourcePath}");
-        }
+        string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
+        ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
+        Debug.Log($"Icon saved to Resources path: {resourcePath}");
     }
 
     public static void DeleteItemData(Guid itemId)

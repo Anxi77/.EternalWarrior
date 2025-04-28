@@ -19,6 +19,8 @@ public class TownStateHandler : BaseStateHandler
             Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Town);
             PlayerSystem.SpawnPlayer(spawnPos);
         }
+
+        InitializeTown();
     }
 
     private void InitializeTown()
@@ -53,7 +55,11 @@ public class TownStateHandler : BaseStateHandler
 
         UIManager.Instance.OpenPanel(PanelType.Inventory);
 
-        GameManager.Instance.SpawnPortal(Vector3.zero, SceneType.Main_Stage, OnStagePortalEnter);
+        GameManager.Instance.SpawnPortal(
+            new Vector3(5f, 0f, 5f),
+            SceneType.Main_Stage,
+            OnStagePortalEnter
+        );
     }
 
     private void OnStagePortalEnter(SceneType sceneType)

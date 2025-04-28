@@ -159,8 +159,6 @@ public static class CSVIO<T>
         IEnumerable<string> includeFields = null
     )
     {
-        Debug.Log($"[CSVIO] 시작: {path}/{fileName}.csv 로드 시도");
-
         List<T> resultList = new List<T>();
         TextAsset csvFile = Resources.Load<TextAsset>($"{path}/{fileName}");
 
@@ -263,7 +261,6 @@ public static class CSVIO<T>
             resultList.Add(item);
         }
 
-        Debug.Log($"[CSVIO] 완료: 총 {resultList.Count}개 항목 로드됨");
         return resultList;
     }
 

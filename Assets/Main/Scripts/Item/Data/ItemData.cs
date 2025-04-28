@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -30,11 +29,11 @@ public class ItemData
     public Guid ID = Guid.NewGuid();
     public string Name;
     public string Description;
+    public int MaxStack;
     public ItemType Type;
     public ItemRarity Rarity;
     public ElementType Element;
     public AccessoryType AccessoryType = AccessoryType.None;
-    public int MaxStack;
     public ItemStatRangeData StatRanges = new();
     public ItemEffectRangeData EffectRanges = new();
 
@@ -58,20 +57,7 @@ public class ItemData
     public List<ItemEffectData> Effects = new();
 
     [JsonIgnore]
-    private Sprite _icon;
-
-    [JsonIgnore]
-    public Sprite Icon
-    {
-        get
-        {
-            if (_icon == null && !string.IsNullOrEmpty(IconResourceName))
-            {
-                _icon = Resources.Load<Sprite>(IconResourceName);
-            }
-            return _icon;
-        }
-    }
+    public Sprite Icon;
 
     [JsonIgnore]
     public int amount = 1;

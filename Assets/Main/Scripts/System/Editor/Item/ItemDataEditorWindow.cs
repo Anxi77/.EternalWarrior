@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -59,7 +58,6 @@ public class ItemDataEditorWindow : EditorWindow
 
     private void RefreshData()
     {
-        Debug.Log("RefreshData called");
         RefreshItemDatabase();
         RefreshDropTables();
     }
@@ -71,7 +69,6 @@ public class ItemDataEditorWindow : EditorWindow
 
     private void RefreshDropTables()
     {
-        Debug.Log("RefreshDropTables called");
         dropTables = ItemDataEditorUtility.GetDropTables();
     }
 
@@ -647,17 +644,12 @@ public class ItemDataEditorWindow : EditorWindow
                 EditorGUILayout.Space(5);
             }
 
-            EditorGUILayout.LabelField(
-                "Icon Resource Path:",
-                CurrentItem.IconResourceName ?? "None"
-            );
-
             EditorGUI.BeginChangeCheck();
 
             Sprite oldIcon = null;
-            if (!string.IsNullOrEmpty(CurrentItem.IconResourceName))
+            if (CurrentItem.Icon != null)
             {
-                oldIcon = Resources.Load<Sprite>(CurrentItem.IconResourceName);
+                oldIcon = CurrentItem.Icon;
             }
 
             var newIcon = (Sprite)
@@ -667,29 +659,13 @@ public class ItemDataEditorWindow : EditorWindow
             {
                 if (newIcon != null)
                 {
-                    string assetPath = AssetDatabase.GetAssetPath(newIcon);
-                    if (assetPath.StartsWith("Assets/Resources/"))
-                    {
-                        string resourcePath = assetPath.Substring("Assets/Resources/".Length);
-                        resourcePath = Path.ChangeExtension(resourcePath, null);
+                    CurrentItem.Icon = newIcon;
 
-                        CurrentItem.IconResourceName = resourcePath;
-
-                        ItemDataEditorUtility.SaveItemData(CurrentItem);
-                        EditorUtility.SetDirty(this);
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog(
-                            "유효하지 않은 경로",
-                            "아이콘은 Resources 폴더 내에 위치해야 합니다.",
-                            "확인"
-                        );
-                    }
+                    ItemDataEditorUtility.SaveItemData(CurrentItem);
+                    EditorUtility.SetDirty(this);
                 }
                 else
                 {
-                    CurrentItem.IconResourceName = null;
                     ItemDataEditorUtility.SaveItemData(CurrentItem);
                     EditorUtility.SetDirty(this);
                 }

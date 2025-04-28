@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class MainMenuStateHandler : BaseStateHandler
+public class TitleStateHandler : BaseStateHandler
 {
     public override void OnEnter()
     {

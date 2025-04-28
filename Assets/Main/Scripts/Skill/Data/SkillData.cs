@@ -146,8 +146,6 @@ public class SkillData : ICloneable
                 newLevelData.SetStats(stats);
                 levelDataList.Add(newLevelData);
             }
-
-            Debug.Log($"Successfully set stats for level {level}");
         }
         catch (Exception e)
         {

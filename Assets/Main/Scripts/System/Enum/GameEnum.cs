@@ -155,6 +155,7 @@ public enum IncreaseType
 
 public enum GameState
 {
+    Initialize,
     Title,
     Town,
     Stage,

@@ -33,7 +33,7 @@ public class GameManager : Singleton<GameManager>
 
     private int lastPlayerLevel = 1;
     private Coroutine levelCheckCoroutine;
-    private GameState currentState = GameState.Title;
+    private GameState currentState = GameState.Initialize;
 
     private Dictionary<GameState, IGameState> stateHandlers;
 
@@ -118,7 +118,7 @@ public class GameManager : Singleton<GameManager>
     {
         stateHandlers = new Dictionary<GameState, IGameState>();
 
-        stateHandlers[GameState.Title] = new MainMenuStateHandler();
+        stateHandlers[GameState.Title] = new TitleStateHandler();
         stateHandlers[GameState.Town] = new TownStateHandler();
         stateHandlers[GameState.Stage] = new StageStateHandler();
         stateHandlers[GameState.Paused] = new PausedStateHandler();
@@ -303,7 +303,27 @@ public class GameManager : Singleton<GameManager>
     #region Game State Management
     public void InitializeNewGame()
     {
-        PlayerDataManager.Instance.LoadPlayerData();
+        LoadingManager.Instance.LoadScene(
+            SceneType.Main_Town,
+            NewGameRoutine,
+            () =>
+            {
+                ChangeState(GameState.Town);
+            }
+        );
+    }
+
+    public IEnumerator NewGameRoutine()
+    {
+        float progress = 0f;
+        yield return progress;
+        yield return new WaitForSeconds(0.5f);
+        LoadingManager.Instance.SetLoadingText("Initializing New Game...");
+
+        playerSystem.Initialize();
+        cameraSystem.Initialize();
+
+        yield return 1.0f;
     }
 
     public void SaveGameData()
@@ -332,19 +352,10 @@ public class GameManager : Singleton<GameManager>
         return PlayerDataManager.Instance.HasSaveData();
     }
 
-    #endregion
-
-    protected override void OnApplicationQuit()
+    private void OnDisable()
     {
-        try
-        {
-            SaveGameData();
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error during application quit: {e.Message}");
-        }
-
-        base.OnApplicationQuit();
+        SaveGameData();
     }
+
+    #endregion
 }

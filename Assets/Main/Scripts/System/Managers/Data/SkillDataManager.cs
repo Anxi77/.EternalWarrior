@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 [Serializable]
@@ -44,7 +43,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
         float progress = 0f;
         yield return progress;
         yield return new WaitForSeconds(0.5f);
-        LoadingManager.Instance.SetLoadingText("스킬 데이터 초기화 중...");
+        LoadingManager.Instance.SetLoadingText("Initializing Skill Data...");
 
         yield return LoadResources();
 
@@ -52,7 +51,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
         foreach (var skill in skillDatabase)
         {
-            Debug.Log($"스킬 로드 성공: {skill.Value.Name} (ID: {skill.Key})");
             skillList.Add(new SkillList { SkillID = skill.Key, SkillData = skill.Value });
         }
 
@@ -98,7 +96,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
             if (Enum.TryParse(skillName, out SkillID skillId))
             {
-                Debug.Log($"[SkillDataManager] Loading Skill Data: {skillName}");
                 var skillData = JSONIO<SkillData>.LoadData(JSON_PATH, skillName);
 
                 if (skillData != null)
@@ -108,7 +105,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
             }
             else
             {
-                Debug.LogWarning($"스킬 ID 파싱 실패: {skillName}");
+                Debug.LogWarning($"Failed to parse skill ID: {skillName}");
             }
 
             progress = 0.6f + (float)i / jsonFiles.Count * 0.2f;
@@ -173,13 +170,9 @@ public class SkillDataManager : Singleton<SkillDataManager>
             .GroupBy(stat => stat.level)
             .ToDictionary(group => group.Key, group => group.First());
 
-        Debug.Log(
-            $"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터 수: {statsForSkill.Count}"
-        );
-
         if (statsForSkill.Count == 0)
         {
-            Debug.LogWarning($"[SkillDataManager] 스킬 {skillId}에 대한 스탯 데이터가 없습니다!");
+            Debug.LogWarning($"[SkillDataManager] No stats data for skill {skillId}!");
             return;
         }
 
@@ -227,10 +220,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
             if (stat == null)
             {
                 Debug.LogWarning(
-                    $"[SkillDataManager] 스킬 {skillId}의 스탯이 null입니다. skillData.Name: {skillData.Name}, Type: {skillData.Type}"
+                    $"[SkillDataManager] Skill {skillId} has null stats. skillData.Name: {skillData.Name}, Type: {skillData.Type}"
                 );
                 Debug.LogWarning(
-                    $"[SkillDataManager] 스킬 기본 정보: ID: {skillData.ID}, Name: {skillData.Name}, Type: {skillData.Type}, Description: {skillData.Description}"
+                    $"[SkillDataManager] Skill basic info: ID: {skillData.ID}, Name: {skillData.Name}, Type: {skillData.Type}, Description: {skillData.Description}"
                 );
                 return;
             }
@@ -243,7 +236,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
             if (stat.baseStat.maxSkillLevel <= 0)
             {
                 Debug.LogWarning(
-                    $"[SkillDataManager] 스킬 {skillId}의 maxSkillLevel이 유효하지 않습니다: {stat.baseStat.maxSkillLevel}"
+                    $"[SkillDataManager] Skill {skillId} has invalid maxSkillLevel: {stat.baseStat.maxSkillLevel}"
                 );
             }
 
@@ -275,7 +268,7 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
         catch (Exception e)
         {
-            Debug.LogError($"스킬 {skillId}의 레벨 프리팹 로드 중 오류: {e.Message}");
+            Debug.LogError($"Error loading level prefabs for skill {skillId}: {e.Message}");
         }
     }
     #endregion

@@ -13,7 +13,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
     {
         try
         {
-            playerPrefab = Resources.Load<Player>("Units/Player");
+            playerPrefab = Resources.Load<Player>("Prefabs/Units/Player");
             IsInitialized = true;
         }
         catch (Exception e)
@@ -95,7 +95,10 @@ public class PlayerSystem : MonoBehaviour, IInitializable
             PlayerData data = new PlayerData();
             data.stats = playerStat.CreateSaveData();
             data.inventory = inventory.GetInventoryData();
-            PlayerDataManager.Instance.SavePlayerData(data);
+            if (PlayerDataManager.Instance != null)
+            {
+                PlayerDataManager.Instance.SavePlayerData(data);
+            }
         }
     }
 

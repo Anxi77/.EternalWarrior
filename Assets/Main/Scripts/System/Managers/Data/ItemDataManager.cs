@@ -13,8 +13,11 @@ public class ItemDataManager : Singleton<ItemDataManager>
     #endregion
 
     #region Fields
-    private static Dictionary<Guid, ItemData> itemDatabase = new();
-    private static Dictionary<MonsterType, DropTableData> dropTables = new();
+    private Dictionary<Guid, ItemData> itemDatabase = new();
+    private Dictionary<MonsterType, DropTableData> dropTables = new();
+
+    public List<ItemData> ItemDatabase;
+    public List<DropTableData> DropTables;
     #endregion
 
     #region Data Loading
@@ -69,9 +72,6 @@ public class ItemDataManager : Singleton<ItemDataManager>
                 progress += 1f / steps;
                 yield return progress;
                 yield return new WaitForSeconds(0.1f);
-                LoadingManager.Instance.SetLoadingText(
-                    $"Loading Item Data... {progress * 100f:F0}%"
-                );
             }
         }
         else
@@ -103,6 +103,20 @@ public class ItemDataManager : Singleton<ItemDataManager>
         {
             Debug.LogError("No drop tables found.");
         }
+
+        foreach (var item in itemDatabase)
+        {
+            item.Value.Icon = Resources.Load<Sprite>($"{ITEM_DB_PATH}/Icons/{item.Value.ID}_Icon");
+        }
+
+        if (itemDatabase.Count > 0)
+        {
+            ItemDatabase = itemDatabase.Values.ToList();
+        }
+        if (dropTables.Count > 0)
+        {
+            DropTables = dropTables.Values.ToList();
+        }
     }
 
     public List<ItemData> GetAllData()
@@ -110,14 +124,6 @@ public class ItemDataManager : Singleton<ItemDataManager>
         return new List<ItemData>(itemDatabase.Values);
     }
 
-    private void LoadDropTables()
-    {
-        try { }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error loading drop tables: {e.Message}");
-        }
-    }
     #endregion
 
     #region Data Access
