@@ -175,6 +175,7 @@ public enum PanelType
     Pause,
     BossWarning,
     LevelUp,
+    Test,
 }
 
 public enum MonsterType
@@ -185,3 +186,24 @@ public enum MonsterType
     Boss,
 }
 #endregion
+
+[Serializable]
+public enum ElementType
+{
+    None = 0,
+    Dark, // Reduces target's defense
+    Water, // Slows target's movement
+    Fire, // Deals damage over time
+    Earth, // Can stun targets
+}
+
+[Serializable]
+public enum SlotType
+{
+    Storage,
+    Weapon,
+    Armor,
+    Ring,
+    Necklace,
+    Special,
+}

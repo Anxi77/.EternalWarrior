@@ -1,18 +1,31 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Linq;
 using System.Text;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class ItemTooltip : MonoBehaviour
 {
-    [SerializeField] private Image itemIcon;
-    [SerializeField] private TextMeshProUGUI itemNameText;
-    [SerializeField] private TextMeshProUGUI itemTypeText;
-    [SerializeField] private TextMeshProUGUI itemRarityText;
-    [SerializeField] private TextMeshProUGUI itemStatsText;
-    [SerializeField] private TextMeshProUGUI itemEffectsText;
-    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField]
+    private Image itemIcon;
+
+    [SerializeField]
+    private TextMeshProUGUI itemNameText;
+
+    [SerializeField]
+    private TextMeshProUGUI itemTypeText;
+
+    [SerializeField]
+    private TextMeshProUGUI itemRarityText;
+
+    [SerializeField]
+    private TextMeshProUGUI itemStatsText;
+
+    [SerializeField]
+    private TextMeshProUGUI itemEffectsText;
+
+    [SerializeField]
+    private CanvasGroup canvasGroup;
 
     private void Awake()
     {
@@ -22,7 +35,8 @@ public class ItemTooltip : MonoBehaviour
 
     private void ValidateComponents()
     {
-        if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = GetComponent<CanvasGroup>();
     }
 
     public void SetupTooltip(ItemData itemData)
@@ -91,7 +105,7 @@ public class ItemTooltip : MonoBehaviour
             ItemRarity.Rare => "<color=#0080FF>",
             ItemRarity.Epic => "<color=#CC33FF>",
             ItemRarity.Legendary => "<color=#FFD700>",
-            _ => "<color=white>"
+            _ => "<color=white>",
         };
     }
 
@@ -105,15 +119,16 @@ public class ItemTooltip : MonoBehaviour
     public void Hide()
     {
         canvasGroup.alpha = 0f;
+        Clear();
         gameObject.SetActive(false);
     }
 
-    private void Update()
+    public void Clear()
     {
-        if (gameObject.activeSelf)
-        {
-            Vector2 mousePos = Input.mousePosition;
-            transform.position = mousePos + new Vector2(10f, -10f);
-        }
+        itemNameText.text = "";
+        itemTypeText.text = "";
+        itemRarityText.text = "";
+        itemStatsText.text = "";
+        itemEffectsText.text = "";
     }
 }

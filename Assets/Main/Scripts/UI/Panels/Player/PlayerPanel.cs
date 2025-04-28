@@ -50,7 +50,7 @@ public class PlayerPanel : Panel
     private Slider expBarImage;
 
     private Player player;
-    private PlayerStatSystem playerStat;
+    private PlayerStat playerStat;
     private Coroutine updateCoroutine;
 
     public void Initialize()
@@ -98,7 +98,7 @@ public class PlayerPanel : Panel
         StopUIUpdate();
 
         this.player = player;
-        playerStat = player.GetComponent<PlayerStatSystem>();
+        playerStat = player.GetComponent<PlayerStat>();
 
         if (playerStat == null)
         {

@@ -16,15 +16,14 @@ public class MeleeMonster : Monster
     [SerializeField]
     private LayerMask attackLayer;
 
-    private bool isAttacking = false;
     private Animator animator;
 
-    protected override void Start()
+    protected override void Initialize()
     {
-        base.Start();
-        animator = GetComponentInChildren<Animator>();
+        base.Initialize();
         attackRange = 2f;
         preferredDistance = 1.5f;
+        animator = GetComponentInChildren<Animator>();
     }
 
     protected override void PerformMeleeAttack()
@@ -67,14 +66,6 @@ public class MeleeMonster : Monster
 
         preDamageTime = Time.time;
         yield return new WaitForSeconds(attackAnimationDuration - attackPrepareTime);
-        isAttacking = false;
-    }
-
-    protected override void MoveDirectlyTowardsTarget()
-    {
-        if (isAttacking)
-            return;
-        base.MoveDirectlyTowardsTarget();
     }
 
     private void OnDrawGizmosSelected()

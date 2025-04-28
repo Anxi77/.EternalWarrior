@@ -23,36 +23,35 @@ public class ItemSlot
     [SerializeField]
     private GameObject equippedIndicator;
 
-    [SerializeField]
-    private GameObject tooltipPrefab;
-
     [Header("Slot Settings")]
-    public SlotType slotType;
+    public ItemType slotType = ItemType.None;
+    public AccessoryType accessoryType = AccessoryType.None;
 
     private Inventory inventory;
     private InventorySlot slotData;
     private ItemTooltip tooltip;
+
+    public bool isInventorySlot;
     #endregion
 
-    #region Initialization
-    public void Initialize(Inventory inventory)
+    public void Initialize(Inventory inventory, ItemTooltip tooltip)
     {
         this.inventory = inventory;
+        this.tooltip = tooltip;
     }
-    #endregion
 
     #region UI Updates
     public void UpdateUI(InventorySlot slot)
     {
         slotData = slot;
 
-        if (slot == null || slot.itemData == null)
+        if (slot == null || slot.item == null)
         {
             SetSlotEmpty();
             return;
         }
 
-        UpdateSlotVisuals(slot.itemData, slot.amount, slot.isEquipped);
+        UpdateSlotVisuals(slot.item.GetItemData(), slot.amount, slot.isEquipped);
     }
 
     private void SetSlotEmpty()
@@ -84,7 +83,7 @@ public class ItemSlot
     #region Item Interactions
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (slotData?.itemData == null)
+        if (slotData?.item == null)
             return;
 
         if (eventData.button == PointerEventData.InputButton.Right)
@@ -98,65 +97,70 @@ public class ItemSlot
 
     private void HandleRightClick()
     {
-        if (slotType == SlotType.Inventory)
+        if (!isInventorySlot)
         {
-            DropItem();
+            UIManager.Instance.OpenPopUp(
+                "Warning",
+                "Are you sure you want to drop this item?",
+                () =>
+                {
+                    DropItem();
+                }
+            );
+        }
+        else
+        {
+            UnequipItem();
         }
     }
 
     private void HandleLeftClick()
     {
-        var itemData = slotData.itemData;
-        if (itemData == null)
+        var item = slotData.item;
+        if (item == null)
         {
-            Debug.LogError($"Failed to get item data for ID: {slotData.itemData.ID}");
+            Debug.LogError($"Failed to get item data for ID: {slotData.item.GetItemData().ID}");
             return;
         }
 
-        if (slotType != SlotType.Inventory)
+        if (isInventorySlot)
         {
             UnequipItem();
         }
-        else if (IsEquippableItem(itemData.Type))
+        else
         {
-            EquipItem(itemData);
+            if (IsEquippableItem(item.GetItemData().Type))
+            {
+                EquipItem(item);
+            }
         }
 
-        UIManager.Instance.OpenPanel(PanelType.Inventory);
+        UpdateUI(slotData);
     }
 
     private void DropItem()
     {
-        if (slotData?.itemData == null)
+        if (slotData?.item == null)
             return;
 
-        inventory.RemoveItem(slotData.itemData.ID);
-        UIManager.Instance.OpenPanel(PanelType.Inventory);
-        Debug.Log($"Dropped item: {slotData.itemData.Name}");
+        inventory.RemoveItem(slotData.item.GetItemData().ID);
+        UpdateUI(slotData);
     }
 
     private void UnequipItem()
     {
-        var equipSlot = GetEquipmentSlot();
-        Debug.Log($"Unequipping from slot {equipSlot}");
-        inventory.UnequipFromSlot(equipSlot);
+        var equipSlot = GetEquipmentSlot(slotData.item.GetItemData().Type, accessoryType);
+        inventory.UnequipItem(equipSlot);
     }
 
-    private void EquipItem(ItemData itemData)
+    private void EquipItem(Item item)
     {
-        var equipSlot = GetEquipmentSlotForItemType(itemData.Type);
-        if (equipSlot != EquipmentSlot.None)
+        var equipSlot = GetEquipmentSlot(item.GetItemData().Type, accessoryType);
+        if (equipSlot != SlotType.Storage)
         {
-            Debug.Log($"Equipping {itemData.Name} to slot {equipSlot}");
+            Debug.Log($"Equipping {item.GetItemData().Name} to slot {equipSlot}");
 
-            var equippedItem = inventory.GetEquippedItem(equipSlot);
-            if (equippedItem != null)
-            {
-                inventory.UnequipFromSlot(equipSlot);
-            }
-
-            inventory.RemoveItem(itemData.ID);
-            inventory.EquipItem(itemData, equipSlot);
+            inventory.EquipItem(item, equipSlot);
         }
     }
 
@@ -171,9 +175,9 @@ public class ItemSlot
     #region Tooltip
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (slotData?.itemData != null)
+        if (slotData?.item != null)
         {
-            ShowTooltip(slotData.itemData);
+            ShowTooltip(slotData.item.GetItemData());
         }
     }
 
@@ -192,14 +196,8 @@ public class ItemSlot
         if (tooltip != null)
             return;
 
-        tooltip = PoolManager.Instance.Spawn<ItemTooltip>(
-            tooltipPrefab,
-            Input.mousePosition,
-            Quaternion.identity
-        );
         if (tooltip != null)
         {
-            tooltip.transform.SetParent(transform);
             tooltip.SetupTooltip(itemData);
             tooltip.Show(Input.mousePosition);
         }
@@ -209,46 +207,35 @@ public class ItemSlot
     {
         if (tooltip != null)
         {
-            PoolManager.Instance.Despawn(tooltip);
-            tooltip = null;
+            tooltip.Hide();
         }
     }
     #endregion
 
     #region Equipment Slot Utilities
-    private EquipmentSlot GetEquipmentSlotForItemType(ItemType itemType)
+    private SlotType GetEquipmentSlot(ItemType itemType, AccessoryType accessoryType)
     {
         return itemType switch
         {
-            ItemType.Weapon => EquipmentSlot.Weapon,
-            ItemType.Armor => EquipmentSlot.Armor,
-            ItemType.Accessory => GetFirstEmptyAccessorySlot(),
-            _ => EquipmentSlot.None,
+            ItemType.Weapon => SlotType.Weapon,
+            ItemType.Armor => SlotType.Armor,
+            ItemType.Accessory => GetAccessorySlot(accessoryType),
+            _ => SlotType.Storage,
         };
     }
 
-    private EquipmentSlot GetFirstEmptyAccessorySlot()
+    private SlotType GetAccessorySlot(AccessoryType accessoryType)
     {
-        if (inventory.GetEquippedItem(EquipmentSlot.Ring1) == null)
-            return EquipmentSlot.Ring1;
-        if (inventory.GetEquippedItem(EquipmentSlot.Ring2) == null)
-            return EquipmentSlot.Ring2;
-        if (inventory.GetEquippedItem(EquipmentSlot.Necklace) == null)
-            return EquipmentSlot.Necklace;
-        return EquipmentSlot.None;
-    }
-
-    private EquipmentSlot GetEquipmentSlot()
-    {
-        return slotType switch
+        if (accessoryType == AccessoryType.Ring)
         {
-            SlotType.Weapon => EquipmentSlot.Weapon,
-            SlotType.Armor => EquipmentSlot.Armor,
-            SlotType.Ring1 => EquipmentSlot.Ring1,
-            SlotType.Ring2 => EquipmentSlot.Ring2,
-            SlotType.Necklace => EquipmentSlot.Necklace,
-            _ => EquipmentSlot.None,
-        };
+            return SlotType.Ring;
+        }
+        if (accessoryType == AccessoryType.Necklace)
+        {
+            return SlotType.Necklace;
+        }
+
+        return SlotType.Storage;
     }
 
     private Color GetRarityColor(ItemRarity rarity)
@@ -263,5 +250,6 @@ public class ItemSlot
             _ => Color.white,
         };
     }
+
     #endregion
 }

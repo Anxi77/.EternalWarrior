@@ -35,32 +35,16 @@ public class SkillLevelUpButton : MonoBehaviour
     {
         try
         {
-            if (!ValidateSkillData(skillData))
-            {
-                SetDisabledButton("Invalid Skill Data");
-                return;
-            }
-
             buttonClickCallback = onClickCallback;
             SetupVisuals(skillData, levelInfo);
             SetupButtonListener();
             SetupStats(skillData, currentStats, levelInfo);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error in SetSkillSelectButton: {e.Message}");
             SetDisabledButton("Error setting up button");
         }
-    }
-
-    private bool ValidateSkillData(SkillData skillData)
-    {
-        if (skillData == null)
-        {
-            Debug.LogError("Skill data is null");
-            return false;
-        }
-        return true;
     }
 
     private void SetupSkillIcon(SkillData skillData)

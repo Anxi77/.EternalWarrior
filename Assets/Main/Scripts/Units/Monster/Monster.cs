@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -16,7 +13,7 @@ public class Monster : MonoBehaviour
     public float moveSpeed = 3f;
     public float mobEXP = 10f;
     public float damageInterval;
-    internal float originalMoveSpeed;
+    public float originalMoveSpeed;
 
     public float hpAmount
     {
@@ -54,51 +51,18 @@ public class Monster : MonoBehaviour
     public float dropRadiusMax = 1.5f;
 
     [SerializeField]
-    public MonsterType enemyType;
+    public MonsterType monsterType;
     #endregion
 
     #region References
-    protected Transform target;
+    public Transform target;
     public Image hpBar;
-    protected Rigidbody2D rb;
+    public Rigidbody2D rb;
     public ParticleSystem attackParticle;
     public bool isInit = false;
     public Collider2D enemyCollider;
-    #endregion
-
-    #region Pathfinding
-    public List<Vector2> currentPath { get; private set; }
-    protected float pathUpdateTime = 0.2f;
-    protected float lastPathUpdateTime;
-    protected float obstaclePathUpdateDelay = 0.1f;
-    protected float lastObstacleAvoidanceTime;
-    protected float stuckTimer = 0f;
-    protected Vector2 lastPosition;
-    #endregion
-
-    #region Constants
-    protected const float STUCK_THRESHOLD = 0.1f;
-    protected const float STUCK_CHECK_TIME = 0.5f;
-    protected const float CORNER_CHECK_DISTANCE = 0.5f;
-    protected const float WALL_AVOIDANCE_DISTANCE = 1.5f;
-    protected const float MIN_CIRCLE_DISTANCE = 1f;
-    #endregion
-
-    #region Movement
-    protected Vector2 previousMoveDir;
-    protected bool isCirclingPlayer = false;
-    protected float circlingRadius = 3f;
-    protected float circlingAngle = 0f;
-    protected float previousXPosition;
-    #endregion
-
-    #region Formation Variables
-    private const float FORMATION_SPACING = 1.2f;
-    private const float COHESION_WEIGHT = 0.3f;
-    private const float ALIGNMENT_WEIGHT = 0.5f;
-    private const float SEPARATION_WEIGHT = 0.8f;
-    private const float FORMATION_RADIUS = 5f;
-    private Vector2 formationOffset;
+    public PathFinder pathFinder;
+    public bool isAttacking = false;
     #endregion
 
     #region Coroutines
@@ -112,17 +76,19 @@ public class Monster : MonoBehaviour
     #endregion
 
     #region Unity Lifecycle
-    protected virtual void Start()
-    {
-        enemyCollider = GetComponent<Collider2D>();
-    }
 
-    private void OnEnable()
+    protected virtual void Initialize()
     {
-        InitializeComponents();
         maxHp = hp;
         originalMoveSpeed = moveSpeed;
-
+        currentDefense = baseDefense;
+        enemyCollider = GetComponent<Collider2D>();
+        InitializeComponents();
+        if (GameManager.Instance?.PlayerSystem?.Player != null)
+        {
+            target = GameManager.Instance.PlayerSystem.Player.transform;
+            isInit = true;
+        }
         if (
             Application.isPlaying
             && GameManager.Instance != null
@@ -131,17 +97,33 @@ public class Monster : MonoBehaviour
         {
             GameManager.Instance.Monsters.Add(this);
         }
-
-        CalculateFormationOffset();
-        currentDefense = baseDefense;
     }
 
     protected virtual void Update()
     {
-        if (!isInit)
-            Initialize();
-        Move();
-        UpdateVisuals();
+        if (isInit)
+        {
+            UpdateVisuals();
+
+            float distanceToPlayer = Vector2.Distance(transform.position, target.position);
+
+            if (distanceToPlayer <= attackRange)
+            {
+                Attack();
+            }
+            else
+            {
+                isAttacking = false;
+            }
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (isInit && !isAttacking)
+        {
+            pathFinder.Move();
+        }
     }
 
     protected virtual void OnDisable()
@@ -194,660 +176,10 @@ public class Monster : MonoBehaviour
     }
     #endregion
 
-    #region Initialization
     protected virtual void InitializeComponents()
     {
-        rb = GetComponent<Rigidbody2D>();
-        previousXPosition = transform.position.x;
-
-        CalculateFormationOffset();
+        pathFinder.Initialize(this, rb);
     }
-
-    protected virtual void Initialize()
-    {
-        if (GameManager.Instance?.PlayerSystem?.Player != null)
-        {
-            target = GameManager.Instance.PlayerSystem.Player.transform;
-            isInit = true;
-        }
-    }
-
-    protected virtual void CalculateFormationOffset()
-    {
-        if (GameManager.Instance == null)
-            return;
-
-        int totalEnemies = GameManager.Instance.Monsters.Count;
-        if (totalEnemies == 0)
-        {
-            formationOffset = Vector2.zero;
-            return;
-        }
-
-        int index = GameManager.Instance.Monsters.IndexOf(this);
-        int rowSize = Mathf.Max(1, Mathf.CeilToInt(Mathf.Sqrt(totalEnemies)));
-
-        int row = index / rowSize;
-        int col = index % rowSize;
-
-        formationOffset = new Vector2(
-            (col - rowSize / 2f) * FORMATION_SPACING,
-            (row - rowSize / 2f) * FORMATION_SPACING
-        );
-    }
-    #endregion
-
-    #region Movement
-    private Vector2 GetTargetPosition()
-    {
-        if (target == null)
-            return transform.position;
-
-        Vector2 directionToTarget = (
-            (Vector2)target.position - (Vector2)transform.position
-        ).normalized;
-        float distanceToTarget = Vector2.Distance(transform.position, target.position);
-
-        if (distanceToTarget > attackRange)
-        {
-            return (Vector2)target.position - directionToTarget * preferredDistance;
-        }
-        else if (distanceToTarget < preferredDistance)
-        {
-            return (Vector2)target.position + directionToTarget * preferredDistance;
-        }
-        else
-        {
-            return (Vector2)transform.position
-                + new Vector2(Mathf.Sin(Time.time * 2f), Mathf.Cos(Time.time * 2f)) * 0.5f;
-        }
-    }
-
-    public virtual void Move()
-    {
-        if (isStunned || moveSpeed <= 0)
-            return;
-
-        Node currentNode = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-            transform.position
-        );
-        if (currentNode != null && !currentNode.walkable)
-        {
-            Vector2 safePosition = FindNearestSafePosition(transform.position);
-            transform.position = Vector2.MoveTowards(
-                transform.position,
-                safePosition,
-                moveSpeed * 2f * Time.deltaTime
-            );
-            return;
-        }
-
-        if (!GameManager.Instance.PathFindingSystem.IsPositionInGrid(transform.position))
-        {
-            Vector2 clampedPosition = GameManager.Instance.PathFindingSystem.ClampToGrid(
-                transform.position
-            );
-            transform.position = clampedPosition;
-        }
-
-        float distanceToPlayer = Vector2.Distance(transform.position, target.position);
-
-        if (distanceToPlayer <= attackRange)
-        {
-            rb.velocity = Vector2.zero;
-            Attack();
-            return;
-        }
-
-        Vector2 moveToPosition =
-            (Vector2)target.position
-            - ((Vector2)target.position - (Vector2)transform.position).normalized
-                * preferredDistance;
-        MoveToPosition(moveToPosition);
-    }
-
-    private void MoveToPosition(Vector2 targetPosition)
-    {
-        if (ShouldUpdatePath())
-        {
-            List<Vector2> newPath = GameManager.Instance.PathFindingSystem.FindPath(
-                transform.position,
-                targetPosition
-            );
-            if (newPath != null && newPath.Count > 0)
-            {
-                bool isValidPath = true;
-                foreach (Vector2 pathPoint in newPath)
-                {
-                    Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-                        pathPoint
-                    );
-                    if (node != null && !node.walkable)
-                    {
-                        isValidPath = false;
-                        break;
-                    }
-                }
-
-                if (isValidPath)
-                {
-                    currentPath = newPath;
-                    lastPathUpdateTime = Time.time;
-                    stuckTimer = 0f;
-                }
-                else
-                {
-                    Vector2 safePosition = FindSafePosition(targetPosition);
-                    currentPath = GameManager.Instance.PathFindingSystem.FindPath(
-                        transform.position,
-                        safePosition
-                    );
-                }
-            }
-        }
-
-        FollowPath();
-    }
-
-    private Vector2 FindSafePosition(Vector2 targetPosition)
-    {
-        float checkRadius = 2f;
-        float angleStep = 45f;
-
-        for (float angle = 0; angle < 360; angle += angleStep)
-        {
-            float radian = angle * Mathf.Deg2Rad;
-            Vector2 checkPosition =
-                targetPosition
-                + new Vector2(Mathf.Cos(radian) * checkRadius, Mathf.Sin(radian) * checkRadius);
-
-            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-                checkPosition
-            );
-            if (node != null && node.walkable)
-            {
-                return checkPosition;
-            }
-        }
-
-        return transform.position;
-    }
-
-    private bool HandleCirclingBehavior(float distanceToPlayer)
-    {
-        if (distanceToPlayer < MIN_CIRCLE_DISTANCE)
-        {
-            isCirclingPlayer = true;
-            CircleAroundPlayer();
-            return true;
-        }
-        isCirclingPlayer = false;
-        return false;
-    }
-
-    private void CircleAroundPlayer()
-    {
-        if (target == null)
-            return;
-
-        UpdateCirclingParameters();
-        Vector2 targetPosition = CalculateCirclingPosition();
-
-        Node targetNode = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-            targetPosition
-        );
-        if (targetNode != null && !targetNode.walkable)
-        {
-            targetPosition = FindSafeCirclingPosition(targetPosition);
-        }
-
-        ApplyCirclingMovement(targetPosition);
-        UpdateSpriteDirection();
-    }
-
-    private Vector2 FindSafeCirclingPosition(Vector2 originalPosition)
-    {
-        float[] checkAngles = { 45f, -45f, 90f, -90f, 135f, -135f, 180f };
-
-        foreach (float angleOffset in checkAngles)
-        {
-            float newAngle = circlingAngle + angleOffset;
-            Vector2 checkPosition =
-                (Vector2)target.position
-                + new Vector2(
-                    Mathf.Cos(newAngle * Mathf.Deg2Rad),
-                    Mathf.Sin(newAngle * Mathf.Deg2Rad)
-                ) * circlingRadius;
-
-            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-                checkPosition
-            );
-            if (node != null && node.walkable)
-            {
-                return checkPosition;
-            }
-        }
-
-        return originalPosition;
-    }
-
-    private void UpdateCirclingParameters()
-    {
-        int enemyCount = GameManager.Instance.Monsters.Count;
-        circlingRadius = Mathf.Max(2.0f, Mathf.Min(3.0f, enemyCount * 0.5f));
-
-        float baseAngle = Time.time * 20f;
-        int myIndex = GameManager.Instance.Monsters.IndexOf(this);
-        float angleStep = 360f / Mathf.Max(1, enemyCount);
-        float targetAngle = baseAngle + (myIndex * angleStep);
-
-        circlingAngle = Mathf.LerpAngle(circlingAngle, targetAngle, Time.deltaTime * 5f);
-    }
-
-    private Vector2 CalculateCirclingPosition()
-    {
-        Vector2 offset =
-            new Vector2(
-                Mathf.Cos(circlingAngle * Mathf.Deg2Rad),
-                Mathf.Sin(circlingAngle * Mathf.Deg2Rad)
-            ) * circlingRadius;
-
-        return (Vector2)target.position + offset;
-    }
-
-    private void ApplyCirclingMovement(Vector2 targetPosition)
-    {
-        Vector2 moveDirection = (targetPosition - (Vector2)transform.position).normalized;
-        moveDirection = CalculateAvoidanceDirection(transform.position, targetPosition);
-
-        Vector2 separationForce = CalculateSeparationForce(transform.position);
-        moveDirection = (moveDirection + separationForce * 0.1f).normalized;
-
-        Vector2 targetVelocity = moveDirection * moveSpeed * 1.2f;
-        rb.velocity = Vector2.Lerp(rb.velocity, targetVelocity, Time.deltaTime * 8f);
-    }
-    #endregion
-
-    #region Pathfinding
-    private void UpdatePath()
-    {
-        if (ShouldUpdatePath())
-        {
-            List<Vector2> newPath = GameManager.Instance.PathFindingSystem.FindPath(
-                transform.position,
-                target.position
-            );
-            if (newPath != null && newPath.Count > 0)
-            {
-                currentPath = newPath;
-                lastPathUpdateTime = Time.time;
-                stuckTimer = 0f;
-            }
-            else
-            {
-                MoveDirectlyTowardsTarget();
-            }
-        }
-    }
-
-    private bool ShouldUpdatePath()
-    {
-        if (currentPath == null || currentPath.Count == 0)
-            return true;
-
-        if (Time.time >= lastPathUpdateTime + pathUpdateTime)
-        {
-            Vector2 finalDestination = currentPath[currentPath.Count - 1];
-            float distanceToFinalDestination = Vector2.Distance(finalDestination, target.position);
-            return distanceToFinalDestination > PathFindingSystem.NODE_SIZE * 2;
-        }
-        return false;
-    }
-
-    private void FollowPath()
-    {
-        if (currentPath == null || currentPath.Count == 0)
-            return;
-
-        Vector2 currentPos = transform.position;
-        Vector2 nextWaypoint = currentPath[0];
-
-        HandleStuckCheck(currentPos);
-        ProcessWaypoint(currentPos, nextWaypoint);
-        ApplyMovement(currentPos, nextWaypoint);
-        UpdateSpriteDirection();
-    }
-
-    private void ProcessWaypoint(Vector2 currentPos, Vector2 nextWaypoint)
-    {
-        if (HasReachedWaypoint(currentPos, nextWaypoint))
-        {
-            if (currentPath != null && currentPath.Count > 0)
-            {
-                UpdateWaypoint();
-                if (currentPath == null || currentPath.Count == 0)
-                {
-                    MoveDirectlyTowardsTarget();
-                }
-            }
-        }
-    }
-
-    private Vector2 FindNearestSafePosition(Vector2 currentPosition)
-    {
-        float checkRadius = 1f;
-        int maxAttempts = 8;
-        float angleStep = 360f / maxAttempts;
-
-        for (int i = 0; i < maxAttempts; i++)
-        {
-            float angle = i * angleStep;
-            float radian = angle * Mathf.Deg2Rad;
-            Vector2 checkPosition =
-                currentPosition
-                + new Vector2(Mathf.Cos(radian) * checkRadius, Mathf.Sin(radian) * checkRadius);
-
-            Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(
-                checkPosition
-            );
-            if (node != null && node.walkable)
-            {
-                return checkPosition;
-            }
-        }
-
-        return FindNearestSafePosition(currentPosition + Vector2.one * checkRadius);
-    }
-    #endregion
-
-    #region Movement Helpers
-    protected virtual void MoveDirectlyTowardsTarget()
-    {
-        if (target == null)
-            return;
-
-        Vector2 currentPos = transform.position;
-        Vector2 targetPos = GetTargetPosition();
-
-        Vector2 flockingForce = CalculateFlockingForce(currentPos);
-
-        Vector2 formationPos = (Vector2)target.position + formationOffset;
-        Vector2 formationDir = (formationPos - currentPos).normalized;
-
-        Vector2 moveDir = (
-            (targetPos - currentPos).normalized + flockingForce + formationDir
-        ).normalized;
-        moveDir = CalculateAvoidanceDirection(currentPos, currentPos + moveDir);
-
-        Vector2 separationForce = CalculateSeparationForce(currentPos);
-        moveDir = (moveDir + separationForce * 0.2f).normalized;
-
-        ApplyVelocity(moveDir);
-    }
-
-    protected virtual Vector2 CalculateSeparationForce(Vector2 currentPos)
-    {
-        Vector2 separationForce = Vector2.zero;
-        float separationRadius = isCirclingPlayer ? 0.8f : 1.2f;
-
-        Collider2D[] nearbyEnemies = Physics2D.OverlapCircleAll(
-            currentPos,
-            separationRadius,
-            LayerMask.GetMask("Enemy")
-        );
-        foreach (Collider2D enemyCollider in nearbyEnemies)
-        {
-            if (enemyCollider.gameObject != gameObject)
-            {
-                Vector2 diff = currentPos - (Vector2)enemyCollider.transform.position;
-                float distance = diff.magnitude;
-                if (distance < separationRadius)
-                {
-                    float strength = isCirclingPlayer ? 0.5f : 1f;
-                    separationForce +=
-                        diff.normalized * (1 - distance / separationRadius) * strength;
-                }
-            }
-        }
-
-        return separationForce.normalized * (isCirclingPlayer ? 0.3f : 0.5f);
-    }
-
-    protected virtual void ApplyMovement(Vector2 currentPos, Vector2 nextWaypoint)
-    {
-        Vector2 moveDirection = (nextWaypoint - currentPos).normalized;
-        moveDirection = CalculateAvoidanceDirection(currentPos, nextWaypoint);
-
-        Vector2 separationForce = CalculateSeparationForce(currentPos);
-        moveDirection = (moveDirection + separationForce * 0.2f).normalized;
-
-        Vector2 targetVelocity = moveDirection * moveSpeed;
-        rb.velocity = Vector2.Lerp(rb.velocity, targetVelocity, Time.deltaTime * 5f);
-    }
-
-    protected virtual void ApplyVelocity(Vector2 moveDirection)
-    {
-        Vector2 targetVelocity = moveDirection * moveSpeed;
-        rb.velocity = Vector2.Lerp(rb.velocity, targetVelocity, Time.deltaTime * 5f);
-    }
-
-    protected virtual Vector2 CalculateAvoidanceDirection(
-        Vector2 currentPosition,
-        Vector2 targetPosition
-    )
-    {
-        Vector2 moveDir = (targetPosition - currentPosition).normalized;
-        Vector2 finalMoveDir = moveDir;
-
-        Vector2 dirToTarget = (Vector2)target.position - currentPosition;
-        bool isVerticalAligned = Mathf.Abs(dirToTarget.x) < 0.1f;
-        bool isHorizontalAligned = Mathf.Abs(dirToTarget.y) < 0.1f;
-
-        if (
-            (isVerticalAligned || isHorizontalAligned)
-            && Physics2D.Raycast(
-                currentPosition,
-                moveDir,
-                WALL_AVOIDANCE_DISTANCE,
-                LayerMask.GetMask("Obstacle")
-            )
-        )
-        {
-            Vector2 alternativeDir = isVerticalAligned ? new Vector2(1f, 0f) : new Vector2(0f, 1f);
-            if (
-                !Physics2D.Raycast(
-                    currentPosition,
-                    alternativeDir,
-                    WALL_AVOIDANCE_DISTANCE,
-                    LayerMask.GetMask("Obstacle")
-                )
-            )
-            {
-                return alternativeDir;
-            }
-            if (
-                !Physics2D.Raycast(
-                    currentPosition,
-                    -alternativeDir,
-                    WALL_AVOIDANCE_DISTANCE,
-                    LayerMask.GetMask("Obstacle")
-                )
-            )
-            {
-                return -alternativeDir;
-            }
-        }
-
-        var obstacles = CheckObstacles(currentPosition, moveDir);
-        if (HasObstacles(obstacles))
-        {
-            HandleObstacleAvoidance(obstacles);
-            finalMoveDir = CalculateAvoidanceVector(obstacles);
-        }
-
-        return SmoothDirection(finalMoveDir);
-    }
-
-    protected virtual void HandleStuckCheck(Vector2 currentPos)
-    {
-        if (Vector2.Distance(currentPos, lastPosition) < STUCK_THRESHOLD)
-        {
-            stuckTimer += Time.deltaTime;
-            if (stuckTimer > STUCK_CHECK_TIME)
-            {
-                ResetPath();
-            }
-        }
-        else
-        {
-            stuckTimer = 0f;
-        }
-        lastPosition = currentPos;
-    }
-
-    protected virtual bool HasReachedWaypoint(Vector2 currentPos, Vector2 waypoint)
-    {
-        return Vector2.Distance(currentPos, waypoint) < PathFindingSystem.NODE_SIZE * 0.5f;
-    }
-
-    protected virtual void UpdateWaypoint()
-    {
-        if (currentPath != null && currentPath.Count > 0)
-        {
-            currentPath.RemoveAt(0);
-        }
-    }
-
-    protected virtual void ResetPath()
-    {
-        currentPath = null;
-        stuckTimer = 0f;
-    }
-
-    protected virtual (RaycastHit2D front, RaycastHit2D right, RaycastHit2D left) CheckObstacles(
-        Vector2 position,
-        Vector2 direction
-    )
-    {
-        Vector2 rightCheck = Quaternion.Euler(0, 0, 30) * direction;
-        Vector2 leftCheck = Quaternion.Euler(0, 0, -30) * direction;
-
-        return (
-            Physics2D.Raycast(
-                position,
-                direction,
-                WALL_AVOIDANCE_DISTANCE,
-                LayerMask.GetMask("Obstacle")
-            ),
-            Physics2D.Raycast(
-                position,
-                rightCheck,
-                CORNER_CHECK_DISTANCE,
-                LayerMask.GetMask("Obstacle")
-            ),
-            Physics2D.Raycast(
-                position,
-                leftCheck,
-                CORNER_CHECK_DISTANCE,
-                LayerMask.GetMask("Obstacle")
-            )
-        );
-    }
-
-    protected virtual bool HasObstacles(
-        (RaycastHit2D front, RaycastHit2D right, RaycastHit2D left) obstacles
-    )
-    {
-        return obstacles.front.collider != null
-            || obstacles.right.collider != null
-            || obstacles.left.collider != null;
-    }
-
-    protected virtual void HandleObstacleAvoidance(
-        (RaycastHit2D front, RaycastHit2D right, RaycastHit2D left) obstacles
-    )
-    {
-        if (currentPath != null && Time.time >= lastObstacleAvoidanceTime + obstaclePathUpdateDelay)
-        {
-            ResetPathForObstacle();
-        }
-    }
-
-    protected virtual void ResetPathForObstacle()
-    {
-        currentPath = null;
-        lastPathUpdateTime = Time.time - pathUpdateTime;
-        lastObstacleAvoidanceTime = Time.time;
-    }
-
-    protected virtual Vector2 CalculateAvoidanceVector(
-        (RaycastHit2D front, RaycastHit2D right, RaycastHit2D left) obstacles
-    )
-    {
-        Vector2 avoidDir = Vector2.zero;
-
-        if (obstacles.front.collider != null)
-        {
-            avoidDir += -obstacles.front.normal * 3f;
-        }
-        if (obstacles.right.collider != null)
-        {
-            avoidDir += Vector2.Perpendicular(obstacles.right.normal) * 2f;
-        }
-        if (obstacles.left.collider != null)
-        {
-            avoidDir += -Vector2.Perpendicular(obstacles.left.normal) * 2f;
-        }
-
-        return avoidDir != Vector2.zero ? avoidDir.normalized : (Vector2)transform.right;
-    }
-
-    protected virtual Vector2 SmoothDirection(Vector2 finalMoveDir)
-    {
-        if (previousMoveDir != Vector2.zero)
-        {
-            finalMoveDir = Vector2.Lerp(previousMoveDir, finalMoveDir, Time.deltaTime * 20f);
-        }
-        previousMoveDir = finalMoveDir;
-        return finalMoveDir;
-    }
-
-    protected virtual Vector2 CalculateFlockingForce(Vector2 currentPos)
-    {
-        Vector2 cohesion = Vector2.zero;
-        Vector2 alignment = Vector2.zero;
-        Vector2 separation = Vector2.zero;
-        int neighborCount = 0;
-
-        foreach (Monster monster in GameManager.Instance.Monsters)
-        {
-            if (monster == this)
-                continue;
-
-            float distance = Vector2.Distance(currentPos, monster.transform.position);
-            if (distance < FORMATION_RADIUS)
-            {
-                cohesion += (Vector2)monster.transform.position;
-
-                alignment += monster.rb.velocity;
-
-                Vector2 diff = currentPos - (Vector2)monster.transform.position;
-                separation += diff.normalized / Mathf.Max(distance, 0.1f);
-
-                neighborCount++;
-            }
-        }
-
-        if (neighborCount > 0)
-        {
-            cohesion = (cohesion / neighborCount - currentPos) * COHESION_WEIGHT;
-            alignment = (alignment / neighborCount) * ALIGNMENT_WEIGHT;
-            separation = separation * SEPARATION_WEIGHT;
-        }
-
-        return (cohesion + alignment + separation).normalized;
-    }
-    #endregion
 
     #region Combat
     public virtual void TakeDamage(float damage)
@@ -906,19 +238,11 @@ public class Monster : MonoBehaviour
     protected virtual void DropItems()
     {
         float playerLuck = GameManager
-            .Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>()
+            .Instance.PlayerSystem.Player.GetComponent<PlayerStat>()
             .GetStat(StatType.Luck);
 
-        var drops = GameManager.Instance.ItemSystem.GetDropsForEnemy(enemyType, 1f + playerLuck);
-
-        if (drops.Any())
-        {
-            foreach (var itemData in drops)
-            {
-                Vector2 dropPosition = CalculateDropPosition();
-                GameManager.Instance.ItemSystem.DropItem(itemData, dropPosition);
-            }
-        }
+        Vector2 dropPosition = CalculateDropPosition();
+        GameManager.Instance.ItemSystem.DropItem(dropPosition, monsterType, 1f + playerLuck);
     }
 
     protected virtual Vector2 CalculateDropPosition()
@@ -939,6 +263,7 @@ public class Monster : MonoBehaviour
 
             if (distanceToTarget <= attackRange)
             {
+                isAttacking = true;
                 if (this is RangedMonster || this is BossMonster)
                 {
                     PerformRangedAttack();
@@ -948,18 +273,14 @@ public class Monster : MonoBehaviour
                     PerformMeleeAttack();
                 }
             }
+            else
+            {
+                isAttacking = false;
+            }
         }
     }
 
-    protected virtual void PerformMeleeAttack()
-    {
-        var particle = Instantiate(attackParticle, target.position, Quaternion.identity);
-        particle.Play();
-        Destroy(particle.gameObject, 0.3f);
-
-        GameManager.Instance.PlayerSystem.Player?.TakeDamage(damage);
-        preDamageTime = Time.time;
-    }
+    protected virtual void PerformMeleeAttack() { }
 
     protected virtual void PerformRangedAttack() { }
 
@@ -1143,15 +464,18 @@ public class Monster : MonoBehaviour
         }
     }
 
-    protected virtual void UpdateSpriteDirection()
+    public virtual void UpdateSpriteDirection()
     {
-        float currentXPosition = transform.position.x;
-        if (currentXPosition != previousXPosition)
+        if (target != null)
         {
-            Vector3 scale = transform.localScale;
-            scale.x = (currentXPosition - previousXPosition) > 0 ? -1 : 1;
-            transform.localScale = scale;
-            previousXPosition = currentXPosition;
+            float currentXPosition = transform.position.x;
+            if (currentXPosition != pathFinder.previousXPosition)
+            {
+                Vector3 scale = transform.localScale;
+                scale.x = (currentXPosition - pathFinder.previousXPosition) > 0 ? -1 : 1;
+                transform.localScale = scale;
+                pathFinder.previousXPosition = currentXPosition;
+            }
         }
     }
     #endregion

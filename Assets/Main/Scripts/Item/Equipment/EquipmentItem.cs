@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public abstract class EquipmentItem : Item, ISkillModifier
+public abstract class EquipmentItem : Item, ISkillInteractionEffect
 {
-    protected EquipmentSlot equipmentSlot;
+    protected SlotType equipmentSlot;
     protected List<ISkillInteractionEffect> skillEffects = new();
 
     protected EquipmentItem(ItemData itemData)
@@ -46,88 +46,11 @@ public abstract class EquipmentItem : Item, ISkillModifier
         }
     }
 
-    protected abstract void ValidateItemType(ItemType type);
-
-    public virtual float ModifySkillDamage(
-        float baseDamage,
-        SkillType skillType,
-        ElementType elementType
-    )
-    {
-        float multiplier = 1f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            if (effect.CanApplyTo(skillType, elementType))
-            {
-                multiplier *= effect.damageMultiplier;
-            }
-        }
-        return baseDamage * multiplier;
-    }
-
-    public virtual float ModifySkillCooldown(float baseCooldown, SkillType skillType)
-    {
-        float reduction = 0f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            if (effect.CanApplyTo(skillType))
-            {
-                reduction += effect.cooldownReduction;
-            }
-        }
-        return baseCooldown * (1f - Mathf.Clamp01(reduction));
-    }
-
-    public virtual float ModifyProjectileSpeed(float baseSpeed)
-    {
-        float multiplier = 1f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            multiplier *= effect.projectileSpeedMultiplier;
-        }
-        return baseSpeed * multiplier;
-    }
-
-    public virtual float ModifyProjectileRange(float baseRange)
-    {
-        float multiplier = 1f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            multiplier *= effect.rangeMultiplier;
-        }
-        return baseRange * multiplier;
-    }
-
-    public virtual bool IsHomingEnabled(bool baseHoming)
-    {
-        return baseHoming || skillEffects.OfType<HomingActivatorEffect>().Any();
-    }
-
-    public virtual float ModifyAreaRadius(float baseRadius)
-    {
-        float multiplier = 1f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            multiplier *= effect.rangeMultiplier;
-        }
-        return baseRadius * multiplier;
-    }
-
-    public virtual float ModifyAreaDuration(float baseDuration)
-    {
-        float multiplier = 1f;
-        foreach (var effect in skillEffects.OfType<SkillStatAmplifierEffect>())
-        {
-            multiplier *= effect.durationMultiplier;
-        }
-        return baseDuration * multiplier;
-    }
-
     public virtual void OnSkillCast(Skill skill)
     {
         foreach (var effect in skillEffects)
         {
-            effect.OnSkillCast(skill, skill.Owner as Player);
+            effect.OnSkillCast(skill);
         }
     }
 
@@ -135,7 +58,7 @@ public abstract class EquipmentItem : Item, ISkillModifier
     {
         foreach (var effect in skillEffects)
         {
-            effect.OnSkillHit(skill, skill.Owner as Player, target);
+            effect.OnSkillHit(skill, target);
         }
     }
 
@@ -146,4 +69,22 @@ public abstract class EquipmentItem : Item, ISkillModifier
             skillEffects.Add(effect);
         }
     }
+
+    public void OnSkillKill(Skill skill, Player player, Monster target)
+    {
+        foreach (var effect in skillEffects)
+        {
+            effect.OnSkillKill(skill, player, target);
+        }
+    }
+
+    public void ModifySkillStats(Skill skill)
+    {
+        foreach (var effect in skillEffects)
+        {
+            effect.ModifySkillStats(skill);
+        }
+    }
+
+    protected abstract void ValidateItemType(ItemType type);
 }

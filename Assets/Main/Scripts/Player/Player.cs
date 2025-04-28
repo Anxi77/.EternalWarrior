@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+//Todo : Startcombat
 public class Player : MonoBehaviour
 {
     #region Members
@@ -59,13 +60,14 @@ public class Player : MonoBehaviour
     #endregion
 
     #region References
-    public PlayerStatSystem playerStat;
-    public Rigidbody2D rb;
-    private float x = 0;
-    private float y = 0;
-    public SPUM_Prefabs characterControl;
-    public List<Skill> skills;
+    private Vector2 moveInput;
     private Vector2 velocity;
+    public PlayerStat playerStat;
+    public Rigidbody2D rb;
+    public SPUM_Prefabs animationController;
+    public List<Skill> skills;
+    public Inventory inventory;
+    public PlayerInput playerInput;
     #endregion
 
     #endregion
@@ -80,17 +82,12 @@ public class Player : MonoBehaviour
             rb.gravityScale = 0f;
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
-
-        characterControl.Initialize();
+        animationController.Initialize();
         playerStat.Initialize();
-    }
-
-    private void OnEnable()
-    {
-        if (playerStat != null && playerStatus != Status.Dead)
-        {
-            StartCombatSystems();
-        }
+        inventory.Initialize(playerStat);
+        playerInput.Initialize(this);
+        StartCombatSystems();
+        IsInitialized = true;
     }
 
     private void OnDisable()
@@ -145,14 +142,14 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        UpdateAnimation();
+    }
+
     private void FixedUpdate()
     {
         Move();
-    }
-
-    private void Update()
-    {
-        GetMoveInput();
     }
 
     #region Methods
@@ -160,39 +157,35 @@ public class Player : MonoBehaviour
     #region Move&Skills
     public void Move()
     {
-        if (rb == null)
-            return;
-
-        Vector2 input = new Vector2(x, y).normalized;
         float moveSpeed = playerStat.GetStat(StatType.MoveSpeed);
-        velocity = input * moveSpeed;
+        velocity = moveInput * moveSpeed;
 
         rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
-        UpdateAnimation();
     }
 
-    private void GetMoveInput()
+    public void SetMoveInput(Vector2 moveDirection)
     {
-        x = Input.GetAxisRaw("Horizontal");
-        y = Input.GetAxisRaw("Vertical");
+        moveInput = moveDirection;
     }
 
     private void UpdateAnimation()
     {
-        if (characterControl != null && playerStatus != Status.Attacking)
+        if (animationController != null && playerStatus != Status.Attacking)
         {
             if (velocity != Vector2.zero)
             {
-                characterControl.transform.localScale = new Vector3(
-                    x > 0 ? -1 : (x < 0 ? 1 : characterControl.transform.localScale.x),
+                animationController.transform.localScale = new Vector3(
+                    moveInput.x > 0
+                        ? -1
+                        : (moveInput.x < 0 ? 1 : animationController.transform.localScale.x),
                     1,
                     1
                 );
-                characterControl.PlayAnimation(PlayerState.MOVE, 0);
+                animationController.PlayAnimation(PlayerState.MOVE, 0);
             }
             else
             {
-                characterControl.PlayAnimation(PlayerState.IDLE, 0);
+                animationController.PlayAnimation(PlayerState.IDLE, 0);
             }
         }
     }
@@ -330,17 +323,21 @@ public class Player : MonoBehaviour
 
     private IEnumerator PerformAttack(Monster targetEnemy)
     {
-        if (characterControl == null)
+        if (animationController == null)
             yield break;
 
         Vector2 directionToTarget = (
             targetEnemy.transform.position - transform.position
         ).normalized;
 
-        characterControl.transform.localScale = new Vector3(directionToTarget.x > 0 ? -1 : 1, 1, 1);
+        animationController.transform.localScale = new Vector3(
+            directionToTarget.x > 0 ? -1 : 1,
+            1,
+            1
+        );
 
         playerStatus = Status.Attacking;
-        characterControl.PlayAnimation(PlayerState.ATTACK, 0);
+        animationController.PlayAnimation(PlayerState.ATTACK, 0);
 
         float attackRange = playerStat.GetStat(StatType.AttackRange);
         float damage = playerStat.GetStat(StatType.Damage);

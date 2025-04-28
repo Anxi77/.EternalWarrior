@@ -16,15 +16,14 @@ public class RangedMonster : Monster
     [SerializeField]
     private float attackAnimationDuration = 0.5f;
 
-    private bool isAttacking = false;
     private Animator animator;
 
-    protected override void Start()
+    protected override void Initialize()
     {
-        base.Start();
-        animator = GetComponentInChildren<Animator>();
+        base.Initialize();
         attackRange = maxAttackDistance;
         preferredDistance = minAttackDistance;
+        animator = GetComponentInChildren<Animator>();
     }
 
     protected override void PerformRangedAttack()
@@ -69,27 +68,5 @@ public class RangedMonster : Monster
         preDamageTime = Time.time;
         yield return new WaitForSeconds(attackAnimationDuration);
         isAttacking = false;
-    }
-
-    protected override void MoveDirectlyTowardsTarget()
-    {
-        if (isAttacking)
-            return;
-
-        float distanceToTarget = Vector2.Distance(transform.position, target.position);
-
-        if (distanceToTarget < minAttackDistance)
-        {
-            Vector2 fleeDirection = (
-                (Vector2)transform.position - (Vector2)target.position
-            ).normalized;
-            Vector2 fleePosition =
-                (Vector2)transform.position + fleeDirection * moveSpeed * Time.deltaTime;
-            transform.position = fleePosition;
-        }
-        else
-        {
-            base.MoveDirectlyTowardsTarget();
-        }
     }
 }

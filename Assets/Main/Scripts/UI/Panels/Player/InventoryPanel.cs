@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,54 +13,28 @@ public class InventoryPanel : Panel
     private GameObject inventoryPanel;
 
     [SerializeField]
+    private ItemSlot[] equipmentSlots;
+
+    [SerializeField]
     private Transform slotsParent;
 
     [SerializeField]
     private ItemSlot slotPrefab;
 
-    [SerializeField]
-    private ItemSlot[] equipmentSlots;
-
     private Inventory inventory;
     private List<ItemSlot> slotUIs = new();
+
+    [SerializeField]
+    private ItemTooltip itemTooltip;
 
     public bool IsInitialized { get; private set; }
     #endregion
 
     #region Initialization
 
-    public override void Open()
+    public void SetupInventory(Inventory inventory)
     {
-        base.Open();
-        Initialize();
-    }
-
-    public override void Close(bool objActive = true)
-    {
-        base.Close(objActive);
-    }
-
-    public void Initialize()
-    {
-        if (!IsInitialized)
-        {
-            StartCoroutine(InitializeRoutine());
-        }
-    }
-
-    private IEnumerator InitializeRoutine()
-    {
-        while (GameManager.Instance?.PlayerSystem?.Player == null)
-        {
-            yield return new WaitForSeconds(0.1f);
-        }
-
-        SetupInventory();
-    }
-
-    private void SetupInventory()
-    {
-        inventory = GameManager.Instance.PlayerSystem.Player.GetComponent<Inventory>();
+        this.inventory = inventory;
         if (inventory == null)
         {
             Debug.LogError("Inventory component not found on player!");
@@ -71,8 +46,19 @@ public class InventoryPanel : Panel
         IsInitialized = true;
     }
 
+    public override void Open()
+    {
+        base.Open();
+    }
+
+    public override void Close(bool objActive = true)
+    {
+        base.Close(objActive);
+    }
+
     private void InitializeUI()
     {
+        itemTooltip = Resources.Load<ItemTooltip>("UI/Elements/ItemTooltip");
         InitializeEquipmentSlots();
         InitializeInventorySlots();
     }
@@ -89,7 +75,7 @@ public class InventoryPanel : Panel
         {
             if (equipSlot != null)
             {
-                equipSlot.Initialize(inventory);
+                equipSlot.Initialize(inventory, itemTooltip);
             }
         }
     }
@@ -99,9 +85,9 @@ public class InventoryPanel : Panel
         for (int i = 0; i < inventory.MaxSlots; i++)
         {
             var slotUI = Instantiate(slotPrefab, slotsParent);
-            slotUI.Initialize(inventory);
-            slotUI.slotType = SlotType.Inventory;
+            slotUI.Initialize(inventory, itemTooltip);
             slotUIs.Add(slotUI);
+            slotUI.isInventorySlot = true;
         }
     }
     #endregion
@@ -120,7 +106,7 @@ public class InventoryPanel : Panel
             UpdateInventorySlots();
             UpdateEquipmentSlots();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error updating inventory UI: {e.Message}\n{e.StackTrace}");
         }
@@ -160,31 +146,40 @@ public class InventoryPanel : Panel
             }
 
             var equipmentSlot = GetEquipmentSlotFromSlotType(equipSlot.slotType);
-            if (equipmentSlot == EquipmentSlot.None)
+            if (equipmentSlot == SlotType.Storage)
             {
                 Debug.LogWarning($"Invalid slot type: {equipSlot.slotType}");
                 return;
             }
 
-            var equippedItem = inventory.GetEquippedItem(equipmentSlot);
-            if (equippedItem != null)
+            InventorySlot equippedSlot = null;
+            switch (equipmentSlot)
             {
-                var itemData = equippedItem.GetItemData();
-                if (itemData != null)
-                {
-                    equipSlot.UpdateUI(
-                        new InventorySlot
-                        {
-                            itemData = itemData,
-                            amount = 1,
-                            isEquipped = true,
-                        }
+                case SlotType.Weapon:
+                    equippedSlot = inventory.GetEquippedItemSlot(ItemType.Weapon);
+                    break;
+                case SlotType.Armor:
+                    equippedSlot = inventory.GetEquippedItemSlot(ItemType.Armor);
+                    break;
+                case SlotType.Ring:
+                    equippedSlot = inventory.GetEquippedItemSlot(
+                        ItemType.Accessory,
+                        AccessoryType.Ring
                     );
-                }
-                else
-                {
-                    equipSlot.UpdateUI(null);
-                }
+                    break;
+                case SlotType.Necklace:
+                    equippedSlot = inventory.GetEquippedItemSlot(
+                        ItemType.Accessory,
+                        AccessoryType.Necklace
+                    );
+                    break;
+                default:
+                    break;
+            }
+
+            if (equippedSlot != null)
+            {
+                equipSlot.UpdateUI(equippedSlot);
             }
             else
             {
@@ -199,17 +194,31 @@ public class InventoryPanel : Panel
     #endregion
 
     #region Utilities
-    private EquipmentSlot GetEquipmentSlotFromSlotType(SlotType slotType)
+    private SlotType GetEquipmentSlotFromSlotType(ItemType itemType)
     {
-        return slotType switch
+        return itemType switch
         {
-            SlotType.Weapon => EquipmentSlot.Weapon,
-            SlotType.Armor => EquipmentSlot.Armor,
-            SlotType.Ring1 => EquipmentSlot.Ring1,
-            SlotType.Ring2 => EquipmentSlot.Ring2,
-            SlotType.Necklace => EquipmentSlot.Necklace,
-            _ => EquipmentSlot.None,
+            ItemType.Weapon => SlotType.Weapon,
+            ItemType.Armor => SlotType.Armor,
+            ItemType.Accessory => GetFirstEmptyAccessorySlot(),
+            _ => SlotType.Storage,
         };
+    }
+
+    private SlotType GetFirstEmptyAccessorySlot()
+    {
+        if (inventory.GetEquippedItem(ItemType.Accessory, AccessoryType.Ring) == null)
+        {
+            return SlotType.Ring;
+        }
+        else if (inventory.GetEquippedItem(ItemType.Accessory, AccessoryType.Necklace) == null)
+        {
+            return SlotType.Necklace;
+        }
+        else
+        {
+            return SlotType.Storage;
+        }
     }
 
     #endregion

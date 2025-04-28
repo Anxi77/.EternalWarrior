@@ -94,7 +94,7 @@ public class PassiveSkill : Skill
         if (skillData == null)
             return;
 
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStat>();
         if (playerStat != null)
         {
             float currentHpRatio =
@@ -169,7 +169,7 @@ public class PassiveSkill : Skill
 
     protected void ApplyPermanentEffect(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStatSystem>();
+        var playerStat = player.GetComponent<PlayerStat>();
         if (playerStat == null)
             return;
 
@@ -179,7 +179,7 @@ public class PassiveSkill : Skill
 
     protected IEnumerator ApplyTemporaryEffects(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStatSystem>();
+        var playerStat = player.GetComponent<PlayerStat>();
         if (playerStat == null)
             yield break;
 
@@ -271,7 +271,7 @@ public class PassiveSkill : Skill
         if (player == null)
             return;
 
-        PlayerStatSystem playerStat = player.GetComponent<PlayerStatSystem>();
+        PlayerStat playerStat = player.GetComponent<PlayerStat>();
         foreach (var modifier in statModifiers)
         {
             playerStat.RemoveModifier(modifier);
@@ -295,7 +295,7 @@ public class PassiveSkill : Skill
             return;
         }
 
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStatSystem>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStat>();
         float currentHpRatio = 1f;
         if (playerStat != null)
         {
@@ -338,7 +338,7 @@ public class PassiveSkill : Skill
     }
 
     protected void ApplyStatModifier(
-        PlayerStatSystem playerStat,
+        PlayerStat playerStat,
         StatType statType,
         float percentageIncrease
     )
@@ -367,7 +367,7 @@ public class PassiveSkill : Skill
         {
             StopAllCoroutines();
             Player player = GameManager.Instance.PlayerSystem.Player;
-            var playerStat = player.GetComponent<PlayerStatSystem>();
+            var playerStat = player.GetComponent<PlayerStat>();
 
             playerStat.RemoveStatsBySource(SourceType.Passive);
             if (_homingActivate)

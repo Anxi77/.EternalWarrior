@@ -458,14 +458,18 @@ public class ItemDataEditorWindow : EditorWindow
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space(5);
+
             if (dropTable.dropEntries == null)
+            {
                 dropTable.dropEntries = new List<DropTableEntry>();
+            }
+
             for (int i = 0; i < dropTable.dropEntries.Count; i++)
             {
                 bool shouldRemove = false;
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 {
-                    ItemDataEditorUtility.DrawDropTableEntry(dropTable, i, out shouldRemove);
+                    DrawDropTableEntry(dropTable, i, out shouldRemove);
                 }
                 EditorGUILayout.EndVertical();
                 EditorGUILayout.Space(5);
@@ -484,38 +488,6 @@ public class ItemDataEditorWindow : EditorWindow
             ItemDataEditorUtility.SaveDropTables();
             EditorUtility.SetDirty(this);
         }
-    }
-
-    private void DrawSettingsTab()
-    {
-        EditorGUILayout.BeginVertical();
-        {
-            EditorGUILayout.LabelField("Editor Settings", headerStyle);
-            EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("Backup Settings", EditorStyles.boldLabel);
-            if (GUILayout.Button("Create Backup"))
-            {
-                ItemDataEditorUtility.SaveWithBackup();
-            }
-            EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("Data Management", EditorStyles.boldLabel);
-            if (GUILayout.Button("Reset to Default"))
-            {
-                if (
-                    EditorUtility.DisplayDialog(
-                        "Reset Data",
-                        "Are you sure you want to reset all data to default? This cannot be undone.",
-                        "Reset",
-                        "Cancel"
-                    )
-                )
-                {
-                    ItemDataEditorUtility.InitializeDefaultData();
-                    RefreshItemDatabase();
-                }
-            }
-        }
-        EditorGUILayout.EndVertical();
     }
 
     private void DrawStatRanges()
@@ -981,5 +953,77 @@ public class ItemDataEditorWindow : EditorWindow
             }
         }
         EditorGUILayout.EndVertical();
+    }
+
+    private void DrawDropTableEntry(DropTableData dropTable, int index, out bool shouldRemove)
+    {
+        shouldRemove = false;
+        var entry = dropTable.dropEntries[index];
+
+        EditorGUILayout.BeginHorizontal();
+        {
+            EditorGUILayout.LabelField($"Entry {index + 1}", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("Remove", GUILayout.Width(60)))
+            {
+                shouldRemove = true;
+            }
+        }
+        EditorGUILayout.EndHorizontal();
+
+        if (!shouldRemove)
+        {
+            EditorGUILayout.Space(2);
+            var items = itemDatabase.Values.Select(item => item.Name).ToArray();
+            int selectedIndex = Array.FindIndex(
+                items,
+                name =>
+                    itemDatabase.Values.FirstOrDefault(item => item.Name == name)?.ID
+                    == entry.itemId
+            );
+            EditorGUI.indentLevel++;
+            int newIndex = EditorGUILayout.Popup("Item", selectedIndex, items);
+            if (newIndex != selectedIndex && newIndex >= 0)
+            {
+                entry.itemId = itemDatabase.Values.ElementAt(newIndex).ID;
+                GUI.changed = true;
+            }
+
+            float newDropRate = EditorGUILayout.Slider("Drop Rate", entry.dropRate, 0f, 1f);
+            if (newDropRate != entry.dropRate)
+            {
+                entry.dropRate = newDropRate;
+                GUI.changed = true;
+            }
+
+            ItemRarity newRarity = (ItemRarity)
+                EditorGUILayout.EnumPopup("Min Rarity", entry.rarity);
+            if (newRarity != entry.rarity)
+            {
+                entry.rarity = newRarity;
+                GUI.changed = true;
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            {
+                EditorGUILayout.LabelField("Amount Range", GUILayout.Width(100));
+                int newMinAmount = EditorGUILayout.IntField(entry.minAmount, GUILayout.Width(50));
+                if (newMinAmount != entry.minAmount)
+                {
+                    entry.minAmount = newMinAmount;
+                    GUI.changed = true;
+                }
+
+                EditorGUILayout.LabelField("to", GUILayout.Width(20));
+                int newMaxAmount = EditorGUILayout.IntField(entry.maxAmount, GUILayout.Width(50));
+                if (newMaxAmount != entry.maxAmount)
+                {
+                    entry.maxAmount = newMaxAmount;
+                    GUI.changed = true;
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUI.indentLevel--;
+        }
     }
 }

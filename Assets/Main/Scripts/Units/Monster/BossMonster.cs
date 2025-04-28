@@ -10,12 +10,10 @@ public class BossMonster : Monster
     public float enrageSpeedMultiplier = 1.3f;
     public Assets.FantasyMonsters.Common.Scripts.Monster monster;
     private bool isEnraged = false;
-    private Animator animator;
 
-    protected override void Start()
+    protected override void Initialize()
     {
-        base.Start();
-        animator = GetComponentInChildren<Animator>();
+        base.Initialize();
         InitializeBossStats();
     }
 
@@ -35,12 +33,6 @@ public class BossMonster : Monster
         {
             EnterEnragedState();
         }
-    }
-
-    public override void Move()
-    {
-        base.Move();
-        monster.SetState(MonsterState.Run);
     }
 
     private void EnterEnragedState()

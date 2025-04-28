@@ -2,17 +2,21 @@ using UnityEngine;
 
 public class WeaponItem : EquipmentItem
 {
-    public WeaponItem(ItemData itemData) : base(itemData)
+    public WeaponItem(ItemData itemData)
+        : base(itemData)
     {
         if (itemData.Type != ItemType.Weapon)
         {
-            Debug.LogError($"Attempted to create WeaponItem with non-weapon ItemData: {itemData.Type}");
+            Debug.LogError(
+                $"Attempted to create WeaponItem with non-weapon ItemData: {itemData.Type}"
+            );
         }
     }
+
     public override void Initialize(ItemData data)
     {
         base.Initialize(data);
-        equipmentSlot = EquipmentSlot.Weapon;
+        equipmentSlot = SlotType.Weapon;
         ValidateItemType(data.Type);
     }
 

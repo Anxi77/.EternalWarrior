@@ -50,7 +50,7 @@ public class SkillPanel : MonoBehaviour
 
             ShowElementalHeader(availableSkills[0].Element);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"Error in LevelUpPanelOpen: {e.Message}");
             ShowError("Failed to open level up panel");
@@ -213,6 +213,5 @@ public class SkillPanel : MonoBehaviour
     private void ShowElementalHeader(ElementType element)
     {
         Debug.Log($"Selected Element: {element}");
-        // TODO: 실제 UI에 속성 헤더를 표시하는 로직 구현
     }
 }

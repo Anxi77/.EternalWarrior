@@ -68,36 +68,20 @@ public static class ItemDataEditorUtility
         if (itemId == Guid.Empty)
             return;
 
-        try
+        if (itemDatabase.TryGetValue(itemId, out var item) && itemDatabase.Remove(itemId))
         {
-            if (itemDatabase.TryGetValue(itemId, out var item) && itemDatabase.Remove(itemId))
+            ResourceIO<Sprite>.DeleteData(ItemDataExtensions.ICON_PATH + item.ID + "_Icon.png");
+
+            SaveDatabase();
+
+            foreach (var dropTable in dropTables.Values)
             {
-                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
-                {
-                    string iconPath =
-                        $"Assets/Resources/{ItemDataExtensions.ICON_PATH + item.ID + ".png"}";
-                    if (File.Exists(iconPath))
-                    {
-                        AssetDatabase.DeleteAsset(iconPath);
-                        Debug.Log($"Deleted icon file: {iconPath}");
-                    }
-                }
-
-                SaveDatabase();
-
-                foreach (var dropTable in dropTables.Values)
-                {
-                    dropTable.dropEntries.RemoveAll(entry => entry.itemId == itemId);
-                }
-                SaveDropTables();
-
-                AssetDatabase.Refresh();
-                Debug.Log($"Item {itemId} and its resources deleted successfully");
+                dropTable.dropEntries.RemoveAll(entry => entry.itemId == itemId);
             }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error deleting item {itemId}: {e.Message}\n{e.StackTrace}");
+            SaveDropTables();
+
+            AssetDatabase.Refresh();
+            Debug.Log($"Item {itemId} and its resources deleted successfully");
         }
     }
 
@@ -293,46 +277,16 @@ public static class ItemDataEditorUtility
     {
         foreach (var item in itemDatabase.Values)
         {
-            try
+            string path = $"Items/Icons/{item.ID}_Icon";
+            var icon = ResourceIO<Sprite>.LoadData(path);
+            if (icon != null)
             {
-                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
-                {
-                    var icon = ResourceIO<Sprite>.LoadData(
-                        ItemDataExtensions.ICON_PATH + item.ID + ".png"
-                    );
-                    if (icon != null)
-                    {
-                        Debug.Log($"Successfully loaded icon for item {item.ID}");
-                    }
-                    else
-                    {
-                        string alternativePath = $"Items/Icons/{item.ID}_Icon";
-                        Debug.Log($"Trying alternative path for item {item.ID}: {alternativePath}");
-                        icon = ResourceIO<Sprite>.LoadData(alternativePath);
-
-                        if (icon != null)
-                        {
-                            Debug.Log(
-                                $"Successfully loaded icon from alternative path for item {item.ID}"
-                            );
-                        }
-                        else
-                        {
-                            Debug.LogWarning(
-                                $"Failed to load icon for item {item.ID}. Paths tried:\n1. {ItemDataExtensions.ICON_PATH + item.ID + ".png"}\n2. {alternativePath}"
-                            );
-                        }
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"No icon path specified for item {item.ID}");
-                }
+                item.Icon = icon;
             }
-            catch (Exception e)
+            else
             {
-                Debug.LogError(
-                    $"Error loading resources for item {item.ID}: {e.Message}\n{e.StackTrace}"
+                Debug.LogWarning(
+                    $"Failed to load icon for item {item.ID}. Paths tried:\n1. {ItemDataExtensions.ICON_PATH + item.ID + "_Icon.png"}\n2. {path}"
                 );
             }
         }
@@ -382,7 +336,6 @@ public static class ItemDataEditorUtility
         {
             EnsureDirectoryStructure();
 
-            // 기존 아이템들의 리소스 정리
             foreach (var item in itemDatabase.Values)
             {
                 if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
@@ -397,11 +350,9 @@ public static class ItemDataEditorUtility
                 }
             }
 
-            // 데이터베이스 초기화
             itemDatabase.Clear();
             SaveDatabase();
 
-            // 드롭 테이블 초기화
             CreateDefaultDropTables();
 
             AssetDatabase.Refresh();
@@ -433,77 +384,5 @@ public static class ItemDataEditorUtility
         AssetDatabase.Refresh();
     }
 
-    public static void DrawDropTableEntry(DropTableData dropTable, int index, out bool shouldRemove)
-    {
-        shouldRemove = false;
-        var entry = dropTable.dropEntries[index];
-
-        EditorGUILayout.BeginHorizontal();
-        {
-            EditorGUILayout.LabelField($"Entry {index + 1}", EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Remove", GUILayout.Width(60)))
-            {
-                shouldRemove = true;
-            }
-        }
-        EditorGUILayout.EndHorizontal();
-
-        if (!shouldRemove)
-        {
-            EditorGUILayout.Space(2);
-            // 아이템 선택
-            var items = itemDatabase.Values.Select(item => item.Name).ToArray();
-            int selectedIndex = Array.FindIndex(
-                items,
-                name =>
-                    itemDatabase.Values.FirstOrDefault(item => item.Name == name)?.ID
-                    == entry.itemId
-            );
-            EditorGUI.indentLevel++;
-            int newIndex = EditorGUILayout.Popup("Item", selectedIndex, items);
-            if (newIndex != selectedIndex && newIndex >= 0)
-            {
-                entry.itemId = itemDatabase.Values.ElementAt(newIndex).ID;
-                GUI.changed = true;
-            }
-
-            float newDropRate = EditorGUILayout.Slider("Drop Rate", entry.dropRate, 0f, 1f);
-            if (newDropRate != entry.dropRate)
-            {
-                entry.dropRate = newDropRate;
-                GUI.changed = true;
-            }
-
-            ItemRarity newRarity = (ItemRarity)
-                EditorGUILayout.EnumPopup("Min Rarity", entry.rarity);
-            if (newRarity != entry.rarity)
-            {
-                entry.rarity = newRarity;
-                GUI.changed = true;
-            }
-
-            EditorGUILayout.BeginHorizontal();
-            {
-                EditorGUILayout.LabelField("Amount Range", GUILayout.Width(100));
-                int newMinAmount = EditorGUILayout.IntField(entry.minAmount, GUILayout.Width(50));
-                if (newMinAmount != entry.minAmount)
-                {
-                    entry.minAmount = newMinAmount;
-                    GUI.changed = true;
-                }
-
-                EditorGUILayout.LabelField("to", GUILayout.Width(20));
-                int newMaxAmount = EditorGUILayout.IntField(entry.maxAmount, GUILayout.Width(50));
-                if (newMaxAmount != entry.maxAmount)
-                {
-                    entry.maxAmount = newMaxAmount;
-                    GUI.changed = true;
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-            EditorGUI.indentLevel--;
-        }
-    }
     #endregion
 }
