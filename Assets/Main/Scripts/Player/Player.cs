@@ -84,7 +84,7 @@ public class Player : MonoBehaviour
         }
         animationController.Initialize();
         playerStat.Initialize();
-        inventory.Initialize(playerStat);
+        inventory.Initialize(this);
         playerInput.Initialize(this);
         StartCombatSystems();
         IsInitialized = true;
@@ -122,6 +122,8 @@ public class Player : MonoBehaviour
             }
             skills.Clear();
         }
+
+        playerInput.Cleanup();
 
         playerStatus = Status.Dead;
         IsInitialized = false;

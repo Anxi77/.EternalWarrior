@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,11 +12,13 @@ public static class ItemDataEditorUtility
     private const string ITEM_DB_PATH = "Items/Database";
     private const string ITEM_ICON_PATH = "Items/Icons";
     private const string DROP_TABLES_PATH = "Items/DropTables";
+    private const string EFFECT_RANGES_PATH = "Items/EffectRanges";
     #endregion
 
     #region Data Management
     private static Dictionary<Guid, ItemData> itemDatabase = new();
     private static Dictionary<MonsterType, DropTableData> dropTables = new();
+    private static ItemEffectRangeDatabase effectRangeDatabase = new();
 
     public static Dictionary<Guid, ItemData> GetItemDatabase()
     {
@@ -46,8 +47,10 @@ public static class ItemDataEditorUtility
         {
             var clonedData = itemData.Clone();
             itemDatabase[itemData.ID] = clonedData;
-
-            SaveResource(itemData);
+            if (itemData.Icon != null)
+            {
+                SaveResource(itemData);
+            }
             SaveDatabase();
         }
         catch (Exception e)
@@ -62,8 +65,14 @@ public static class ItemDataEditorUtility
     public static void SaveResource(ItemData itemData)
     {
         string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
-        ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
-        Logger.Log(typeof(ItemDataEditorUtility), $"Icon saved to Resources path: {resourcePath}");
+        if (itemData.Icon != null)
+        {
+            ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
+            Logger.Log(
+                typeof(ItemDataEditorUtility),
+                $"Icon saved to Resources path: {resourcePath}"
+            );
+        }
     }
 
     public static void DeleteItemData(Guid itemId)
@@ -107,8 +116,8 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            var wrapper = new SerializableItemList { items = itemDatabase.Values.ToList() };
-            JSONIO<SerializableItemList>.SaveData(ITEM_DB_PATH, "ItemDatabase", wrapper);
+            var wrapper = new ItemList { items = itemDatabase.Values.ToList() };
+            JSONIO<ItemList>.SaveData(ITEM_DB_PATH, "ItemDatabase", wrapper);
             Logger.Log(typeof(ItemDataEditorUtility), "Database saved successfully");
             AssetDatabase.Refresh();
         }
@@ -131,8 +140,8 @@ public static class ItemDataEditorUtility
                 return;
             }
 
-            var wrapper = new DropTablesWrapper { dropTables = dropTables.Values.ToList() };
-            JSONIO<DropTablesWrapper>.SaveData(DROP_TABLES_PATH, "DropTables", wrapper);
+            var wrapper = new DropTableList { dropTables = dropTables.Values.ToList() };
+            JSONIO<DropTableList>.SaveData(DROP_TABLES_PATH, "DropTables", wrapper);
             AssetDatabase.Refresh();
         }
         catch (Exception e)
@@ -176,9 +185,9 @@ public static class ItemDataEditorUtility
 
     public static void RemoveEffectRange(ItemData itemData, int index)
     {
-        if (itemData == null || index < 0 || index >= itemData.EffectRanges.possibleEffects.Count)
+        if (itemData == null || index < 0 || index >= itemData.EffectRanges.effectIDs.Count)
             return;
-        itemData.EffectRanges.possibleEffects.RemoveAt(index);
+        itemData.EffectRanges.effectIDs.RemoveAt(index);
         SaveItemData(itemData);
     }
 
@@ -186,7 +195,7 @@ public static class ItemDataEditorUtility
     {
         if (itemData == null)
             return;
-        itemData.EffectRanges.possibleEffects.Add(new ItemEffectRange());
+        itemData.EffectRanges.effectIDs.Add(Guid.NewGuid());
         SaveItemData(itemData);
     }
 
@@ -222,6 +231,71 @@ public static class ItemDataEditorUtility
         effectRange.applicableElements = list.ToArray();
     }
 
+    public static ItemEffectRangeDatabase GetEffectRangeDatabase()
+    {
+        if (effectRangeDatabase.effectRanges.Count == 0)
+        {
+            LoadEffectRangeDatabase();
+        }
+        return effectRangeDatabase;
+    }
+
+    public static void SaveEffectRange(ItemEffectRange range)
+    {
+        if (range == null)
+            return;
+
+        try
+        {
+            effectRangeDatabase.AddEffectRange(range);
+            SaveEffectRangeDatabase();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error saving effect range: {e.Message}\n{e.StackTrace}"
+            );
+        }
+    }
+
+    public static void DeleteEffectRange(Guid rangeId)
+    {
+        if (rangeId == Guid.Empty)
+            return;
+
+        effectRangeDatabase.RemoveEffectRange(rangeId);
+        SaveEffectRangeDatabase();
+
+        // 아이템 데이터베이스에서 해당 이펙트 레인지 ID 제거
+        foreach (var item in itemDatabase.Values)
+        {
+            item.EffectRanges.effectIDs.RemoveAll(id => id == rangeId);
+        }
+        SaveDatabase();
+    }
+
+    public static void SaveEffectRangeDatabase()
+    {
+        try
+        {
+            JSONIO<ItemEffectRangeDatabase>.SaveData(
+                EFFECT_RANGES_PATH,
+                "EffectRangeDatabase",
+                effectRangeDatabase
+            );
+            Logger.Log(typeof(ItemDataEditorUtility), "Effect range database saved successfully");
+            AssetDatabase.Refresh();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error saving effect range database: {e.Message}\n{e.StackTrace}"
+            );
+        }
+    }
+
     #endregion
 
     #region Private Methods
@@ -229,7 +303,7 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            var data = JSONIO<SerializableItemList>.LoadData("Items/Database", "ItemDatabase");
+            var data = JSONIO<ItemList>.LoadData("Items/Database", "ItemDatabase");
             if (data != null && data.items != null)
             {
                 itemDatabase = data.items.ToDictionary(item => item.ID);
@@ -258,7 +332,7 @@ public static class ItemDataEditorUtility
     {
         try
         {
-            var data = JSONIO<DropTablesWrapper>.LoadData("Items/DropTables", "DropTables");
+            var data = JSONIO<DropTableList>.LoadData("Items/DropTables", "DropTables");
             if (data != null && data.dropTables != null)
             {
                 dropTables = data.dropTables.ToDictionary(dt => dt.enemyType);
@@ -288,13 +362,6 @@ public static class ItemDataEditorUtility
             if (icon != null)
             {
                 item.Icon = icon;
-            }
-            else
-            {
-                Logger.LogWarning(
-                    typeof(ItemDataEditorUtility),
-                    $"Failed to load icon for item {item.ID}. Paths tried:\n1. {ItemDataExtensions.ICON_PATH + item.ID + "_Icon.png"}\n2. {path}"
-                );
             }
         }
     }
@@ -337,7 +404,22 @@ public static class ItemDataEditorUtility
         SaveDropTables();
     }
 
-    public static void InitializeDefaultData()
+    public static void InitializeDefaultEffectRanges()
+    {
+        EnsureDirectoryStructure();
+        effectRangeDatabase = new ItemEffectRangeDatabase();
+        SaveEffectRangeDatabase();
+    }
+
+    public static void InitializeDefaultDropTables()
+    {
+        EnsureDirectoryStructure();
+        dropTables.Clear();
+        CreateDefaultDropTables();
+        SaveDropTables();
+    }
+
+    public static void InitializeDefaultItemData()
     {
         try
         {
@@ -345,25 +427,14 @@ public static class ItemDataEditorUtility
 
             foreach (var item in itemDatabase.Values)
             {
-                if (File.Exists(ItemDataExtensions.ICON_PATH + item.ID + ".png"))
-                {
-                    string iconPath =
-                        $"Assets/Resources/{ItemDataExtensions.ICON_PATH + item.ID + ".png"}";
-                    if (File.Exists(iconPath))
-                    {
-                        AssetDatabase.DeleteAsset(iconPath);
-                        Logger.Log(typeof(ItemDataEditorUtility), $"Deleted icon file: {iconPath}");
-                    }
-                }
+                string iconPath = $"{ItemDataExtensions.ICON_PATH}{item.ID}_Icon.png";
+                ResourceIO<Sprite>.DeleteData(iconPath);
             }
 
             itemDatabase.Clear();
             SaveDatabase();
 
-            CreateDefaultDropTables();
-
             AssetDatabase.Refresh();
-            Logger.Log(typeof(ItemDataEditorUtility), "Data reset successfully");
         }
         catch (Exception e)
         {
@@ -389,6 +460,34 @@ public static class ItemDataEditorUtility
             }
         }
         AssetDatabase.Refresh();
+    }
+
+    private static void LoadEffectRangeDatabase()
+    {
+        try
+        {
+            var data = JSONIO<ItemEffectRangeDatabase>.LoadData(
+                "Items/EffectRanges",
+                "EffectRangeDatabase"
+            );
+            if (data != null)
+            {
+                effectRangeDatabase = data;
+            }
+            else
+            {
+                Logger.LogWarning(typeof(ItemDataEditorUtility), "No effect range database found");
+                effectRangeDatabase = new ItemEffectRangeDatabase();
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error loading effect range database: {e.Message}\n{e.StackTrace}"
+            );
+            effectRangeDatabase = new ItemEffectRangeDatabase();
+        }
     }
 
     #endregion

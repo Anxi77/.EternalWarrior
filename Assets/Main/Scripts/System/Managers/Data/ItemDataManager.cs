@@ -10,11 +10,13 @@ public class ItemDataManager : Singleton<ItemDataManager>
     #region Constants
     private const string ITEM_DB_PATH = "Items/Database";
     private const string DROP_TABLES_PATH = "Items/DropTables";
+    private const string EFFECT_RANGES_PATH = "Items/EffectRanges";
     #endregion
 
     #region Fields
     private Dictionary<Guid, ItemData> itemDatabase = new();
     private Dictionary<MonsterType, DropTableData> dropTables = new();
+    private ItemEffectRangeDatabase effectRangeDatabase = new();
 
     public List<ItemData> ItemDatabase;
     public List<DropTableData> DropTables;
@@ -31,34 +33,53 @@ public class ItemDataManager : Singleton<ItemDataManager>
         LoadingManager.Instance.SetLoadingText("Loading Item Data...");
 
         var itemJSON = Resources.Load<TextAsset>($"{ITEM_DB_PATH}/ItemDatabase");
-        SerializableItemList itemData = null;
+        ItemList itemData = null;
 
         var dropTableJSON = Resources.Load<TextAsset>($"{DROP_TABLES_PATH}/DropTables");
-        DropTablesWrapper dropTableData = null;
+        DropTableList dropTableData = null;
+
+        var effectRangeJSON = Resources.Load<TextAsset>(
+            $"{EFFECT_RANGES_PATH}/EffectRangeDatabase"
+        );
 
         if (itemJSON != null)
         {
-            itemData = JsonConvert.DeserializeObject<SerializableItemList>(itemJSON.text);
+            itemData = JsonConvert.DeserializeObject<ItemList>(itemJSON.text);
             steps += itemData.items.Count;
         }
         else
         {
             Logger.LogError(
                 typeof(ItemDataManager),
-                $"[ItemDataManager] ItemDatabase.json not found at path: Resources/{ITEM_DB_PATH}/ItemDatabase"
+                $" ItemDatabase.json not found at path: Resources/{ITEM_DB_PATH}/ItemDatabase"
             );
         }
 
         if (dropTableJSON != null)
         {
-            dropTableData = JsonConvert.DeserializeObject<DropTablesWrapper>(dropTableJSON.text);
+            dropTableData = JsonConvert.DeserializeObject<DropTableList>(dropTableJSON.text);
             steps += dropTableData.dropTables.Count;
         }
         else
         {
             Logger.LogError(
                 typeof(ItemDataManager),
-                $"[ItemDataManager] DropTables.json not found at path: Resources/{DROP_TABLES_PATH}/DropTables"
+                $" DropTables.json not found at path: Resources/{DROP_TABLES_PATH}/DropTables"
+            );
+        }
+
+        if (effectRangeJSON != null)
+        {
+            effectRangeDatabase = JsonConvert.DeserializeObject<ItemEffectRangeDatabase>(
+                effectRangeJSON.text
+            );
+            steps += effectRangeDatabase.effectRanges.Count;
+        }
+        else
+        {
+            Logger.LogError(
+                typeof(ItemDataManager),
+                $" EffectRangeDatabase.json not found at path: Resources/{EFFECT_RANGES_PATH}/EffectRangeDatabase"
             );
         }
 
@@ -69,7 +90,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
             {
                 Logger.Log(
                     typeof(ItemDataManager),
-                    $"[ItemDataManager] Loaded item [Name : {item.Value.Name}] [ID : {item.Value.ID}]"
+                    $" Loaded item [Name : {item.Value.Name}] [ID : {item.Value.ID}]"
                 );
 
                 progress += 1f / steps;
@@ -81,12 +102,12 @@ public class ItemDataManager : Singleton<ItemDataManager>
         {
             Logger.LogError(
                 typeof(ItemDataManager),
-                "[ItemDataManager] Failed to deserialize item data or items list is null"
+                " Failed to deserialize item data or items list is null"
             );
         }
         Logger.Log(
             typeof(ItemDataManager),
-            $"[ItemDataManager] Total loaded item data count : {itemDatabase.Count}"
+            $" Total loaded item data count : {itemDatabase.Count}"
         );
 
         yield return new WaitForSeconds(0.5f);
@@ -94,7 +115,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
 
         if (dropTableJSON != null)
         {
-            var wrapper = JsonConvert.DeserializeObject<DropTablesWrapper>(dropTableJSON.text);
+            var wrapper = JsonConvert.DeserializeObject<DropTableList>(dropTableJSON.text);
             dropTables = wrapper.dropTables.ToDictionary(dt => dt.enemyType);
             foreach (var dropTable in dropTables)
             {
@@ -143,6 +164,11 @@ public class ItemDataManager : Singleton<ItemDataManager>
         }
         Logger.LogWarning(typeof(ItemDataManager), $"Item not found: {itemId}");
         return null;
+    }
+
+    public ItemEffectRange GetEffectRange(Guid effectRangeId)
+    {
+        return effectRangeDatabase.GetEffectRange(effectRangeId);
     }
 
     public bool HasData(Guid itemId)

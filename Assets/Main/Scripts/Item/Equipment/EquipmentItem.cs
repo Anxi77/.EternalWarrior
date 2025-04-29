@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public abstract class EquipmentItem : Item, ISkillInteractionEffect
+public abstract class EquipmentItem : Item
 {
     protected SlotType equipmentSlot;
-    protected List<ISkillInteractionEffect> skillEffects = new();
+    protected List<SkillIneractionEffect> skillEffects = new();
 
     protected EquipmentItem(ItemData itemData)
     {
@@ -24,8 +24,9 @@ public abstract class EquipmentItem : Item, ISkillInteractionEffect
         skillEffects = SkillEffectFactory.CreateEffects(data);
     }
 
-    protected void OnEquip(Player player)
+    public override void OnEquip(Player player)
     {
+        base.OnEquip(player);
         foreach (var skill in player.skills)
         {
             foreach (var effect in skillEffects)
@@ -35,14 +36,23 @@ public abstract class EquipmentItem : Item, ISkillInteractionEffect
         }
     }
 
-    protected void OnUnequip(Player player)
+    public override void OnUnequip(Player player)
     {
+        base.OnUnequip(player);
         foreach (var skill in player.skills)
         {
             foreach (var effect in skillEffects)
             {
                 skill.RemoveItemEffect(effect);
             }
+        }
+    }
+
+    public void AddEffect(SkillIneractionEffect effect)
+    {
+        if (effect != null)
+        {
+            skillEffects.Add(effect);
         }
     }
 
@@ -59,14 +69,6 @@ public abstract class EquipmentItem : Item, ISkillInteractionEffect
         foreach (var effect in skillEffects)
         {
             effect.OnSkillHit(skill, target);
-        }
-    }
-
-    public void AddEffect(ISkillInteractionEffect effect)
-    {
-        if (effect != null)
-        {
-            skillEffects.Add(effect);
         }
     }
 

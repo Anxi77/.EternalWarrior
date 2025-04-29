@@ -132,7 +132,7 @@ public class GameManager : Singleton<GameManager>
 
         Logger.Log(
             typeof(GameManager),
-            $"[GameManager] Gamesate transition from [{currentState}] to [{newState}]"
+            $"GameState transition from [{currentState}] to [{newState}]"
         );
 
         stateTransitionQueue.Enqueue(newState);

@@ -10,23 +10,31 @@ public class ItemDataEditorWindow : EditorWindow
     {
         Items,
         DropTables,
+        EffectRanges,
     }
 
     #region Fields
     private Dictionary<Guid, ItemData> itemDatabase = new();
     private Dictionary<MonsterType, DropTableData> dropTables = new();
     private string searchText = "";
+    private string dropTableSearchText = "";
+    private string effectRangeSearchText = "";
     private ItemType typeFilter = ItemType.None;
     private ItemRarity rarityFilter = ItemRarity.Common;
-    private Guid selectedItemId;
+    private EffectType effectTypeFilter = EffectType.None;
+    private Guid selectedItemId = Guid.Empty;
+    private MonsterType selectedMonsterType = MonsterType.None;
+    private Guid selectedEffectRangeId = Guid.Empty;
     private Vector2 mainScrollPosition;
-    private EditorTab currentTab;
+    private EditorTab currentTab = EditorTab.Items;
     private GUIStyle headerStyle;
     private GUIStyle tabStyle;
     private Vector2 itemListScrollPosition;
     private Vector2 itemDetailScrollPosition;
-    private Vector2 dropTableScrollPosition;
-    private Dictionary<MonsterType, bool> dropTableFoldouts = new();
+    private Vector2 dropTableListScrollPosition;
+    private Vector2 dropTableDetailScrollPosition;
+    private Vector2 effectRangeListScrollPosition;
+    private Vector2 effectRangeDetailScrollPosition;
 
     private bool showStatRanges = true;
     private bool showEffects = true;
@@ -126,6 +134,9 @@ public class ItemDataEditorWindow : EditorWindow
                 case EditorTab.DropTables:
                     DrawDropTablesTab();
                     break;
+                case EditorTab.EffectRanges:
+                    DrawEffectRangesTab();
+                    break;
             }
         }
         EditorGUILayout.EndScrollView();
@@ -139,6 +150,8 @@ public class ItemDataEditorWindow : EditorWindow
                 currentTab = EditorTab.Items;
             if (GUILayout.Toggle(currentTab == EditorTab.DropTables, "Drop Tables", tabStyle))
                 currentTab = EditorTab.DropTables;
+            if (GUILayout.Toggle(currentTab == EditorTab.EffectRanges, "Effect Ranges", tabStyle))
+                currentTab = EditorTab.EffectRanges;
         }
         EditorGUILayout.EndHorizontal();
     }
@@ -174,7 +187,7 @@ public class ItemDataEditorWindow : EditorWindow
                     )
                 )
                 {
-                    ItemDataEditorUtility.InitializeDefaultData();
+                    ItemDataEditorUtility.InitializeDefaultItemData();
                     selectedItemId = Guid.Empty;
 
                     EditorApplication.delayCall += () =>
@@ -311,7 +324,7 @@ public class ItemDataEditorWindow : EditorWindow
                 if (showEffects)
                 {
                     EditorGUILayout.Space(10);
-                    DrawEffects();
+                    DrawItemEffects();
                 }
 
                 if (showResources)
@@ -331,147 +344,503 @@ public class ItemDataEditorWindow : EditorWindow
         EditorGUILayout.EndVertical();
     }
 
+    private void DrawItemEffects()
+    {
+        EditorGUILayout.Space();
+        DrawEffectRangesSection();
+    }
+
     private void DrawDropTablesTab()
     {
-        EditorGUILayout.BeginVertical();
+        EditorGUILayout.BeginHorizontal();
         {
-            dropTableScrollPosition = EditorGUILayout.BeginScrollView(
-                dropTableScrollPosition,
-                GUILayout.Height(position.height - 100)
+            EditorGUILayout.BeginVertical(GUILayout.Width(250));
+            {
+                DrawDropTablesList();
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(5);
+            DrawVerticalLine(Color.gray);
+            EditorGUILayout.Space(5);
+            EditorGUILayout.BeginVertical();
+            {
+                DrawDropTableDetails();
+            }
+            EditorGUILayout.EndVertical();
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawDropTablesList()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        {
+            EditorGUILayout.LabelField("Search & Filter", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+            dropTableSearchText = EditorGUILayout.TextField("Search", dropTableSearchText);
+        }
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.Space(5);
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        {
+            EditorGUILayout.LabelField("Drop Tables", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+            float listHeight = position.height - 300;
+            dropTableListScrollPosition = EditorGUILayout.BeginScrollView(
+                dropTableListScrollPosition,
+                GUILayout.Height(listHeight)
             );
             {
-                foreach (MonsterType enemyType in Enum.GetValues(typeof(MonsterType)))
+                var filteredDropTables = FilterDropTables();
+                foreach (var kvp in filteredDropTables)
                 {
-                    if (enemyType == MonsterType.None)
-                        continue;
-                    if (!dropTableFoldouts.ContainsKey(enemyType))
-                        dropTableFoldouts[enemyType] = false;
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                    bool isSelected = kvp.Key == selectedMonsterType;
+                    GUI.backgroundColor = isSelected ? Color.cyan : Color.white;
+                    if (GUILayout.Button(kvp.Key.ToString(), GUILayout.Height(25)))
                     {
-                        EditorGUILayout.BeginHorizontal();
-                        {
-                            var headerStyle = new GUIStyle(EditorStyles.foldout)
-                            {
-                                fontStyle = FontStyle.Bold,
-                                fontSize = 12,
-                            };
-                            dropTableFoldouts[enemyType] = EditorGUILayout.Foldout(
-                                dropTableFoldouts[enemyType],
-                                $"{enemyType} Drop Table",
-                                true,
-                                headerStyle
-                            );
-                        }
-                        EditorGUILayout.EndHorizontal();
-                        if (dropTableFoldouts[enemyType])
-                        {
-                            EditorGUILayout.Space(5);
-                            DrawDropTableSettings(enemyType);
-                            EditorGUILayout.Space(5);
-                        }
+                        selectedMonsterType = kvp.Key;
                     }
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.Space(5);
                 }
+                GUI.backgroundColor = Color.white;
             }
             EditorGUILayout.EndScrollView();
         }
         EditorGUILayout.EndVertical();
     }
 
-    private void DrawDropTableSettings(MonsterType enemyType)
+    private void DrawDropTableDetails()
     {
-        var dropTables = ItemDataEditorUtility.GetDropTables();
-        EditorGUI.BeginChangeCheck();
-        if (!dropTables.TryGetValue(enemyType, out var dropTable))
+        if (selectedMonsterType == MonsterType.None)
+        {
+            EditorGUILayout.LabelField("Select a drop table to edit", headerStyle);
+            return;
+        }
+
+        dropTables = ItemDataEditorUtility.GetDropTables();
+
+        var dropTable = dropTables.TryGetValue(selectedMonsterType, out var dt) ? dt : null;
+        if (dropTable == null)
         {
             dropTable = new DropTableData
             {
-                enemyType = enemyType,
+                enemyType = selectedMonsterType,
                 dropEntries = new List<DropTableEntry>(),
                 guaranteedDropRate = 0.1f,
                 maxDrops = 3,
             };
-            dropTables[enemyType] = dropTable;
+            dropTables[selectedMonsterType] = dropTable;
+            ItemDataEditorUtility.SaveDropTables();
+            AssetDatabase.Refresh();
         }
+
+        DrawDropTableDetails(dropTable);
+    }
+
+    private void DrawDropTableDetails(DropTableData dropTable)
+    {
+        if (dropTable == null)
+            return;
+
         EditorGUILayout.BeginVertical(GUI.skin.box);
+        EditorGUILayout.LabelField("Drop Table Details", EditorStyles.boldLabel);
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Basic Settings", EditorStyles.boldLabel);
+
+        float newDropRate = EditorGUILayout.Slider(
+            new GUIContent("Guaranteed Drop Rate", "Chance for a guaranteed drop"),
+            dropTable.guaranteedDropRate,
+            0f,
+            1f
+        );
+        if (Math.Abs(newDropRate - dropTable.guaranteedDropRate) > float.Epsilon)
         {
-            EditorGUILayout.LabelField("Basic Settings", EditorStyles.boldLabel);
-            EditorGUILayout.Space(5);
-            EditorGUI.indentLevel++;
-            dropTable.guaranteedDropRate = EditorGUILayout.Slider(
-                new GUIContent("Guaranteed Drop Rate", "Chance for a guaranteed drop"),
-                dropTable.guaranteedDropRate,
-                0f,
-                1f
-            );
-            dropTable.maxDrops = EditorGUILayout.IntSlider(
-                new GUIContent("Max Drops", "Maximum number of items that can drop"),
-                dropTable.maxDrops,
-                1,
-                10
-            );
-            EditorGUI.indentLevel--;
+            dropTable.guaranteedDropRate = newDropRate;
+            GUI.changed = true;
         }
-        EditorGUILayout.EndVertical();
-        EditorGUILayout.Space(10);
-        EditorGUILayout.BeginVertical(GUI.skin.box);
+
+        int newMaxDrops = EditorGUILayout.IntSlider(
+            new GUIContent("Max Drops", "Maximum number of items that can drop"),
+            dropTable.maxDrops,
+            1,
+            10
+        );
+        if (newMaxDrops != dropTable.maxDrops)
         {
-            EditorGUILayout.BeginHorizontal();
-            {
-                EditorGUILayout.LabelField("Drop Entries", EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Add Entry", GUILayout.Width(80)))
-                {
-                    var defaultItem = itemDatabase.Values.FirstOrDefault();
-                    if (defaultItem != null)
-                    {
-                        dropTable.dropEntries.Add(
-                            new DropTableEntry
-                            {
-                                itemId = defaultItem.ID,
-                                dropRate = 0.1f,
-                                rarity = ItemRarity.Common,
-                                minAmount = 1,
-                                maxAmount = 1,
-                            }
-                        );
-                        GUI.changed = true;
-                    }
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space(5);
+            dropTable.maxDrops = newMaxDrops;
+            GUI.changed = true;
+        }
 
-            if (dropTable.dropEntries == null)
-            {
-                dropTable.dropEntries = new List<DropTableEntry>();
-            }
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Drop Entries", EditorStyles.boldLabel);
 
+        if (GUILayout.Button("Add Entry", GUILayout.Height(30)))
+        {
+            AddDropTableEntry(dropTable);
+        }
+
+        EditorGUILayout.Space();
+
+        if (dropTable.dropEntries != null && dropTable.dropEntries.Count > 0)
+        {
+            dropTableDetailScrollPosition = EditorGUILayout.BeginScrollView(
+                dropTableDetailScrollPosition
+            );
             for (int i = 0; i < dropTable.dropEntries.Count; i++)
             {
                 bool shouldRemove = false;
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                {
-                    DrawDropTableEntry(dropTable, i, out shouldRemove);
-                }
-                EditorGUILayout.EndVertical();
-                EditorGUILayout.Space(5);
+                DrawDropTableEntry(dropTable, i, out shouldRemove);
 
                 if (shouldRemove)
                 {
                     dropTable.dropEntries.RemoveAt(i);
                     i--;
                     GUI.changed = true;
+                    SaveDropTableChanges();
                 }
             }
+            EditorGUILayout.EndScrollView();
         }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "No entries in this drop table. Click 'Add Entry' to add items.",
+                MessageType.Info
+            );
+        }
+
         EditorGUILayout.EndVertical();
-        if (EditorGUI.EndChangeCheck() || GUI.changed)
+
+        if (GUI.changed)
+        {
+            SaveDropTableChanges();
+        }
+    }
+
+    private void AddDropTableEntry(DropTableData dropTable)
+    {
+        if (dropTable.dropEntries == null)
+        {
+            dropTable.dropEntries = new List<DropTableEntry>();
+        }
+
+        dropTable.dropEntries.Add(
+            new DropTableEntry
+            {
+                itemId = itemDatabase.Values.FirstOrDefault()?.ID ?? Guid.Empty,
+                dropRate = 0.1f,
+                rarity = ItemRarity.Common,
+                minAmount = 1,
+                maxAmount = 1,
+            }
+        );
+
+        SaveDropTableChanges();
+        GUI.changed = true;
+        Repaint();
+    }
+
+    private void SaveDropTableChanges()
+    {
+        try
         {
             ItemDataEditorUtility.SaveDropTables();
             EditorUtility.SetDirty(this);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error saving drop table changes: {e.Message}\n{e.StackTrace}");
+        }
+    }
+
+    private Dictionary<MonsterType, DropTableData> FilterDropTables()
+    {
+        return dropTables
+            .Where(kvp =>
+                string.IsNullOrEmpty(dropTableSearchText)
+                || kvp.Key.ToString().ToLower().Contains(dropTableSearchText.ToLower())
+            )
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    private void DrawEffectRangesTab()
+    {
+        EditorGUILayout.BeginHorizontal();
+        {
+            EditorGUILayout.BeginVertical(GUILayout.Width(250));
+            {
+                DrawEffectRangesList();
+            }
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(5);
+            DrawVerticalLine(Color.gray);
+            EditorGUILayout.Space(5);
+            EditorGUILayout.BeginVertical();
+            {
+                DrawEffectRangeDetails();
+            }
+            EditorGUILayout.EndVertical();
+        }
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawEffectRangesList()
+    {
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        {
+            EditorGUILayout.LabelField("Search & Filter", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+            effectRangeSearchText = EditorGUILayout.TextField("Search", effectRangeSearchText);
+            effectTypeFilter = (EffectType)
+                EditorGUILayout.EnumPopup("Effect Type", effectTypeFilter);
+        }
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.Space(5);
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        {
+            EditorGUILayout.LabelField("Effect Ranges", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2);
+            float listHeight = position.height - 300;
+            effectRangeListScrollPosition = EditorGUILayout.BeginScrollView(
+                effectRangeListScrollPosition,
+                GUILayout.Height(listHeight)
+            );
+            {
+                var database = ItemDataEditorUtility.GetEffectRangeDatabase();
+                var filteredEffects = FilterEffectRanges(database.effectRanges);
+
+                foreach (var effect in filteredEffects)
+                {
+                    bool isSelected = effect.effectId == selectedEffectRangeId;
+                    GUI.backgroundColor = isSelected ? Color.cyan : Color.white;
+                    if (GUILayout.Button(effect.effectName, GUILayout.Height(25)))
+                    {
+                        selectedEffectRangeId = effect.effectId;
+                    }
+                }
+                GUI.backgroundColor = Color.white;
+            }
+            EditorGUILayout.EndScrollView();
+        }
+        EditorGUILayout.EndVertical();
+        EditorGUILayout.Space(5);
+
+        if (GUILayout.Button("Create New Effect Range", GUILayout.Height(30)))
+        {
+            var newRange = new ItemEffectRange
+            {
+                effectId = Guid.NewGuid(),
+                effectName = "New Effect Range",
+                description = "",
+                subEffectRanges = new List<SubEffectRange>(),
+                weight = 1f,
+            };
+            ItemDataEditorUtility.SaveEffectRange(newRange);
+            selectedEffectRangeId = newRange.effectId;
+        }
+    }
+
+    private void DrawEffectRangeDetails()
+    {
+        var database = ItemDataEditorUtility.GetEffectRangeDatabase();
+        var effectRange = database.effectRanges.FirstOrDefault(e =>
+            e.effectId == selectedEffectRangeId
+        );
+
+        if (effectRange == null)
+        {
+            EditorGUILayout.LabelField("Select an effect range to edit", headerStyle);
+            return;
+        }
+
+        bool changed = false;
+        effectRangeDetailScrollPosition = EditorGUILayout.BeginScrollView(
+            effectRangeDetailScrollPosition
+        );
+        {
+            EditorGUILayout.BeginVertical();
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                {
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.TextField("ID", effectRange.effectId.ToString());
+                    EditorGUI.EndDisabledGroup();
+
+                    string newEffectName = EditorGUILayout.TextField(
+                        "Name",
+                        effectRange.effectName
+                    );
+                    if (newEffectName != effectRange.effectName)
+                    {
+                        effectRange.effectName = newEffectName;
+                        changed = true;
+                    }
+
+                    string newDescription = EditorGUILayout.TextField(
+                        "Description",
+                        effectRange.description
+                    );
+                    if (newDescription != effectRange.description)
+                    {
+                        effectRange.description = newDescription;
+                        changed = true;
+                    }
+
+                    float newWeight = EditorGUILayout.Slider("Weight", effectRange.weight, 0f, 1f);
+                    if (newWeight != effectRange.weight)
+                    {
+                        effectRange.weight = newWeight;
+                        changed = true;
+                    }
+                }
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.Space(10);
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                {
+                    EditorGUILayout.LabelField("Sub Effects", EditorStyles.boldLabel);
+                    EditorGUILayout.Space(5);
+
+                    if (GUILayout.Button("Add Sub Effect"))
+                    {
+                        effectRange.subEffectRanges.Add(
+                            new SubEffectRange
+                            {
+                                effectType = EffectType.None,
+                                minValue = 0f,
+                                maxValue = 1f,
+                                description = "",
+                                isEnabled = true,
+                            }
+                        );
+                        changed = true;
+                    }
+
+                    for (int i = 0; i < effectRange.subEffectRanges.Count; i++)
+                    {
+                        var subEffect = effectRange.subEffectRanges[i];
+                        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                        {
+                            EditorGUILayout.BeginHorizontal();
+                            {
+                                subEffect.isEnabled = EditorGUILayout.Toggle(
+                                    subEffect.isEnabled,
+                                    GUILayout.Width(20)
+                                );
+                                EditorGUI.BeginDisabledGroup(!subEffect.isEnabled);
+
+                                EditorGUILayout.BeginVertical();
+                                {
+                                    EffectType newEffectType = (EffectType)
+                                        EditorGUILayout.EnumPopup(
+                                            "Effect Type",
+                                            subEffect.effectType
+                                        );
+                                    if (newEffectType != subEffect.effectType)
+                                    {
+                                        subEffect.effectType = newEffectType;
+                                        changed = true;
+                                    }
+
+                                    string newSubDescription = EditorGUILayout.TextField(
+                                        "Description",
+                                        subEffect.description
+                                    );
+                                    if (newSubDescription != subEffect.description)
+                                    {
+                                        subEffect.description = newSubDescription;
+                                        changed = true;
+                                    }
+
+                                    EditorGUILayout.BeginHorizontal();
+                                    {
+                                        float newMinValue = EditorGUILayout.FloatField(
+                                            "Value Range",
+                                            subEffect.minValue
+                                        );
+                                        float newMaxValue = EditorGUILayout.FloatField(
+                                            "to",
+                                            subEffect.maxValue
+                                        );
+                                        if (
+                                            newMinValue != subEffect.minValue
+                                            || newMaxValue != subEffect.maxValue
+                                        )
+                                        {
+                                            subEffect.minValue = newMinValue;
+                                            subEffect.maxValue = newMaxValue;
+                                            changed = true;
+                                        }
+                                    }
+                                    EditorGUILayout.EndHorizontal();
+                                }
+                                EditorGUILayout.EndVertical();
+
+                                EditorGUI.EndDisabledGroup();
+                            }
+                            EditorGUILayout.EndHorizontal();
+
+                            if (GUILayout.Button("Remove Sub Effect"))
+                            {
+                                effectRange.subEffectRanges.RemoveAt(i);
+                                i--;
+                                changed = true;
+                            }
+                        }
+                        EditorGUILayout.EndVertical();
+                    }
+                }
+                EditorGUILayout.EndVertical();
+
+                EditorGUILayout.Space(10);
+                DrawApplicableSkillTypes(effectRange, ref changed);
+                DrawApplicableElementTypes(effectRange, ref changed);
+
+                EditorGUILayout.Space(20);
+                if (GUILayout.Button("Delete Effect Range", GUILayout.Height(30)))
+                {
+                    if (
+                        EditorUtility.DisplayDialog(
+                            "Delete Effect Range",
+                            $"Are you sure you want to delete the effect range '{effectRange.effectName}'?",
+                            "Yes",
+                            "No"
+                        )
+                    )
+                    {
+                        ItemDataEditorUtility.DeleteEffectRange(effectRange.effectId);
+                        selectedEffectRangeId = Guid.Empty;
+                        changed = true;
+                        GUIUtility.ExitGUI();
+                    }
+                }
+            }
+            EditorGUILayout.EndVertical();
+        }
+        EditorGUILayout.EndScrollView();
+
+        if (changed)
+        {
+            ItemDataEditorUtility.SaveEffectRangeDatabase();
+        }
+    }
+
+    private List<ItemEffectRange> FilterEffectRanges(List<ItemEffectRange> effects)
+    {
+        return effects
+            .Where(effect =>
+                (
+                    string.IsNullOrEmpty(effectRangeSearchText)
+                    || effect.effectName.ToLower().Contains(effectRangeSearchText.ToLower())
+                )
+                && (
+                    effectTypeFilter == EffectType.None
+                    || effect.subEffectRanges.Any(se => se.effectType == effectTypeFilter)
+                )
+            )
+            .ToList();
     }
 
     private void DrawStatRanges()
@@ -706,22 +1075,38 @@ public class ItemDataEditorWindow : EditorWindow
 
         try
         {
+            Dictionary<Guid, Sprite> iconReferences = new Dictionary<Guid, Sprite>();
+
+            foreach (var item in itemDatabase.Values)
+            {
+                if (item.Icon != null)
+                    iconReferences[item.ID] = item.Icon;
+            }
+
             foreach (var item in itemDatabase.Values)
             {
                 ItemDataEditorUtility.SaveItemData(item);
             }
 
             ItemDataEditorUtility.SaveDatabase();
-
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             EditorApplication.delayCall += () =>
             {
-                RefreshItemDatabase();
-            };
+                RefreshData();
 
-            Logger.Log(typeof(ItemDataEditorWindow), "All data saved successfully!");
+                foreach (var kvp in iconReferences)
+                {
+                    if (itemDatabase.TryGetValue(kvp.Key, out var item))
+                    {
+                        item.Icon = kvp.Value;
+                        ItemDataEditorUtility.SaveItemData(item);
+                    }
+                }
+
+                Repaint();
+            };
         }
         catch (Exception e)
         {
@@ -736,130 +1121,75 @@ public class ItemDataEditorWindow : EditorWindow
         }
     }
 
-    private void DrawEffects()
+    private void DrawEffectRangesSection()
     {
-        if (CurrentItem == null)
-            return;
+        EditorGUILayout.LabelField("Effect Ranges", EditorStyles.boldLabel);
 
-        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-        try
+        var database = ItemDataEditorUtility.GetEffectRangeDatabase();
+
+        EditorGUILayout.BeginHorizontal();
         {
-            bool changed = false;
-            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Add Effect Range", GUILayout.Width(120)))
             {
-                int newMinCount = EditorGUILayout.IntField(
-                    "Effect Count",
-                    CurrentItem.EffectRanges.minEffectCount
-                );
-                int newMaxCount = EditorGUILayout.IntField(
-                    "to",
-                    CurrentItem.EffectRanges.maxEffectCount
-                );
+                GenericMenu menu = new GenericMenu();
 
-                if (
-                    newMinCount != CurrentItem.EffectRanges.minEffectCount
-                    || newMaxCount != CurrentItem.EffectRanges.maxEffectCount
-                )
+                foreach (var effectRange in database.effectRanges)
                 {
-                    CurrentItem.EffectRanges.minEffectCount = newMinCount;
-                    CurrentItem.EffectRanges.maxEffectCount = newMaxCount;
-                    changed = true;
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.Space(5);
-
-            EditorGUILayout.LabelField("Possible Effects", EditorStyles.boldLabel);
-            for (int i = 0; i < CurrentItem.EffectRanges.possibleEffects.Count; i++)
-            {
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                {
-                    var effectRange = CurrentItem.EffectRanges.possibleEffects[i];
-
-                    EditorGUI.BeginDisabledGroup(true);
-                    EditorGUILayout.TextField("ID", effectRange.effectId.ToString());
-                    EditorGUI.EndDisabledGroup();
-
-                    string newEffectName = EditorGUILayout.TextField(
-                        "Name",
-                        effectRange.effectName
+                    bool isAlreadyAdded = CurrentItem.EffectRanges.effectIDs.Contains(
+                        effectRange.effectId
                     );
-                    if (newEffectName != effectRange.effectName)
+                    if (!isAlreadyAdded)
                     {
-                        effectRange.effectName = newEffectName;
-                        changed = true;
-                    }
-
-                    string newDescription = EditorGUILayout.TextField(
-                        "Description",
-                        effectRange.description
-                    );
-                    if (newDescription != effectRange.description)
-                    {
-                        effectRange.description = newDescription;
-                        changed = true;
-                    }
-
-                    EffectType newEffectType = (EffectType)
-                        EditorGUILayout.EnumPopup("Type", effectRange.effectType);
-                    if (newEffectType != effectRange.effectType)
-                    {
-                        effectRange.effectType = newEffectType;
-                        changed = true;
-                    }
-
-                    EditorGUILayout.BeginHorizontal();
-                    {
-                        float newMinValue = EditorGUILayout.FloatField(
-                            "Value Range",
-                            effectRange.minValue
+                        menu.AddItem(
+                            new GUIContent(effectRange.effectName),
+                            false,
+                            () =>
+                            {
+                                CurrentItem.EffectRanges.effectIDs.Add(effectRange.effectId);
+                                ItemDataEditorUtility.SaveItemData(CurrentItem);
+                            }
                         );
-                        float newMaxValue = EditorGUILayout.FloatField("to", effectRange.maxValue);
-                        if (
-                            newMinValue != effectRange.minValue
-                            || newMaxValue != effectRange.maxValue
-                        )
-                        {
-                            effectRange.minValue = newMinValue;
-                            effectRange.maxValue = newMaxValue;
-                            changed = true;
-                        }
-                    }
-                    EditorGUILayout.EndHorizontal();
-
-                    float newWeight = EditorGUILayout.Slider("Weight", effectRange.weight, 0f, 1f);
-                    if (newWeight != effectRange.weight)
-                    {
-                        effectRange.weight = newWeight;
-                        changed = true;
-                    }
-
-                    DrawApplicableSkillTypes(effectRange, ref changed);
-                    DrawApplicableElementTypes(effectRange, ref changed);
-
-                    if (GUILayout.Button("Remove Effect Range"))
-                    {
-                        ItemDataEditorUtility.RemoveEffectRange(CurrentItem, i);
-                        i--;
-                        changed = true;
                     }
                 }
-                EditorGUILayout.EndVertical();
-            }
 
-            if (GUILayout.Button("Add Effect Range"))
-            {
-                ItemDataEditorUtility.AddEffectRange(CurrentItem);
-                changed = true;
-            }
-
-            if (changed)
-            {
-                ItemDataEditorUtility.SaveEffects(CurrentItem);
+                menu.ShowAsContext();
             }
         }
-        finally
+        EditorGUILayout.EndHorizontal();
+
+        for (int i = 0; i < CurrentItem.EffectRanges.effectIDs.Count; i++)
         {
+            var effectRange = database.GetEffectRange(CurrentItem.EffectRanges.effectIDs[i]);
+            if (effectRange == null)
+                continue;
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            {
+                EditorGUILayout.LabelField($"Effect: {effectRange.effectName}");
+                EditorGUILayout.LabelField($"Description: {effectRange.description}");
+
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Sub Effects:", EditorStyles.boldLabel);
+                foreach (var subEffect in effectRange.subEffectRanges)
+                {
+                    if (!subEffect.isEnabled)
+                        continue;
+                    EditorGUILayout.LabelField(
+                        $"- {subEffect.effectType}: {subEffect.minValue} to {subEffect.maxValue}"
+                    );
+                    if (!string.IsNullOrEmpty(subEffect.description))
+                    {
+                        EditorGUILayout.LabelField($"  {subEffect.description}");
+                    }
+                }
+
+                if (GUILayout.Button("Remove"))
+                {
+                    CurrentItem.EffectRanges.effectIDs.RemoveAt(i);
+                    ItemDataEditorUtility.SaveItemData(CurrentItem);
+                    i--;
+                }
+            }
             EditorGUILayout.EndVertical();
         }
     }
@@ -918,72 +1248,239 @@ public class ItemDataEditorWindow : EditorWindow
     private void DrawDropTableEntry(DropTableData dropTable, int index, out bool shouldRemove)
     {
         shouldRemove = false;
+        if (
+            dropTable == null
+            || dropTable.dropEntries == null
+            || index < 0
+            || index >= dropTable.dropEntries.Count
+        )
+            return;
+
         var entry = dropTable.dropEntries[index];
+        EditorGUILayout.BeginVertical(GUI.skin.box);
 
         EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField($"Entry {index + 1}", EditorStyles.boldLabel);
+        if (GUILayout.Button("Remove", GUILayout.Width(60)))
         {
-            EditorGUILayout.LabelField($"Entry {index + 1}", EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("Remove", GUILayout.Width(60)))
-            {
-                shouldRemove = true;
-            }
+            shouldRemove = true;
+            return;
         }
         EditorGUILayout.EndHorizontal();
 
-        if (!shouldRemove)
+        EditorGUILayout.BeginHorizontal();
         {
-            EditorGUILayout.Space(2);
-            var items = itemDatabase.Values.Select(item => item.Name).ToArray();
-            int selectedIndex = Array.FindIndex(
-                items,
-                name =>
-                    itemDatabase.Values.FirstOrDefault(item => item.Name == name)?.ID
-                    == entry.itemId
-            );
-            EditorGUI.indentLevel++;
-            int newIndex = EditorGUILayout.Popup("Item", selectedIndex, items);
-            if (newIndex != selectedIndex && newIndex >= 0)
-            {
-                entry.itemId = itemDatabase.Values.ElementAt(newIndex).ID;
-                GUI.changed = true;
-            }
+            EditorGUILayout.LabelField("Item", GUILayout.Width(100));
 
-            float newDropRate = EditorGUILayout.Slider("Drop Rate", entry.dropRate, 0f, 1f);
-            if (newDropRate != entry.dropRate)
-            {
-                entry.dropRate = newDropRate;
-                GUI.changed = true;
-            }
+            string buttonText = "Select Item";
+            Color originalColor = GUI.color;
 
-            ItemRarity newRarity = (ItemRarity)
-                EditorGUILayout.EnumPopup("Min Rarity", entry.rarity);
-            if (newRarity != entry.rarity)
+            if (entry.itemId != Guid.Empty && itemDatabase.ContainsKey(entry.itemId))
             {
-                entry.rarity = newRarity;
-                GUI.changed = true;
-            }
+                var selectedItem = itemDatabase[entry.itemId];
+                buttonText = selectedItem.Name;
 
-            EditorGUILayout.BeginHorizontal();
-            {
-                EditorGUILayout.LabelField("Amount Range", GUILayout.Width(100));
-                int newMinAmount = EditorGUILayout.IntField(entry.minAmount, GUILayout.Width(50));
-                if (newMinAmount != entry.minAmount)
+                switch (selectedItem.Rarity)
                 {
-                    entry.minAmount = newMinAmount;
-                    GUI.changed = true;
-                }
-
-                EditorGUILayout.LabelField("to", GUILayout.Width(20));
-                int newMaxAmount = EditorGUILayout.IntField(entry.maxAmount, GUILayout.Width(50));
-                if (newMaxAmount != entry.maxAmount)
-                {
-                    entry.maxAmount = newMaxAmount;
-                    GUI.changed = true;
+                    case ItemRarity.Uncommon:
+                        GUI.color = new Color(0.0f, 1.0f, 0.0f);
+                        break;
+                    case ItemRarity.Rare:
+                        GUI.color = new Color(0.0f, 0.5f, 1.0f);
+                        break;
+                    case ItemRarity.Epic:
+                        GUI.color = new Color(0.5f, 0.0f, 1.0f);
+                        break;
+                    case ItemRarity.Legendary:
+                        GUI.color = new Color(1.0f, 0.5f, 0.0f);
+                        break;
                 }
             }
-            EditorGUILayout.EndHorizontal();
-            EditorGUI.indentLevel--;
+
+            if (GUILayout.Button(buttonText, GUILayout.Height(20)))
+            {
+                ItemSelectorPopup.Show(
+                    itemDatabase,
+                    (selectedItem) =>
+                    {
+                        entry.itemId = selectedItem.ID;
+                        entry.rarity = selectedItem.Rarity;
+                        GUI.changed = true;
+                        SaveDropTableChanges();
+                    }
+                );
+            }
+
+            GUI.color = originalColor;
+        }
+        EditorGUILayout.EndHorizontal();
+
+        float newDropRate = EditorGUILayout.Slider("Drop Rate", entry.dropRate, 0f, 1f);
+        if (Math.Abs(newDropRate - entry.dropRate) > float.Epsilon)
+        {
+            entry.dropRate = newDropRate;
+            GUI.changed = true;
+        }
+
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Amount Range", GUILayout.Width(100));
+
+        EditorGUILayout.LabelField("Min:", GUILayout.Width(30));
+        int newMinQuantity = EditorGUILayout.IntField(entry.minAmount, GUILayout.Width(50));
+
+        EditorGUILayout.LabelField("Max:", GUILayout.Width(30));
+        int newMaxQuantity = EditorGUILayout.IntField(entry.maxAmount, GUILayout.Width(50));
+
+        if (newMinQuantity != entry.minAmount || newMaxQuantity != entry.maxAmount)
+        {
+            entry.minAmount = Mathf.Max(1, newMinQuantity);
+            entry.maxAmount = Mathf.Max(entry.minAmount, newMaxQuantity);
+            GUI.changed = true;
+        }
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.EndVertical();
+    }
+
+    public class ItemSelectorPopup : EditorWindow
+    {
+        private string searchText = "";
+        private Vector2 scrollPosition;
+        private ItemType typeFilter = ItemType.None;
+        private ItemRarity rarityFilter = ItemRarity.Common;
+        private Dictionary<Guid, ItemData> itemDatabase;
+        private Action<ItemData> onItemSelected;
+
+        public static void Show(Dictionary<Guid, ItemData> database, Action<ItemData> callback)
+        {
+            if (database == null || database.Count == 0)
+            {
+                EditorUtility.DisplayDialog(
+                    "알림",
+                    "아이템 데이터베이스가 비어있습니다.\n먼저 아이템을 생성해주세요.",
+                    "확인"
+                );
+                return;
+            }
+
+            var window = GetWindow<ItemSelectorPopup>("아이템 선택");
+            window.itemDatabase = database;
+            window.onItemSelected = callback;
+            window.minSize = new Vector2(400, 500);
+            window.maxSize = new Vector2(600, 800);
+            window.ShowAuxWindow();
+        }
+
+        private void OnGUI()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            {
+                EditorGUILayout.LabelField("검색 & 필터", EditorStyles.boldLabel);
+                searchText = EditorGUILayout.TextField("검색", searchText);
+                typeFilter = (ItemType)EditorGUILayout.EnumPopup("아이템 타입", typeFilter);
+                rarityFilter = (ItemRarity)EditorGUILayout.EnumPopup("희귀도", rarityFilter);
+            }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space(10);
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            {
+                EditorGUILayout.LabelField("아이템 목록", EditorStyles.boldLabel);
+
+                var filteredItems = itemDatabase
+                    .Values.Where(item =>
+                        (
+                            string.IsNullOrEmpty(searchText)
+                            || item.Name.ToLower().Contains(searchText.ToLower())
+                        )
+                        && (typeFilter == ItemType.None || item.Type == typeFilter)
+                        && (item.Rarity >= rarityFilter)
+                    )
+                    .OrderBy(item => item.Rarity)
+                    .ThenBy(item => item.Name)
+                    .ToList();
+
+                if (filteredItems.Count == 0)
+                {
+                    EditorGUILayout.HelpBox(
+                        "검색 조건에 맞는 아이템이 없습니다.\n필터 조건을 변경해보세요.",
+                        MessageType.Info
+                    );
+                }
+                else
+                {
+                    scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+                    ItemRarity currentRarity = ItemRarity.Common;
+                    foreach (var item in filteredItems)
+                    {
+                        if (item.Rarity != currentRarity)
+                        {
+                            EditorGUILayout.Space(5);
+                            EditorGUILayout.LabelField(
+                                $"[ {item.Rarity} ]",
+                                EditorStyles.boldLabel
+                            );
+                            currentRarity = item.Rarity;
+                        }
+
+                        EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+                        {
+                            if (item.Icon != null)
+                            {
+                                GUILayout.Label(
+                                    new GUIContent(item.Icon.texture),
+                                    GUILayout.Width(32),
+                                    GUILayout.Height(32)
+                                );
+                            }
+                            else
+                            {
+                                GUILayout.Label(
+                                    "No Icon",
+                                    GUILayout.Width(32),
+                                    GUILayout.Height(32)
+                                );
+                            }
+
+                            EditorGUILayout.BeginVertical();
+                            {
+                                EditorGUILayout.LabelField(item.Name, EditorStyles.boldLabel);
+                                EditorGUILayout.LabelField(
+                                    $"타입: {item.Type}",
+                                    EditorStyles.miniLabel
+                                );
+                                if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    EditorGUILayout.LabelField(
+                                        item.Description,
+                                        EditorStyles.miniLabel
+                                    );
+                                }
+                            }
+                            EditorGUILayout.EndVertical();
+
+                            if (GUILayout.Button("선택", GUILayout.Width(60)))
+                            {
+                                onItemSelected?.Invoke(item);
+                                Close();
+                            }
+                        }
+                        EditorGUILayout.EndHorizontal();
+                    }
+
+                    EditorGUILayout.EndScrollView();
+                }
+            }
+            EditorGUILayout.EndVertical();
+
+            EditorGUILayout.Space(10);
+
+            if (GUILayout.Button("취소"))
+            {
+                Close();
+            }
         }
     }
 }

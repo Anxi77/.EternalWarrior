@@ -27,8 +27,10 @@ public class PlayerInput : MonoBehaviour
 
         if (moveAction != null)
         {
-            moveAction.performed += Move;
+            moveAction.performed += GetMoveInput;
+            moveAction.canceled += StopMovement;
         }
+        playerInput.Enable();
     }
 
     private void Update()
@@ -39,14 +41,15 @@ public class PlayerInput : MonoBehaviour
         }
     }
 
-    private void Move(InputAction.CallbackContext context)
+    private void GetMoveInput(InputAction.CallbackContext context)
     {
-        if (context.ReadValue<Vector2>() != Vector2.zero)
-        {
-            var moveDirection = context.ReadValue<Vector2>();
-            Logger.Log(typeof(PlayerInput), $"Move: {moveDirection}");
-            moveQueue.Enqueue(moveDirection);
-        }
+        var moveDirection = context.ReadValue<Vector2>();
+        moveQueue.Enqueue(moveDirection);
+    }
+
+    private void StopMovement(InputAction.CallbackContext context)
+    {
+        moveQueue.Enqueue(Vector2.zero);
     }
 
     private void OpenInventory(InputAction.CallbackContext context)
@@ -54,8 +57,11 @@ public class PlayerInput : MonoBehaviour
         UIManager.Instance.OpenPanel(PanelType.Inventory);
     }
 
-    private void OnDisable()
+    public void Cleanup()
     {
         inventoryAction.performed -= OpenInventory;
+        moveAction.performed -= GetMoveInput;
+        moveAction.canceled -= StopMovement;
+        playerInput.Disable();
     }
 }

@@ -96,7 +96,7 @@ public class ItemGenerator : MonoBehaviour
 
     private void GenerateEffects(ItemData item)
     {
-        if (item.EffectRanges == null || item.EffectRanges.possibleEffects == null)
+        if (item.EffectRanges == null || item.EffectRanges.effectIDs == null)
         {
             Logger.LogWarning(
                 typeof(ItemGenerator),
@@ -112,34 +112,56 @@ public class ItemGenerator : MonoBehaviour
             item.EffectRanges.minEffectCount,
             Mathf.Min(
                 item.EffectRanges.maxEffectCount + additionalEffects + 1,
-                item.EffectRanges.possibleEffects.Count
+                item.EffectRanges.effectIDs.Count
             )
         );
 
         Logger.Log(typeof(ItemGenerator), $"Generating {effectCount} effects for item {item.Name}");
 
-        var availableEffects = item.EffectRanges.possibleEffects.ToList();
+        var availableEffects = item
+            .EffectRanges.effectIDs.Select(id => ItemDataManager.Instance.GetEffectRange(id))
+            .ToList();
 
         for (int i = 0; i < effectCount && availableEffects.Any(); i++)
         {
             var selectedEffect = SelectEffectByWeight(availableEffects);
             if (selectedEffect != null)
             {
-                float value = GenerateEffectValue(selectedEffect, item.Rarity);
-                var effectData = new ItemEffectData
+                var effectData = new ItemEffect
                 {
                     effectId = selectedEffect.effectId,
                     effectName = selectedEffect.effectName,
-                    effectType = selectedEffect.effectType,
-                    value = value,
+                    description = selectedEffect.description,
                     applicableSkills = selectedEffect.applicableSkills,
                     applicableElements = selectedEffect.applicableElements,
+                    subEffects = new List<SubEffect>(),
                 };
+
+                foreach (var subEffectRange in selectedEffect.subEffectRanges)
+                {
+                    if (!subEffectRange.isEnabled)
+                        continue;
+
+                    float value = GenerateEffectValue(subEffectRange, item.Rarity);
+                    var subEffect = new SubEffect
+                    {
+                        effectType = subEffectRange.effectType,
+                        value = value,
+                        description = subEffectRange.description,
+                        isEnabled = true,
+                    };
+
+                    effectData.subEffects.Add(subEffect);
+                    Logger.Log(
+                        typeof(ItemGenerator),
+                        $"Added sub-effect: {subEffectRange.effectType} with value {value}"
+                    );
+                }
 
                 item.AddEffect(effectData);
                 Logger.Log(
                     typeof(ItemGenerator),
-                    $"Added effect: {effectData.effectName} with value {value}"
+                    $"Added effect: {effectData.effectName} with {effectData.subEffects.Count} sub-effects"
                 );
                 availableEffects.Remove(selectedEffect);
             }
@@ -204,13 +226,35 @@ public class ItemGenerator : MonoBehaviour
         return finalValue;
     }
 
-    private float GenerateEffectValue(ItemEffectRange effectRange, ItemRarity rarity)
+    private float GenerateEffectValue(SubEffectRange effectRange, ItemRarity rarity)
     {
-        float baseValue = (float)(
-            Random.value * (effectRange.maxValue - effectRange.minValue) + effectRange.minValue
-        );
-        float rarityMultiplier = 1 + ((int)rarity * 0.2f);
-        return baseValue * rarityMultiplier;
+        float baseMin = effectRange.minValue;
+        float baseMax = effectRange.maxValue;
+
+        float rarityMultiplier = GetRarityMultiplier(rarity);
+        float adjustedMin = baseMin * rarityMultiplier;
+        float adjustedMax = baseMax * rarityMultiplier;
+
+        return Random.Range(adjustedMin, adjustedMax);
+    }
+
+    private float GetRarityMultiplier(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Common:
+                return 1.0f;
+            case ItemRarity.Uncommon:
+                return 1.2f;
+            case ItemRarity.Rare:
+                return 1.5f;
+            case ItemRarity.Epic:
+                return 2.0f;
+            case ItemRarity.Legendary:
+                return 2.5f;
+            default:
+                return 1.0f;
+        }
     }
 
     public List<Item> GenerateDrops(DropTableData dropTable, float luckMultiplier = 1f)

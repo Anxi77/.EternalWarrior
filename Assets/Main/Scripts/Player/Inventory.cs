@@ -9,7 +9,7 @@ public class Inventory : MonoBehaviour
     private List<InventorySlot> equipmentSlots = new();
 
     [SerializeField]
-    private PlayerStat playerStat;
+    private Player player;
 
     [SerializeField]
     private int gold = 0;
@@ -19,11 +19,11 @@ public class Inventory : MonoBehaviour
 
     private InventoryPanel inventoryPanel;
 
-    public void Initialize(PlayerStat playerStat)
+    public void Initialize(Player player)
     {
         if (!IsInitialized)
         {
-            this.playerStat = playerStat;
+            this.player = player;
 
             foreach (SlotType slotType in Enum.GetValues(typeof(SlotType)))
             {
@@ -197,10 +197,7 @@ public class Inventory : MonoBehaviour
 
         if (equipSlot != null && equipSlot.item != null && equipSlot.isEquipped)
         {
-            foreach (var stat in equipSlot.item.GetItemData().Stats)
-            {
-                playerStat.RemoveModifier(stat);
-            }
+            equipSlot.item.OnUnequip(player);
             equipSlot.RemoveItem();
             var inventorySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
             if (inventorySlot != null)
@@ -236,10 +233,7 @@ public class Inventory : MonoBehaviour
         {
             equipmentSlots.Find(slot => slot.slotType == slotType).AddItem(item);
 
-            foreach (var stat in item.GetItemData().Stats)
-            {
-                playerStat.AddModifier(stat);
-            }
+            item.OnEquip(player);
 
             var inventorySlot = inventorySlots.Find(s => s.item == item);
 

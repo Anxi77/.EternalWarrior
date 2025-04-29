@@ -200,13 +200,13 @@ public static class ItemDataExtensions
 }
 
 [Serializable]
-public class SerializableItemList
+public class ItemList
 {
     public List<ItemData> items = new();
 }
 
 [Serializable]
-public class DropTablesWrapper
+public class DropTableList
 {
     public List<DropTableData> dropTables = new();
 }
@@ -242,7 +242,7 @@ public class ItemData
     public List<StatModifier> Stats = new();
 
     [JsonIgnore]
-    public List<ItemEffectData> Effects = new();
+    public List<ItemEffect> Effects = new();
 
     [JsonIgnore]
     public Sprite Icon;
@@ -272,7 +272,7 @@ public class ItemData
     #endregion
 
     #region Effects Management
-    public void AddEffect(ItemEffectData effect)
+    public void AddEffect(ItemEffect effect)
     {
         if (effect == null)
             return;
@@ -281,16 +281,16 @@ public class ItemData
 
     public void RemoveEffect(Guid effectId) => Effects.RemoveAll(e => e.effectId == effectId);
 
-    public ItemEffectData GetEffect(Guid effectId) =>
+    public ItemEffect GetEffect(Guid effectId) =>
         Effects.FirstOrDefault(e => e.effectId == effectId);
 
-    public List<ItemEffectData> GetEffectsByType(EffectType type) =>
-        Effects.Where(e => e.effectType == type).ToList();
+    public List<ItemEffect> GetEffectsByType(EffectType type) =>
+        Effects.Where(e => e.subEffects.Any(se => se.effectType == type)).ToList();
 
-    public List<ItemEffectData> GetEffectsForSkill(SkillType skillType) =>
+    public List<ItemEffect> GetEffectsForSkill(SkillType skillType) =>
         Effects.Where(e => e.applicableSkills?.Contains(skillType) ?? false).ToList();
 
-    public List<ItemEffectData> GetEffectsForElement(ElementType elementType) =>
+    public List<ItemEffect> GetEffectsForElement(ElementType elementType) =>
         Effects.Where(e => e.applicableElements?.Contains(elementType) ?? false).ToList();
 
     #endregion
@@ -340,9 +340,7 @@ public class ItemEffectRange
     public Guid effectId = Guid.NewGuid();
     public string effectName;
     public string description;
-    public EffectType effectType;
-    public float minValue;
-    public float maxValue;
+    public List<SubEffectRange> subEffectRanges = new();
     public float weight = 1f;
     public SkillType[] applicableSkills;
     public ElementType[] applicableElements;
@@ -351,18 +349,47 @@ public class ItemEffectRange
 [Serializable]
 public class ItemEffectRangeData
 {
-    public List<ItemEffectRange> possibleEffects = new List<ItemEffectRange>();
+    public List<Guid> effectIDs = new List<Guid>();
     public int minEffectCount = 1;
     public int maxEffectCount = 3;
 }
 
 [Serializable]
-public class ItemEffectData
+public class ItemEffectRangeDatabase
+{
+    public List<ItemEffectRange> effectRanges = new List<ItemEffectRange>();
+
+    public ItemEffectRange GetEffectRange(Guid id)
+    {
+        return effectRanges.FirstOrDefault(x => x.effectId == id);
+    }
+
+    public void AddEffectRange(ItemEffectRange range)
+    {
+        if (range == null)
+            return;
+
+        var existing = effectRanges.FirstOrDefault(x => x.effectId == range.effectId);
+        if (existing != null)
+        {
+            effectRanges.Remove(existing);
+        }
+        effectRanges.Add(range);
+    }
+
+    public void RemoveEffectRange(Guid id)
+    {
+        effectRanges.RemoveAll(x => x.effectId == id);
+    }
+}
+
+[Serializable]
+public class ItemEffect
 {
     public Guid effectId = Guid.NewGuid();
     public string effectName;
-    public EffectType effectType;
-    public float value;
+    public string description;
+    public List<SubEffect> subEffects = new();
     public ItemRarity minRarity;
     public ItemType[] applicableTypes;
     public SkillType[] applicableSkills;
@@ -392,6 +419,31 @@ public class ItemEffectData
             return false;
         return true;
     }
+}
+
+[Serializable]
+public class SubEffect
+{
+    public EffectType effectType;
+    public float value;
+    public string description;
+    public bool isEnabled = true;
+}
+
+[Serializable]
+public class SubEffectRange
+{
+    public EffectType effectType;
+    public float minValue;
+    public float maxValue;
+    public string description;
+    public bool isEnabled = true;
+}
+
+public class ItemEffecta
+{
+    public EffectType effectType;
+    public float value;
 }
 #endregion
 
@@ -430,6 +482,25 @@ public class DropTableData
 
     [SerializeField]
     public int maxDrops = 3;
+}
+
+public static class RarerityColor
+{
+    public static Color Common = ColorUtility.TryParseHtmlString("#808080", out var common)
+        ? common
+        : Color.grey;
+    public static Color Uncommon = ColorUtility.TryParseHtmlString("#73FF73", out var uncommon)
+        ? uncommon
+        : Color.green;
+    public static Color Rare = ColorUtility.TryParseHtmlString("#73CCFF", out var rare)
+        ? rare
+        : Color.blue;
+    public static Color Epic = ColorUtility.TryParseHtmlString("#CC73FF", out var epic)
+        ? epic
+        : Color.magenta;
+    public static Color Legendary = ColorUtility.TryParseHtmlString("#FFD700", out var legendary)
+        ? legendary
+        : Color.yellow;
 }
 
 #endregion

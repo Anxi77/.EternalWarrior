@@ -2,35 +2,42 @@ using System.Collections.Generic;
 
 public static class SkillEffectFactory
 {
-    public static List<ISkillInteractionEffect> CreateEffects(ItemData itemData)
+    public static List<SkillIneractionEffect> CreateEffects(ItemData itemData)
     {
-        var effects = new List<ISkillInteractionEffect>();
+        var effects = new List<SkillIneractionEffect>();
 
         foreach (var effectData in itemData.Effects)
         {
             var effect = CreateEffectFromData(effectData);
             if (effect != null)
             {
-                effects.Add(effect);
+                effects.AddRange(effect);
             }
         }
 
         return effects;
     }
 
-    private static ISkillInteractionEffect CreateEffectFromData(ItemEffectData effectData)
+    private static List<SkillIneractionEffect> CreateEffectFromData(ItemEffect effectData)
     {
-        return effectData.effectType switch
+        var effects = new List<SkillIneractionEffect>();
+        foreach (var subEffect in effectData.subEffects)
         {
-            EffectType.DamageBonus => new SkillStatAmplifierEffect(effectData),
-            EffectType.CooldownReduction => new SkillStatAmplifierEffect(effectData),
-            EffectType.ProjectileSpeed => new SkillStatAmplifierEffect(effectData),
-            EffectType.ProjectileRange => new SkillStatAmplifierEffect(effectData),
-            EffectType.HomingEffect => new HomingActivatorEffect(effectData),
-            EffectType.AreaRadius => new SkillStatAmplifierEffect(effectData),
-            EffectType.AreaDuration => new SkillStatAmplifierEffect(effectData),
-            EffectType.ElementalPower => new ElementalAmplifierEffect(effectData),
-            _ => null,
-        };
+            effects.Add(
+                subEffect.effectType switch
+                {
+                    EffectType.DamageBonus => new SkillIneractionEffect(effectData),
+                    EffectType.CooldownReduction => new SkillIneractionEffect(effectData),
+                    EffectType.ProjectileSpeed => new SkillIneractionEffect(effectData),
+                    EffectType.ProjectileRange => new SkillIneractionEffect(effectData),
+                    EffectType.HomingEffect => new SkillIneractionEffect(effectData),
+                    EffectType.AreaRadius => new SkillIneractionEffect(effectData),
+                    EffectType.AreaDuration => new SkillIneractionEffect(effectData),
+                    EffectType.ElementalPower => new SkillIneractionEffect(effectData),
+                    _ => null,
+                }
+            );
+        }
+        return effects;
     }
 }

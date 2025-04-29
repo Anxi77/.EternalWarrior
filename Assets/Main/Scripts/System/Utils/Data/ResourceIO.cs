@@ -28,7 +28,6 @@ public static class ResourceIO<T>
     {
         if (data == null || string.IsNullOrEmpty(path))
         {
-            Logger.LogWarning(typeof(ResourceIO<T>), "Cannot save null data or empty path");
             return false;
         }
 
@@ -63,7 +62,6 @@ public static class ResourceIO<T>
             return resourceData;
         }
 
-        Logger.LogWarning(typeof(ResourceIO<T>), $"Failed to load resource: {key}");
         return null;
     }
 

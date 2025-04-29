@@ -21,7 +21,7 @@ public abstract class Singleton<T> : MonoBehaviour
             {
                 Logger.Log(
                     typeof(Singleton<T>),
-                    $"[{typeof(T)}] Creating new instance \n{GetCallStack()}"
+                    $"Creating new instance of {typeof(T).Name} \n{GetCallStack()}"
                 );
                 var go = new GameObject(typeof(T).Name);
                 instance = go.AddComponent<T>();

@@ -84,6 +84,7 @@ public enum AccessoryType
 [Serializable]
 public enum ItemRarity
 {
+    None,
     Common,
     Uncommon,
     Rare,
