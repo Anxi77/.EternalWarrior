@@ -52,7 +52,7 @@ public class SkillPanel : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error in LevelUpPanelOpen: {e.Message}");
+            Logger.LogError(typeof(SkillPanel), $"Error in LevelUpPanelOpen: {e.Message}");
             ShowError("Failed to open level up panel");
         }
     }
@@ -136,7 +136,7 @@ public class SkillPanel : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error in skill selection: {e.Message}");
+            Logger.LogError(typeof(SkillPanel), $"Error in skill selection: {e.Message}");
             ShowError("Failed to process skill selection");
         }
     }
@@ -174,13 +174,13 @@ public class SkillPanel : MonoBehaviour
     {
         if (skillData == null)
         {
-            Debug.LogError("Skill Data is null");
+            Logger.LogError(typeof(SkillPanel), "Skill Data is null");
             return false;
         }
 
         if (skillData.BasePrefab == null)
         {
-            Debug.LogError($"Missing prefab for skill: {skillData.Name}");
+            Logger.LogError(typeof(SkillPanel), $"Missing prefab for skill: {skillData.Name}");
             return false;
         }
 
@@ -198,7 +198,7 @@ public class SkillPanel : MonoBehaviour
             }
             StartCoroutine(HideErrorAfterDelay(3f));
         }
-        Debug.LogError(message);
+        Logger.LogError(typeof(SkillPanel), message);
     }
 
     private IEnumerator HideErrorAfterDelay(float delay)
@@ -212,6 +212,6 @@ public class SkillPanel : MonoBehaviour
 
     private void ShowElementalHeader(ElementType element)
     {
-        Debug.Log($"Selected Element: {element}");
+        Logger.Log(typeof(SkillPanel), $"Selected Element: {element}");
     }
 }

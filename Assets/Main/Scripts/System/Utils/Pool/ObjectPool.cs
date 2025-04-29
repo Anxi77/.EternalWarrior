@@ -66,7 +66,8 @@ public class ObjectPool : MonoBehaviour
                 Destroy(obj.gameObject);
             }
 
-            Debug.Log(
+            Logger.Log(
+                typeof(ObjectPool),
                 $"Optimized pool {tag}: Size={pool.Count}, MaxUsed={stats.maxUsed}, TotalSpawns={stats.totalSpawns}"
             );
         }
@@ -81,7 +82,7 @@ public class ObjectPool : MonoBehaviour
             if (currentTime - stats.lastUsedTime > UNUSED_THRESHOLD && stats.currentActive == 0)
             {
                 ClearPool(tag);
-                Debug.Log($"Cleaned up unused pool: {tag}");
+                Logger.Log(typeof(ObjectPool), $"Cleaned up unused pool: {tag}");
             }
         }
     }
@@ -139,7 +140,10 @@ public class ObjectPool : MonoBehaviour
         T component = prefab.GetComponent<T>();
         if (component == null)
         {
-            Debug.LogError($"Prefab {prefab.name} does not have component of type {typeof(T)}");
+            Logger.LogError(
+                typeof(ObjectPool),
+                $"Prefab {prefab.name} does not have component of type {typeof(T)}"
+            );
             return null;
         }
 

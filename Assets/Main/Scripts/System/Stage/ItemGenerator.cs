@@ -54,7 +54,10 @@ public class ItemGenerator : MonoBehaviour
     {
         if (item.StatRanges == null || item.StatRanges.possibleStats == null)
         {
-            Debug.LogWarning($"No stat ranges defined for item: {item.Name}");
+            Logger.LogWarning(
+                typeof(ItemGenerator),
+                $"No stat ranges defined for item: {item.Name}"
+            );
             return;
         }
 
@@ -69,7 +72,7 @@ public class ItemGenerator : MonoBehaviour
             )
         );
 
-        Debug.Log($"Generating {statCount} stats for item {item.Name}");
+        Logger.Log(typeof(ItemGenerator), $"Generating {statCount} stats for item {item.Name}");
 
         var availableStats = item.StatRanges.possibleStats.ToList();
 
@@ -85,7 +88,7 @@ public class ItemGenerator : MonoBehaviour
                     new StatModifier(selectedStat.statType, sourceType, IncreaseType.Flat, value)
                 );
 
-                Debug.Log($"Added stat: {selectedStat.statType} = {value}");
+                Logger.Log(typeof(ItemGenerator), $"Added stat: {selectedStat.statType} = {value}");
                 availableStats.Remove(selectedStat);
             }
         }
@@ -95,7 +98,10 @@ public class ItemGenerator : MonoBehaviour
     {
         if (item.EffectRanges == null || item.EffectRanges.possibleEffects == null)
         {
-            Debug.LogWarning($"No effect ranges defined for item: {item.Name}");
+            Logger.LogWarning(
+                typeof(ItemGenerator),
+                $"No effect ranges defined for item: {item.Name}"
+            );
             return;
         }
 
@@ -110,7 +116,7 @@ public class ItemGenerator : MonoBehaviour
             )
         );
 
-        Debug.Log($"Generating {effectCount} effects for item {item.Name}");
+        Logger.Log(typeof(ItemGenerator), $"Generating {effectCount} effects for item {item.Name}");
 
         var availableEffects = item.EffectRanges.possibleEffects.ToList();
 
@@ -131,7 +137,10 @@ public class ItemGenerator : MonoBehaviour
                 };
 
                 item.AddEffect(effectData);
-                Debug.Log($"Added effect: {effectData.effectName} with value {value}");
+                Logger.Log(
+                    typeof(ItemGenerator),
+                    $"Added effect: {effectData.effectName} with value {value}"
+                );
                 availableEffects.Remove(selectedEffect);
             }
         }
@@ -208,7 +217,7 @@ public class ItemGenerator : MonoBehaviour
     {
         if (dropTable == null || dropTable.dropEntries == null)
         {
-            Debug.LogWarning("Invalid drop table");
+            Logger.LogWarning(typeof(ItemGenerator), "Invalid drop table");
             return new List<Item>();
         }
 
@@ -238,7 +247,10 @@ public class ItemGenerator : MonoBehaviour
                 {
                     drops.Add(item);
                     dropCount++;
-                    Debug.Log($"Generated drop: {item.GetItemData().Name} x{dropCount}");
+                    Logger.Log(
+                        typeof(ItemGenerator),
+                        $"Generated drop: {item.GetItemData().Name} x{dropCount}"
+                    );
                 }
             }
         }
@@ -260,7 +272,10 @@ public class ItemGenerator : MonoBehaviour
                 var item = GenerateItem(entry.itemId, entry.rarity);
                 if (item != null)
                 {
-                    Debug.Log($"Generated guaranteed drop: {item.GetItemData().Name} x{1}");
+                    Logger.Log(
+                        typeof(ItemGenerator),
+                        $"Generated guaranteed drop: {item.GetItemData().Name} x 1"
+                    );
                     return item;
                 }
             }

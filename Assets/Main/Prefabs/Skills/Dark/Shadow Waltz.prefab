@@ -46,36 +46,41 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   skillData:
-    icon: {fileID: 0}
-    projectile: {fileID: 0}
-    prefabsByLevel: []
-    projectileStat:
-      projectileSpeed: 0
-      projectileScale: 0
-      shotInterval: 0
-      pierceCount: 0
-      attackRange: 0
-      homingRange: 0
-      isHoming: 0
-      explosionRad: 0
-      projectileCount: 0
-      innerInterval: 0
-    areaStat:
-      radius: 0
-      duration: 0
-      tickRate: 0
-      isPersistent: 0
-      moveSpeed: 0
-    passiveStat:
-      effectDuration: 0
-      cooldown: 0
-      triggerChance: 0
+    ID: 100000
+    Name: None
+    Description: None
+    Type: 0
+    Element: 0
+    Tier: 0
+    Tags: []
+    BasePrefab: {fileID: 0}
+    levelDataList: []
+    Icon: {fileID: 0}
+    ProjectilePrefab: {fileID: 0}
+    PrefabsByLevel: []
+    currentBaseSkillStat:
+      damage: 10
+      skillLevel: 1
+      maxSkillLevel: 5
+      element: 0
+      elementalPower: 1
+    currentSkillStat:
+      rid: -2
+  currentLevel: 1
   _damage: 10
+  _elementalPower: 1
   _radius: 1.2
   _duration: 5
   _tickRate: 0.1
   _isPersistent: 1
   _moveSpeed: 360
+  ORBS_PER_LEVEL: 2
+  BASE_ORB_COUNT: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!1 &2343403328948083919
 GameObject:
   m_ObjectHideFlags: 0

@@ -15,8 +15,6 @@ public static class ResourceIO<T>
     where T : Object
 {
     private const string RESOURCES_PATH = "Assets/Resources/";
-    private const string LOG_PREFIX = "[ResourceIO] ";
-
     private static readonly Dictionary<string, T> cache = new Dictionary<string, T>();
 
     /// <summary>
@@ -25,41 +23,30 @@ public static class ResourceIO<T>
     /// <param name="path">저장할 경로</param>
     /// <param name="data">저장할 데이터</param>
     /// <returns>저장 성공 여부</returns>
+#if UNITY_EDITOR
     public static bool SaveData(string path, T data)
     {
         if (data == null || string.IsNullOrEmpty(path))
         {
-            Debug.LogWarning($"{LOG_PREFIX}Cannot save null data or empty path");
+            Logger.LogWarning(typeof(ResourceIO<T>), "Cannot save null data or empty path");
             return false;
         }
 
-        if (typeof(T) == typeof(GameObject))
+        if (data is Sprite sprite)
         {
-            SavePrefab(path, data as GameObject);
+            SaveSprite(path, sprite);
         }
-        else
+        else if (data is GameObject prefab)
         {
-            string directory = Path.Combine(RESOURCES_PATH, path);
-
-#if UNITY_EDITOR
-
-            if (data is Sprite sprite)
-            {
-                SaveSprite(path, sprite);
-            }
-            else if (data is GameObject prefab)
-            {
-                SavePrefab(path, prefab);
-            }
-
-            AssetDatabase.Refresh();
-#endif
-            cache[path] = data;
-            Debug.Log($"{LOG_PREFIX}Saved resource to: {path}");
-            return true;
+            SavePrefab(path, prefab);
         }
-        return false;
+
+        AssetDatabase.Refresh();
+        cache[path] = data;
+        Logger.Log(typeof(ResourceIO<T>), $"Saved resource to: {path}");
+        return true;
     }
+#endif
 
     public static T LoadData(string key)
     {
@@ -76,14 +63,14 @@ public static class ResourceIO<T>
             return resourceData;
         }
 
-        Debug.LogWarning($"Failed to load resource: {key}");
+        Logger.LogWarning(typeof(ResourceIO<T>), $"Failed to load resource: {key}");
         return null;
     }
 
 #if UNITY_EDITOR
     public static bool DeleteData(string key)
     {
-        Debug.Log($"{LOG_PREFIX}Deleting resource: {key}");
+        Logger.Log(typeof(ResourceIO<T>), $"Deleting resource: {key}");
         string assetPath = Path.Combine(RESOURCES_PATH, key);
         if (File.Exists(assetPath))
         {
@@ -111,12 +98,15 @@ public static class ResourceIO<T>
             string sourcePath = AssetDatabase.GetAssetPath(sprite);
             if (string.IsNullOrEmpty(sourcePath))
             {
-                Debug.LogError("Source sprite path is null or empty");
+                Logger.LogError(typeof(ResourceIO<T>), "Source sprite path is null or empty");
                 return;
             }
 
             string targetPath = Path.Combine(RESOURCES_PATH, path + ".png");
             string directory = Path.GetDirectoryName(targetPath);
+            directory = directory.Replace("\\", "/");
+
+            Logger.Log(typeof(ResourceIO<T>), $"Directory: {directory}");
 
             if (!Directory.Exists(directory))
             {
@@ -125,7 +115,10 @@ public static class ResourceIO<T>
 
             if (sourcePath.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
             {
-                Debug.Log($"Source and target are the same, skipping copy: {targetPath}");
+                Logger.Log(
+                    typeof(ResourceIO<T>),
+                    $"Source and target are the same, skipping copy: {targetPath}"
+                );
                 return;
             }
 
@@ -147,12 +140,18 @@ public static class ResourceIO<T>
             }
             else
             {
-                Debug.LogError($"Failed to copy sprite from {sourcePath} to {targetPath}");
+                Logger.LogError(
+                    typeof(ResourceIO<T>),
+                    $"Failed to copy sprite from {sourcePath} to {targetPath}"
+                );
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving sprite: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ResourceIO<T>),
+                $"Error saving sprite: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -160,7 +159,7 @@ public static class ResourceIO<T>
     {
         if (prefab == null)
         {
-            Debug.LogError($"Cannot save null prefab to path: {path}");
+            Logger.LogError(typeof(ResourceIO<T>), $"Cannot save null prefab to path: {path}");
             return;
         }
 
@@ -168,7 +167,8 @@ public static class ResourceIO<T>
         {
             if (PrefabUtility.GetPrefabAssetType(prefab) == PrefabAssetType.NotAPrefab)
             {
-                Debug.LogError(
+                Logger.LogError(
+                    typeof(ResourceIO<T>),
                     "Cannot save an instance of a prefab. Please use the original prefab from the Project window."
                 );
                 return;
@@ -187,7 +187,7 @@ public static class ResourceIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving prefab: {e.Message}");
+            Logger.LogError(typeof(ResourceIO<T>), $"Error saving prefab: {e.Message}");
         }
     }
 

@@ -157,11 +157,6 @@ public class ItemDataEditorWindow : EditorWindow
                 LoadAllData();
             }
             GUILayout.Space(10);
-            if (GUILayout.Button("Create Backup", EditorStyles.toolbarButton, GUILayout.Width(100)))
-            {
-                ItemDataEditorUtility.SaveWithBackup();
-            }
-            GUILayout.Space(10);
             if (
                 GUILayout.Button(
                     "Reset to Default",
@@ -263,88 +258,77 @@ public class ItemDataEditorWindow : EditorWindow
 
     private void DrawItemDetails()
     {
-        try
+        if (CurrentItem == null)
         {
-            if (CurrentItem == null)
-            {
-                EditorGUILayout.LabelField("Select an item to edit", headerStyle);
-                return;
-            }
-
-            EditorGUILayout.BeginVertical();
-            {
-                itemDetailScrollPosition = EditorGUILayout.BeginScrollView(
-                    itemDetailScrollPosition,
-                    GUILayout.Height(position.height - 100)
-                );
-                try
-                {
-                    EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        EditorGUI.BeginDisabledGroup(true);
-                        EditorGUILayout.TextField("ID", CurrentItem.ID.ToString());
-                        EditorGUI.EndDisabledGroup();
-
-                        CurrentItem.Name = EditorGUILayout.TextField("Name", CurrentItem.Name);
-                        CurrentItem.Description = EditorGUILayout.TextField(
-                            "Description",
-                            CurrentItem.Description
-                        );
-                        CurrentItem.Type = (ItemType)
-                            EditorGUILayout.EnumPopup("Type", CurrentItem.Type);
-
-                        if (CurrentItem.Type == ItemType.Accessory)
-                        {
-                            CurrentItem.AccessoryType = (AccessoryType)
-                                EditorGUILayout.EnumPopup(
-                                    "Accessory Type",
-                                    CurrentItem.AccessoryType
-                                );
-                        }
-
-                        CurrentItem.Rarity = (ItemRarity)
-                            EditorGUILayout.EnumPopup("Rarity", CurrentItem.Rarity);
-                        CurrentItem.MaxStack = EditorGUILayout.IntField(
-                            "Max Stack",
-                            CurrentItem.MaxStack
-                        );
-                    }
-                    EditorGUILayout.EndVertical();
-
-                    if (showStatRanges)
-                    {
-                        EditorGUILayout.Space(10);
-                        DrawStatRanges();
-                    }
-
-                    if (showEffects)
-                    {
-                        EditorGUILayout.Space(10);
-                        DrawEffects();
-                    }
-
-                    if (showResources)
-                    {
-                        EditorGUILayout.Space(10);
-                        DrawResources();
-                    }
-
-                    EditorGUILayout.Space(20);
-                    DrawDeleteButton();
-                }
-                finally
-                {
-                    EditorGUILayout.EndScrollView();
-                }
-            }
-            EditorGUILayout.EndVertical();
+            EditorGUILayout.LabelField("Select an item to edit", headerStyle);
+            return;
         }
-        catch (Exception e)
+
+        EditorGUILayout.BeginVertical();
         {
-            Debug.LogError($"Error in DrawItemDetails: {e.Message}\n{e.StackTrace}");
-            EditorGUIUtility.ExitGUI();
+            itemDetailScrollPosition = EditorGUILayout.BeginScrollView(
+                itemDetailScrollPosition,
+                GUILayout.Height(position.height - 100)
+            );
+            try
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.TextField("ID", CurrentItem.ID.ToString());
+                    EditorGUI.EndDisabledGroup();
+
+                    CurrentItem.Name = EditorGUILayout.TextField("Name", CurrentItem.Name);
+                    CurrentItem.Description = EditorGUILayout.TextField(
+                        "Description",
+                        CurrentItem.Description
+                    );
+                    CurrentItem.Type = (ItemType)
+                        EditorGUILayout.EnumPopup("Type", CurrentItem.Type);
+
+                    if (CurrentItem.Type == ItemType.Accessory)
+                    {
+                        CurrentItem.AccessoryType = (AccessoryType)
+                            EditorGUILayout.EnumPopup("Accessory Type", CurrentItem.AccessoryType);
+                    }
+
+                    CurrentItem.Rarity = (ItemRarity)
+                        EditorGUILayout.EnumPopup("Rarity", CurrentItem.Rarity);
+                    CurrentItem.MaxStack = EditorGUILayout.IntField(
+                        "Max Stack",
+                        CurrentItem.MaxStack
+                    );
+                }
+                EditorGUILayout.EndVertical();
+
+                if (showStatRanges)
+                {
+                    EditorGUILayout.Space(10);
+                    DrawStatRanges();
+                }
+
+                if (showEffects)
+                {
+                    EditorGUILayout.Space(10);
+                    DrawEffects();
+                }
+
+                if (showResources)
+                {
+                    EditorGUILayout.Space(10);
+                    DrawResources();
+                }
+
+                EditorGUILayout.Space(20);
+                DrawDeleteButton();
+            }
+            finally
+            {
+                EditorGUILayout.EndScrollView();
+            }
         }
+        EditorGUILayout.EndVertical();
     }
 
     private void DrawDropTablesTab()
@@ -605,42 +589,15 @@ public class ItemDataEditorWindow : EditorWindow
             EditorGUILayout.LabelField("Resources", EditorStyles.boldLabel);
             EditorGUILayout.Space(5);
 
-            if (CurrentItem.Icon != null)
+            Sprite oldIcon = CurrentItem.Icon;
+            Sprite newIcon = (Sprite)
+                EditorGUILayout.ObjectField("Icon", oldIcon, typeof(Sprite), false);
+
+            if (newIcon != oldIcon)
             {
-                float size = 64f;
-                var rect = EditorGUILayout.GetControlRect(
-                    GUILayout.Width(size),
-                    GUILayout.Height(size)
-                );
-                EditorGUI.DrawPreviewTexture(rect, CurrentItem.Icon.texture);
-                EditorGUILayout.Space(5);
-            }
-
-            EditorGUI.BeginChangeCheck();
-
-            Sprite oldIcon = null;
-            if (CurrentItem.Icon != null)
-            {
-                oldIcon = CurrentItem.Icon;
-            }
-
-            var newIcon = (Sprite)
-                EditorGUILayout.ObjectField("Select Icon", oldIcon, typeof(Sprite), false);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (newIcon != null)
-                {
-                    CurrentItem.Icon = newIcon;
-
-                    ItemDataEditorUtility.SaveItemData(CurrentItem);
-                    EditorUtility.SetDirty(this);
-                }
-                else
-                {
-                    ItemDataEditorUtility.SaveItemData(CurrentItem);
-                    EditorUtility.SetDirty(this);
-                }
+                CurrentItem.Icon = newIcon;
+                ItemDataEditorUtility.SaveItemData(CurrentItem);
+                EditorUtility.SetDirty(this);
             }
         }
         EditorGUILayout.EndVertical();
@@ -731,11 +688,11 @@ public class ItemDataEditorWindow : EditorWindow
                 selectedItemId = Guid.Empty;
             }
 
-            Debug.Log("All data loaded successfully!");
+            Logger.Log(typeof(ItemDataEditorWindow), "All data loaded successfully!");
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading data: {e.Message}");
+            Logger.LogError(typeof(ItemDataEditorWindow), $"Error loading data: {e.Message}");
         }
         finally
         {
@@ -764,11 +721,14 @@ public class ItemDataEditorWindow : EditorWindow
                 RefreshItemDatabase();
             };
 
-            Debug.Log("All data saved successfully!");
+            Logger.Log(typeof(ItemDataEditorWindow), "All data saved successfully!");
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving data: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ItemDataEditorWindow),
+                $"Error saving data: {e.Message}\n{e.StackTrace}"
+            );
         }
         finally
         {

@@ -22,7 +22,7 @@ public class PoolManager : Singleton<PoolManager>, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing PoolManager: {e.Message}");
+            Logger.LogError(typeof(PoolManager), $"Error initializing PoolManager: {e.Message}");
             IsInitialized = false;
         }
     }

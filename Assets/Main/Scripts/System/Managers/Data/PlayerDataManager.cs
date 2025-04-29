@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -83,11 +84,14 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         {
             EnsureDirectoryExists();
             JSONIO<InventoryData>.SaveData(SAVE_PATH, DEFAULT_SAVE_SLOT, currentInventoryData);
-            Debug.Log($"Successfully saved inventory data to: {DEFAULT_SAVE_SLOT}");
+            Logger.Log(
+                typeof(PlayerDataManager),
+                $"Successfully saved inventory data to: {DEFAULT_SAVE_SLOT}"
+            );
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Error saving inventory data: {e.Message}");
+            Logger.LogError(typeof(PlayerDataManager), $"Error saving inventory data: {e.Message}");
         }
     }
 
@@ -97,7 +101,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         if (!Directory.Exists(savePath))
         {
             Directory.CreateDirectory(savePath);
-            Debug.Log($"Created directory: {savePath}");
+            Logger.Log(typeof(PlayerDataManager), $"Created directory: {savePath}");
         }
     }
 

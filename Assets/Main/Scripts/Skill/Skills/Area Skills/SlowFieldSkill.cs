@@ -27,7 +27,7 @@ public class SlowFieldSkill : AreaSkills
 
         if (slowFieldPrefab == null)
         {
-            Debug.LogError("SlowFieldPrefab is not assigned!");
+            Logger.LogError(typeof(SlowFieldSkill), "SlowFieldPrefab is not assigned!");
             return;
         }
 

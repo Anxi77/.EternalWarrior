@@ -37,7 +37,7 @@ public class InventoryPanel : Panel
         this.inventory = inventory;
         if (inventory == null)
         {
-            Debug.LogError("Inventory component not found on player!");
+            Logger.LogError(typeof(InventoryPanel), "Inventory component not found on player!");
             return;
         }
 
@@ -67,7 +67,7 @@ public class InventoryPanel : Panel
     {
         if (equipmentSlots == null)
         {
-            Debug.LogError("Equipment slots array is null!");
+            Logger.LogError(typeof(InventoryPanel), "Equipment slots array is null!");
             return;
         }
 
@@ -97,7 +97,10 @@ public class InventoryPanel : Panel
     {
         if (!IsInitialized || inventory == null)
         {
-            Debug.LogWarning("Cannot update UI: Inventory not initialized");
+            Logger.LogWarning(
+                typeof(InventoryPanel),
+                "Cannot update UI: Inventory not initialized"
+            );
             return;
         }
 
@@ -108,7 +111,10 @@ public class InventoryPanel : Panel
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error updating inventory UI: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(InventoryPanel),
+                $"Error updating inventory UI: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -141,14 +147,17 @@ public class InventoryPanel : Panel
         {
             if (inventory == null)
             {
-                Debug.LogWarning("Inventory is null");
+                Logger.LogWarning(typeof(InventoryPanel), "Inventory is null");
                 return;
             }
 
             var equipmentSlot = GetEquipmentSlotFromSlotType(equipSlot.slotType);
             if (equipmentSlot == SlotType.Storage)
             {
-                Debug.LogWarning($"Invalid slot type: {equipSlot.slotType}");
+                Logger.LogWarning(
+                    typeof(InventoryPanel),
+                    $"Invalid slot type: {equipSlot.slotType}"
+                );
                 return;
             }
 
@@ -186,9 +195,12 @@ public class InventoryPanel : Panel
                 equipSlot.UpdateUI(null);
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Error updating equipment slot: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(InventoryPanel),
+                $"Error updating equipment slot: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
     #endregion

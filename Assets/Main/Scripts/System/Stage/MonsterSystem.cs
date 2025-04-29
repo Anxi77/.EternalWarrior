@@ -36,7 +36,7 @@ public class MonsterSystem : MonoBehaviour, IInitializable
     {
         if (!PoolManager.Instance.IsInitialized)
         {
-            Debug.LogWarning("Waiting for PoolManager to initialize...");
+            Logger.LogWarning(typeof(MonsterSystem), "Waiting for PoolManager to initialize...");
             return;
         }
         try
@@ -45,7 +45,10 @@ public class MonsterSystem : MonoBehaviour, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing MonsterManager: {e.Message}");
+            Logger.LogError(
+                typeof(MonsterSystem),
+                $"Error initializing MonsterManager: {e.Message}"
+            );
             IsInitialized = false;
         }
     }

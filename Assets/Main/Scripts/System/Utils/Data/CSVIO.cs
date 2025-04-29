@@ -52,10 +52,8 @@ public static class CSVIO<T>
             var csv = new StringBuilder();
             var fields = typeof(T).GetFields();
 
-            // 필드 필터링 적용 - 일반적인 방식으로 변경
             if (includeFields != null && includeFields.Any())
             {
-                // 포함할 필드만 선택
                 fields = fields
                     .Where(f =>
                         includeFields.Any(name =>
@@ -73,7 +71,7 @@ public static class CSVIO<T>
             {
                 if (data == null)
                 {
-                    Debug.LogWarning("Skipping null data entry");
+                    Logger.LogWarning(typeof(CSVIO<T>), "Skipping null data entry");
                     continue;
                 }
 
@@ -97,7 +95,7 @@ public static class CSVIO<T>
             }
 
             File.WriteAllText(fullPath, csv.ToString());
-            Debug.Log($"Successfully saved data to {fullPath}");
+            Logger.Log(typeof(CSVIO<T>), $"Successfully saved data to {fullPath}");
 
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
@@ -105,7 +103,10 @@ public static class CSVIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving bulk CSV data: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(CSVIO<T>),
+                $"Error saving bulk CSV data: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -143,7 +144,8 @@ public static class CSVIO<T>
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(
+                    Logger.LogWarning(
+                        typeof(CSVIO<T>),
                         $"Failed to parse value '{values[i]}' for property '{prop.Name}': {e.Message}"
                     );
                 }
@@ -207,8 +209,9 @@ public static class CSVIO<T>
 
                 if (field == null)
                 {
-                    Debug.LogWarning(
-                        $"[CSVIO] 경고: 헤더 '{header}'에 해당하는 필드가 클래스에 없습니다"
+                    Logger.LogWarning(
+                        typeof(CSVIO<T>),
+                        $"Warning: No field found for header '{header}' in class {typeof(T).Name}"
                     );
                     continue;
                 }
@@ -252,8 +255,9 @@ public static class CSVIO<T>
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError(
-                        $"[CSVIO] 오류: {header} 필드에 '{value}' 값 설정 중 예외 발생: {ex.Message}"
+                    Logger.LogError(
+                        typeof(CSVIO<T>),
+                        $"Error setting value '{value}' for field '{header}': {ex.Message}"
                     );
                 }
             }
@@ -308,7 +312,7 @@ public static class CSVIO<T>
             if (!File.Exists(fullPath))
             {
                 File.WriteAllText(fullPath, headers + "\n");
-                Debug.Log($"Created new CSV file: {fullPath}");
+                Logger.Log(typeof(CSVIO<T>), $"Created new CSV file: {fullPath}");
 #if UNITY_EDITOR
                 AssetDatabase.Refresh();
 #endif
@@ -316,7 +320,10 @@ public static class CSVIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error creating default CSV file: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(CSVIO<T>),
+                $"Error creating default CSV file: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 }

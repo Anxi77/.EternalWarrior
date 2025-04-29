@@ -105,7 +105,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
             }
             else
             {
-                Debug.LogWarning($"Failed to parse skill ID: {skillName}");
+                Logger.LogWarning(
+                    typeof(SkillDataManager),
+                    $"Failed to parse skill ID: {skillName}"
+                );
             }
 
             progress = 0.6f + (float)i / jsonFiles.Count * 0.2f;
@@ -172,7 +175,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
         if (statsForSkill.Count == 0)
         {
-            Debug.LogWarning($"[SkillDataManager] No stats data for skill {skillId}!");
+            Logger.LogWarning(
+                typeof(SkillDataManager),
+                $"[SkillDataManager] No stats data for skill {skillId}!"
+            );
             return;
         }
 
@@ -219,11 +225,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
             if (stat == null)
             {
-                Debug.LogWarning(
-                    $"[SkillDataManager] Skill {skillId} has null stats. skillData.Name: {skillData.Name}, Type: {skillData.Type}"
-                );
-                Debug.LogWarning(
-                    $"[SkillDataManager] Skill basic info: ID: {skillData.ID}, Name: {skillData.Name}, Type: {skillData.Type}, Description: {skillData.Description}"
+                Logger.LogWarning(
+                    typeof(SkillDataManager),
+                    $"Skill {skillId} has null stats. skillData.Name: {skillData.Name}, Type: {skillData.Type}\n"
+                        + $"skillData.ID: {skillData.ID}, skillData.Name: {skillData.Name}, skillData.Type: {skillData.Type}, skillData.Description: {skillData.Description}"
                 );
                 return;
             }
@@ -235,7 +240,8 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
             if (stat.baseStat.maxSkillLevel <= 0)
             {
-                Debug.LogWarning(
+                Logger.LogWarning(
+                    typeof(SkillDataManager),
                     $"[SkillDataManager] Skill {skillId} has invalid maxSkillLevel: {stat.baseStat.maxSkillLevel}"
                 );
             }
@@ -268,7 +274,10 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading level prefabs for skill {skillId}: {e.Message}");
+            Logger.LogError(
+                typeof(SkillDataManager),
+                $"Error loading level prefabs for skill {skillId}: {e.Message}"
+            );
         }
     }
     #endregion

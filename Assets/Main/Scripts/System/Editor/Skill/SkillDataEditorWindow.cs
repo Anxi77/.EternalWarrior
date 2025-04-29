@@ -489,7 +489,8 @@ public class SkillDataEditorWindow : EditorWindow
             {
                 if (PrefabUtility.GetPrefabAssetType(newBasePrefab) == PrefabAssetType.NotAPrefab)
                 {
-                    Debug.LogError(
+                    Logger.LogError(
+                        typeof(SkillDataEditorWindow),
                         "Please select a prefab from the Project window, not a scene object."
                     );
                 }
@@ -505,7 +506,10 @@ public class SkillDataEditorWindow : EditorWindow
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"Failed to save prefab: {e.Message}");
+                        Logger.LogError(
+                            typeof(SkillDataEditorWindow),
+                            $"Failed to save prefab: {e.Message}"
+                        );
                     }
                 }
             }

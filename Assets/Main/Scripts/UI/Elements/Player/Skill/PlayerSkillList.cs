@@ -38,13 +38,16 @@ public class PlayerSkillList : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"Skill data is null for skill: {skill.name}");
+                    Logger.LogWarning(
+                        typeof(PlayerSkillList),
+                        $"Skill data is null for skill: {skill.name}"
+                    );
                 }
             }
         }
         else
         {
-            Debug.LogError("Player skills list is null");
+            Logger.LogError(typeof(PlayerSkillList), "Player skills list is null");
         }
     }
 

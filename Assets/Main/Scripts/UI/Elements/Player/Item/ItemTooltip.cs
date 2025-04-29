@@ -43,12 +43,12 @@ public class ItemTooltip : MonoBehaviour
     {
         if (itemData == null)
         {
-            Debug.LogError("Attempted to setup tooltip with null ItemData");
+            Logger.LogError(typeof(ItemTooltip), "Attempted to setup tooltip with null ItemData");
             return;
         }
 
-        Debug.Log($"Setting up tooltip for item: {itemData.Name}");
-        Debug.Log($"Item stats count: {itemData.Stats?.Count ?? 0}");
+        Logger.Log(typeof(ItemTooltip), $"Setting up tooltip for item: {itemData.Name}");
+        Logger.Log(typeof(ItemTooltip), $"Item stats count: {itemData.Stats?.Count ?? 0}");
 
         itemNameText.text = $"{GetRarityColor(itemData.Rarity)}{itemData.Name}</color>";
         itemTypeText.text = $"Type: {itemData.Type}";
@@ -67,13 +67,16 @@ public class ItemTooltip : MonoBehaviour
             {
                 string valueStr = stat.Value >= 0 ? "+" + stat.Value : stat.Value.ToString();
                 statsBuilder.AppendLine($"{stat.Type}: {valueStr}");
-                Debug.Log($"Adding stat to tooltip: {stat.Type} = {valueStr}");
+                Logger.Log(
+                    typeof(ItemTooltip),
+                    $"Adding stat to tooltip: {stat.Type} = {valueStr}"
+                );
             }
         }
         else
         {
             statsBuilder.AppendLine("No stats");
-            Debug.Log("No stats found for item");
+            Logger.Log(typeof(ItemTooltip), "No stats found for item");
         }
         itemStatsText.text = statsBuilder.ToString();
 
@@ -83,17 +86,17 @@ public class ItemTooltip : MonoBehaviour
             foreach (var effect in itemData.Effects)
             {
                 effectsBuilder.AppendLine($"{effect.effectName}");
-                Debug.Log($"Adding effect to tooltip: {effect.effectName}");
+                Logger.Log(typeof(ItemTooltip), $"Adding effect to tooltip: {effect.effectName}");
             }
         }
         else
         {
             effectsBuilder.AppendLine("No effects");
-            Debug.Log("No effects found for item");
+            Logger.Log(typeof(ItemTooltip), "No effects found for item");
         }
         itemEffectsText.text = effectsBuilder.ToString();
 
-        Debug.Log($"Tooltip setup complete for {itemData.Name}");
+        Logger.Log(typeof(ItemTooltip), $"Tooltip setup complete for {itemData.Name}");
     }
 
     private string GetRarityColor(ItemRarity rarity)

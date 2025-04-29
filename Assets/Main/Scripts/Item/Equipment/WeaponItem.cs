@@ -7,7 +7,8 @@ public class WeaponItem : EquipmentItem
     {
         if (itemData.Type != ItemType.Weapon)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(WeaponItem),
                 $"Attempted to create WeaponItem with non-weapon ItemData: {itemData.Type}"
             );
         }
@@ -24,7 +25,10 @@ public class WeaponItem : EquipmentItem
     {
         if (type != ItemType.Weapon)
         {
-            Debug.LogError($"Invalid item type: {type}. WeaponItem must be ItemType.Weapon.");
+            Logger.LogError(
+                typeof(WeaponItem),
+                $"Invalid item type: {type}. WeaponItem must be ItemType.Weapon."
+            );
         }
     }
 }

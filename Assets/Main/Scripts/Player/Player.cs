@@ -133,7 +133,7 @@ public class Player : MonoBehaviour
         {
             if (playerStat == null)
             {
-                Debug.LogError("PlayerStat is null!");
+                Logger.LogError(typeof(Player), "PlayerStat is null!");
                 return;
             }
 
@@ -253,7 +253,8 @@ public class Player : MonoBehaviour
 
         playerStat.SetCurrentHp(maxHp * currentHpRatio);
 
-        Debug.Log(
+        Logger.Log(
+            typeof(Player),
             $"Level Up! Level: {level}, New MaxHP: {maxHp}, Current HP: {playerStat.GetStat(StatType.CurrentHp)}"
         );
     }

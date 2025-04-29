@@ -1,5 +1,6 @@
 using System;
 using Cinemachine;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class CameraSystem : MonoBehaviour, IInitializable
@@ -24,14 +25,14 @@ public class CameraSystem : MonoBehaviour, IInitializable
             virtualCameraPrefab = Resources.Load<GameObject>("Prefabs/Camera/VirtualCamera");
             if (virtualCameraPrefab == null)
             {
-                Debug.LogWarning("Virtual Camera Prefab not found!");
+                Logger.LogWarning(typeof(CameraSystem), "Virtual Camera Prefab not found!");
                 return;
             }
             IsInitialized = true;
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing CameraManager: {e.Message}");
+            Logger.LogError(typeof(CameraSystem), $"Error initializing CameraManager: {e.Message}");
             IsInitialized = false;
         }
     }
@@ -41,11 +42,14 @@ public class CameraSystem : MonoBehaviour, IInitializable
         var mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found! Looking for camera in scene...");
+            Logger.LogError(
+                typeof(CameraSystem),
+                "Main Camera not found! Looking for camera in scene..."
+            );
             mainCamera = FindObjectOfType<Camera>();
             if (mainCamera == null)
             {
-                Debug.LogError("No camera found in scene at all!");
+                Logger.LogError(typeof(CameraSystem), "No camera found in scene at all!");
                 return;
             }
         }
@@ -56,9 +60,11 @@ public class CameraSystem : MonoBehaviour, IInitializable
             brain = mainCamera.gameObject.AddComponent<CinemachineBrain>();
         }
 
+        brain.m_UpdateMethod = CinemachineBrain.UpdateMethod.LateUpdate;
+
         if (virtualCameraPrefab == null)
         {
-            Debug.LogError("Virtual Camera Prefab is not assigned!");
+            Logger.LogError(typeof(CameraSystem), "Virtual Camera Prefab is not assigned!");
             return;
         }
 
@@ -75,7 +81,10 @@ public class CameraSystem : MonoBehaviour, IInitializable
 
             if (virtualCamera == null)
             {
-                Debug.LogError("Failed to get CinemachineVirtualCamera component!");
+                Logger.LogError(
+                    typeof(CameraSystem),
+                    "Failed to get CinemachineVirtualCamera component!"
+                );
                 return;
             }
 
@@ -95,12 +104,12 @@ public class CameraSystem : MonoBehaviour, IInitializable
             }
             else
             {
-                Debug.LogWarning("Player not found for camera to follow!");
+                Logger.LogWarning(typeof(CameraSystem), "Player not found for camera to follow!");
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error setting up camera: {e.Message}");
+            Logger.LogError(typeof(CameraSystem), $"Error setting up camera: {e.Message}");
         }
     }
 

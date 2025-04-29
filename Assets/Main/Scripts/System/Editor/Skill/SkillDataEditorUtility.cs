@@ -89,7 +89,10 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading skill database: {e.Message}");
+            Logger.LogError(
+                typeof(SkillDataEditorUtility),
+                $"Error loading skill database: {e.Message}"
+            );
             skillDatabase = new Dictionary<SkillID, SkillData>();
         }
     }
@@ -106,7 +109,10 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading stat database: {e.Message}");
+            Logger.LogError(
+                typeof(SkillDataEditorUtility),
+                $"Error loading stat database: {e.Message}"
+            );
             statDatabase = new Dictionary<SkillID, Dictionary<int, SkillStatData>>();
         }
     }
@@ -148,7 +154,10 @@ public static class SkillDataEditorUtility
             return;
         if (skillData.ID == SkillID.None || skillData.Type == SkillType.None)
         {
-            Debug.LogError("Cannot save skill data with None ID or Type");
+            Logger.LogError(
+                typeof(SkillDataEditorUtility),
+                "Cannot save skill data with None ID or Type"
+            );
             return;
         }
 
@@ -165,7 +174,10 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving skill data: {e.Message}");
+            Logger.LogError(
+                typeof(SkillDataEditorUtility),
+                $"Error saving skill data: {e.Message}"
+            );
         }
     }
 
@@ -328,7 +340,8 @@ public static class SkillDataEditorUtility
             SkillStatFilters.GetFieldsForSkillType(SkillType.Passive)
         );
 
-        Debug.Log(
+        Logger.Log(
+            typeof(SkillDataEditorUtility),
             $"Saved Stat Database - Projectile: {projectileStats.Count}, Area: {areaStats.Count}, Passive: {passiveStats.Count}"
         );
     }
@@ -351,7 +364,10 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error deleting skill {skillId}: {e.Message}");
+            Logger.LogError(
+                typeof(SkillDataEditorUtility),
+                $"Error deleting skill {skillId}: {e.Message}"
+            );
         }
     }
 
@@ -397,7 +413,7 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error resetting data: {e.Message}");
+            Logger.LogError(typeof(SkillDataEditorUtility), $"Error resetting data: {e.Message}");
         }
     }
 
@@ -434,7 +450,7 @@ public static class SkillDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error clearing data: {e.Message}");
+            Logger.LogError(typeof(SkillDataEditorUtility), $"Error clearing data: {e.Message}");
         }
     }
 
@@ -463,7 +479,10 @@ public static class SkillDataEditorUtility
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error cleaning directory {path}: {e.Message}");
+                Logger.LogError(
+                    typeof(SkillDataEditorUtility),
+                    $"Error cleaning directory {path}: {e.Message}"
+                );
             }
         }
         else
@@ -507,53 +526,6 @@ public static class SkillDataEditorUtility
         CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "ProjectileSkillStats", headerLine);
         CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "AreaSkillStats", headerLine);
         CSVIO<SkillStatData>.CreateDefaultFile(SKILL_STAT_PATH, "PassiveSkillStats", headerLine);
-    }
-
-    private static SkillStatData CreateDefaultStatData(SkillData skillData)
-    {
-        if (skillData.ID == SkillID.None || skillData.Type == SkillType.None)
-            throw new ArgumentException(
-                "Cannot create default stats for skill with None ID or Type"
-            );
-
-        var defaultStat = new SkillStatData
-        {
-            skillID = skillData.ID,
-            level = 1,
-            maxSkillLevel = 5,
-            damage = 10f,
-            elementalPower = 1f,
-            element = skillData.Element,
-        };
-
-        switch (skillData.Type)
-        {
-            case SkillType.Projectile:
-                defaultStat.projectileSpeed = 10f;
-                defaultStat.projectileScale = 1f;
-                defaultStat.shotInterval = 0.5f;
-                defaultStat.pierceCount = 1;
-                defaultStat.attackRange = 10f;
-                break;
-
-            case SkillType.Area:
-                defaultStat.radius = 5f;
-                defaultStat.duration = 3f;
-                defaultStat.tickRate = 1f;
-                defaultStat.isPersistent = false;
-                break;
-
-            case SkillType.Passive:
-                defaultStat.effectDuration = 5f;
-                defaultStat.cooldown = 10f;
-                defaultStat.triggerChance = 1f;
-                break;
-
-            default:
-                throw new ArgumentException($"Invalid skill type: {skillData.Type}");
-        }
-
-        return defaultStat;
     }
 
     public static void Save()

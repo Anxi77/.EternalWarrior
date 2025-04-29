@@ -130,7 +130,10 @@ public class GameManager : Singleton<GameManager>
         if (stateHandlers == null)
             return;
 
-        Debug.Log($"[GameManager] Gamesate transition from [{currentState}] to [{newState}]");
+        Logger.Log(
+            typeof(GameManager),
+            $"[GameManager] Gamesate transition from [{currentState}] to [{newState}]"
+        );
 
         stateTransitionQueue.Enqueue(newState);
 
@@ -178,7 +181,10 @@ public class GameManager : Singleton<GameManager>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error during state change: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(GameManager),
+                $"Error during state change: {e.Message}\n{e.StackTrace}"
+            );
             isStateTransitioning = false;
         }
     }
@@ -239,7 +245,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (PlayerSystem.Player == null)
         {
-            Debug.LogError("Player reference is null in GameManager");
+            Logger.LogError(typeof(GameManager), "Player reference is null in GameManager");
             yield break;
         }
 

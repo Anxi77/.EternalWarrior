@@ -91,7 +91,7 @@ public class PlayerPanel : Panel
     {
         if (player == null)
         {
-            Debug.LogError("Cannot initialize PlayerUI with null player");
+            Logger.LogError(typeof(PlayerPanel), "Cannot initialize PlayerUI with null player");
             return;
         }
 
@@ -102,7 +102,7 @@ public class PlayerPanel : Panel
 
         if (playerStat == null)
         {
-            Debug.LogError("PlayerStat component not found on player!");
+            Logger.LogError(typeof(PlayerPanel), "PlayerStat component not found on player!");
             return;
         }
 
@@ -152,7 +152,7 @@ public class PlayerPanel : Panel
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error updating player info: {e.Message}");
+            Logger.LogError(typeof(PlayerPanel), $"Error updating player info: {e.Message}");
             StopUIUpdate();
         }
     }

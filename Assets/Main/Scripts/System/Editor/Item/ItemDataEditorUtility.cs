@@ -52,7 +52,10 @@ public static class ItemDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving item data: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error saving item data: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -60,7 +63,7 @@ public static class ItemDataEditorUtility
     {
         string resourcePath = $"Items/Icons/{itemData.ID}_Icon";
         ResourceIO<Sprite>.SaveData(resourcePath, itemData.Icon);
-        Debug.Log($"Icon saved to Resources path: {resourcePath}");
+        Logger.Log(typeof(ItemDataEditorUtility), $"Icon saved to Resources path: {resourcePath}");
     }
 
     public static void DeleteItemData(Guid itemId)
@@ -81,7 +84,10 @@ public static class ItemDataEditorUtility
             SaveDropTables();
 
             AssetDatabase.Refresh();
-            Debug.Log($"Item {itemId} and its resources deleted successfully");
+            Logger.Log(
+                typeof(ItemDataEditorUtility),
+                $"Item {itemId} and its resources deleted successfully"
+            );
         }
     }
 
@@ -103,12 +109,15 @@ public static class ItemDataEditorUtility
         {
             var wrapper = new SerializableItemList { items = itemDatabase.Values.ToList() };
             JSONIO<SerializableItemList>.SaveData(ITEM_DB_PATH, "ItemDatabase", wrapper);
-            Debug.Log($"Database saved successfully");
+            Logger.Log(typeof(ItemDataEditorUtility), "Database saved successfully");
             AssetDatabase.Refresh();
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving database: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error saving database: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -128,23 +137,11 @@ public static class ItemDataEditorUtility
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving drop tables: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error saving drop tables: {e.Message}\n{e.StackTrace}"
+            );
         }
-    }
-
-    public static void SaveWithBackup()
-    {
-        string backupPath = Path.Combine(RESOURCE_ROOT, ITEM_DB_PATH, "Backups");
-        Directory.CreateDirectory(backupPath);
-
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        string backupFile = Path.Combine(backupPath, $"ItemDatabase_Backup_{timestamp}.json");
-
-        var wrapper = new SerializableItemList { items = itemDatabase.Values.ToList() };
-        File.WriteAllText(backupFile, JsonConvert.SerializeObject(wrapper));
-
-        Debug.Log($"Backup created at: {backupFile}");
-        AssetDatabase.Refresh();
     }
 
     public static void SaveStatRanges(ItemData itemData)
@@ -240,13 +237,19 @@ public static class ItemDataEditorUtility
             }
             else
             {
-                Debug.LogWarning("No item database found or empty database");
+                Logger.LogWarning(
+                    typeof(ItemDataEditorUtility),
+                    "No item database found or empty database"
+                );
                 itemDatabase = new Dictionary<Guid, ItemData>();
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading item database: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error loading item database: {e.Message}\n{e.StackTrace}"
+            );
             itemDatabase = new Dictionary<Guid, ItemData>();
         }
     }
@@ -262,13 +265,16 @@ public static class ItemDataEditorUtility
             }
             else
             {
-                Debug.LogWarning("No drop tables found");
+                Logger.LogWarning(typeof(ItemDataEditorUtility), "No drop tables found");
                 dropTables = new Dictionary<MonsterType, DropTableData>();
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading drop tables: {e.Message}");
+            Logger.LogError(
+                typeof(ItemDataEditorUtility),
+                $"Error loading drop tables: {e.Message}"
+            );
             dropTables = new Dictionary<MonsterType, DropTableData>();
         }
     }
@@ -285,7 +291,8 @@ public static class ItemDataEditorUtility
             }
             else
             {
-                Debug.LogWarning(
+                Logger.LogWarning(
+                    typeof(ItemDataEditorUtility),
                     $"Failed to load icon for item {item.ID}. Paths tried:\n1. {ItemDataExtensions.ICON_PATH + item.ID + "_Icon.png"}\n2. {path}"
                 );
             }
@@ -345,7 +352,7 @@ public static class ItemDataEditorUtility
                     if (File.Exists(iconPath))
                     {
                         AssetDatabase.DeleteAsset(iconPath);
-                        Debug.Log($"Deleted icon file: {iconPath}");
+                        Logger.Log(typeof(ItemDataEditorUtility), $"Deleted icon file: {iconPath}");
                     }
                 }
             }
@@ -356,11 +363,11 @@ public static class ItemDataEditorUtility
             CreateDefaultDropTables();
 
             AssetDatabase.Refresh();
-            Debug.Log("Data reset successfully");
+            Logger.Log(typeof(ItemDataEditorUtility), "Data reset successfully");
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error resetting data: {e.Message}");
+            Logger.LogError(typeof(ItemDataEditorUtility), $"Error resetting data: {e.Message}");
             throw;
         }
     }
@@ -378,7 +385,7 @@ public static class ItemDataEditorUtility
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
-                Debug.Log($"Created directory: {path}");
+                Logger.Log(typeof(ItemDataEditorUtility), $"Created directory: {path}");
             }
         }
         AssetDatabase.Refresh();

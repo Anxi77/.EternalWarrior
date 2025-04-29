@@ -14,7 +14,7 @@ public class Bind : AreaSkills
         playerTransform = GameManager.Instance.PlayerSystem.Player.transform;
         if (playerTransform == null)
         {
-            Debug.LogError("Player not found for Bind skill!");
+            Logger.LogError(typeof(Bind), "Player not found for Bind skill!");
         }
         StartCoroutine(BindingCoroutine());
     }
@@ -23,7 +23,7 @@ public class Bind : AreaSkills
     {
         if (PoolManager.Instance == null)
         {
-            Debug.LogError("PoolManager not found!");
+            Logger.LogError(typeof(Bind), "PoolManager not found!");
             yield break;
         }
 
@@ -69,13 +69,14 @@ public class Bind : AreaSkills
 
                                 spawnedBindEffects.Add(bindEffect);
 
-                                Debug.Log(
+                                Logger.Log(
+                                    typeof(Bind),
                                     $"Bind effect spawned at {effectPosition}, parent: {enemy.name}"
                                 );
                             }
                             else
                             {
-                                Debug.LogError("Failed to spawn BindEffect!");
+                                Logger.LogError(typeof(Bind), "Failed to spawn BindEffect!");
                             }
                         }
                     }

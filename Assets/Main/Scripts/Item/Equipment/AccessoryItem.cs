@@ -10,7 +10,8 @@ public class AccessoryItem : EquipmentItem
     {
         if (itemData.Type != ItemType.Accessory)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(AccessoryItem),
                 $"Attempted to create AccessoryItem with non-accessory ItemData: {itemData.Type}"
             );
         }
@@ -28,7 +29,10 @@ public class AccessoryItem : EquipmentItem
 
         if (accessoryType == AccessoryType.None)
         {
-            Debug.LogWarning($"AccessoryType not set for item: {data.Name} (ID: {data.ID})");
+            Logger.LogWarning(
+                typeof(AccessoryItem),
+                $"AccessoryType not set for item: {data.Name} (ID: {data.ID})"
+            );
         }
     }
 
@@ -36,7 +40,8 @@ public class AccessoryItem : EquipmentItem
     {
         if (type != ItemType.Accessory)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(AccessoryItem),
                 $"잘못된 아이템 타입입니다: {type}. AccessoryItem은 ItemType.Accessory이어야 합니다."
             );
         }

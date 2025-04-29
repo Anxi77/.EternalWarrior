@@ -49,7 +49,10 @@ public class GravityProjectileSkill : ProjectileSkills
     {
         if (!isInitialized || skillData?.ProjectilePrefab == null)
         {
-            Debug.LogWarning("Cannot fire: not initialized or missing projectile");
+            Logger.LogWarning(
+                typeof(GravityProjectileSkill),
+                "Cannot fire: not initialized or missing projectile"
+            );
             return;
         }
 
@@ -65,7 +68,7 @@ public class GravityProjectileSkill : ProjectileSkills
         {
             InitializeProjectile(proj);
             SetProjectileDirection(proj);
-            Debug.Log("Gravity projectile fired");
+            Logger.Log(typeof(GravityProjectileSkill), "Gravity projectile fired");
         }
     }
 

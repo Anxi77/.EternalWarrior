@@ -77,7 +77,10 @@ public abstract class AreaSkills : Skill
         }
         else
         {
-            Debug.LogWarning($"No Stat data found for Skill : {skillData.Name}");
+            Logger.LogWarning(
+                typeof(AreaSkills),
+                $"No Stat data found for Skill : {skillData.Name}"
+            );
         }
     }
 
@@ -93,11 +96,14 @@ public abstract class AreaSkills : Skill
     {
         if (stats == null || stats.baseStat == null)
         {
-            Debug.LogError($"Invalid stats passed to UpdateInspectorValues for {GetType().Name}");
+            Logger.LogError(
+                typeof(AreaSkills),
+                $"Invalid stats passed to UpdateInspectorValues for {GetType().Name}"
+            );
             return;
         }
 
-        Debug.Log($"[AreaSkills] Before Update - Level: {currentLevel}");
+        Logger.Log(typeof(AreaSkills), $"[AreaSkills] Before Update - Level: {currentLevel}");
 
         currentLevel = stats.baseStat.skillLevel;
 
@@ -109,7 +115,7 @@ public abstract class AreaSkills : Skill
         _isPersistent = stats.isPersistent;
         _moveSpeed = stats.moveSpeed;
 
-        Debug.Log($"[AreaSkills] After Update - Level: {currentLevel}");
+        Logger.Log(typeof(AreaSkills), $"[AreaSkills] After Update - Level: {currentLevel}");
     }
 
     public override string GetDetailedDescription()
@@ -174,11 +180,14 @@ public abstract class AreaSkills : Skill
             _moveSpeed = currentStats.moveSpeed;
 
             skillData.SetStatsForLevel(currentLevel, currentStats);
-            Debug.Log($"Updated stats for {GetType().Name} from inspector");
+            Logger.Log(typeof(AreaSkills), $"Updated stats for {GetType().Name} from inspector");
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"Error in OnValidate for {GetType().Name}: {e.Message}");
+            Logger.LogWarning(
+                typeof(AreaSkills),
+                $"Error in OnValidate for {GetType().Name}: {e.Message}"
+            );
         }
     }
 

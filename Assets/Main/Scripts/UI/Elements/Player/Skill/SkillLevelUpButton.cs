@@ -42,7 +42,10 @@ public class SkillLevelUpButton : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error in SetSkillSelectButton: {e.Message}");
+            Logger.LogError(
+                typeof(SkillLevelUpButton),
+                $"Error in SetSkillSelectButton: {e.Message}"
+            );
             SetDisabledButton("Error setting up button");
         }
     }
@@ -111,7 +114,7 @@ public class SkillLevelUpButton : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error in button click: {e.Message}");
+            Logger.LogError(typeof(SkillLevelUpButton), $"Error in button click: {e.Message}");
         }
     }
 
@@ -217,7 +220,10 @@ public class SkillLevelUpButton : MonoBehaviour
             var sprite = Resources.Load<Sprite>(iconPath);
             if (sprite == null)
             {
-                Debug.LogWarning($"Element sprite not found at path: {iconPath}");
+                Logger.LogWarning(
+                    typeof(SkillLevelUpButton),
+                    $"Element sprite not found at path: {iconPath}"
+                );
             }
             return sprite;
         }
@@ -346,7 +352,10 @@ public class SkillLevelUpButton : MonoBehaviour
     {
         if (current == null || next == null)
         {
-            Debug.LogWarning("Cannot compare passive stats: current or next is null");
+            Logger.LogWarning(
+                typeof(SkillLevelUpButton),
+                "Cannot compare passive stats: current or next is null"
+            );
             return;
         }
 
@@ -416,7 +425,8 @@ public class SkillLevelUpButton : MonoBehaviour
                 sb.AppendLine($"Homing Effect: <color={color}>{status}</color>");
             }
 
-            Debug.Log(
+            Logger.Log(
+                typeof(SkillLevelUpButton),
                 $"Comparing passive stats:\n"
                     + $"Current - Damage: {current.damageIncrease}, Speed: {current.moveSpeedIncrease}\n"
                     + $"Next - Damage: {next.damageIncrease}, Speed: {next.moveSpeedIncrease}"
@@ -424,7 +434,10 @@ public class SkillLevelUpButton : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error comparing passive stats: {e.Message}");
+            Logger.LogError(
+                typeof(SkillLevelUpButton),
+                $"Error comparing passive stats: {e.Message}"
+            );
         }
     }
 

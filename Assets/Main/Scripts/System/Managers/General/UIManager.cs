@@ -28,7 +28,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing UIManager: {e.Message}");
+            Logger.LogError(typeof(UIManager), $"Error initializing UIManager: {e.Message}");
             IsInitialized = false;
         }
     }
@@ -58,7 +58,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
                 return instance;
             }
         }
-        Debug.LogWarning($"Panel {panelType} not found");
+        Logger.LogWarning(typeof(UIManager), $"Panel {panelType} not found");
         return null;
     }
 
@@ -67,7 +67,7 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
         Panel panel = Panels.Find(p => p.PanelType == panelType);
         if (panel == null)
         {
-            Debug.LogError($"PanelType {panelType} not found");
+            Logger.LogError(typeof(UIManager), $"PanelType {panelType} not found");
             return;
         }
         panel.Close(objActive);

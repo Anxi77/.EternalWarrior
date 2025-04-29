@@ -19,59 +19,74 @@ public class SkillSystem : MonoBehaviour, IInitializable
     private void LoadSkillData()
     {
         availableSkills = SkillDataManager.Instance.GetAllData();
-        Debug.Log($"[SkillManager] Loaded {availableSkills.Count} skills from SkillDataManager");
+        Logger.Log(
+            typeof(SkillSystem),
+            $" Loaded {availableSkills.Count} skills from SkillDataManager"
+        );
     }
 
     public Skill GetPlayerSkill(SkillID skillId)
     {
-        Debug.Log($"Looking for skill with ID: {skillId}");
+        Logger.Log(typeof(SkillSystem), $"Looking for skill with ID: {skillId}");
 
         if (GameManager.Instance.PlayerSystem.Player == null)
         {
-            Debug.LogError("Player is null");
+            Logger.LogError(typeof(SkillSystem), "Player is null");
             return null;
         }
 
         if (GameManager.Instance.PlayerSystem.Player.skills == null)
         {
-            Debug.LogError("Player skills list is null");
+            Logger.LogError(typeof(SkillSystem), "Player skills list is null");
             return null;
         }
 
-        Debug.Log($"Player has {GameManager.Instance.PlayerSystem.Player.skills.Count} skills");
+        Logger.Log(
+            typeof(SkillSystem),
+            $"Player has {GameManager.Instance.PlayerSystem.Player.skills.Count} skills"
+        );
 
         foreach (var skill in GameManager.Instance.PlayerSystem.Player.skills)
         {
-            Debug.Log($"Checking skill: {skill.skillData.Name} (ID: {skill.skillData.ID})");
+            Logger.Log(
+                typeof(SkillSystem),
+                $"Checking skill: {skill.skillData.Name} (ID: {skill.skillData.ID})"
+            );
         }
 
         var foundSkill = GameManager.Instance.PlayerSystem.Player.skills.Find(s =>
         {
-            Debug.Log($"Comparing {s.skillData.ID} with {skillId}");
+            Logger.Log(typeof(SkillSystem), $"Comparing {s.skillData.ID} with {skillId}");
             return s.skillData.ID == skillId;
         });
 
-        Debug.Log($"Found skill: {(foundSkill != null ? foundSkill.skillData.Name : "null")}");
+        Logger.Log(
+            typeof(SkillSystem),
+            $"Found skill: {(foundSkill != null ? foundSkill.skillData.Name : "null")}"
+        );
         return foundSkill;
     }
 
     private bool UpdateSkillStats(Skill skill, int targetLevel, out ISkillStat newStats)
     {
-        Debug.Log($"Updating stats for skill {skill.skillData.Name} to level {targetLevel}");
+        Logger.Log(
+            typeof(SkillSystem),
+            $"Updating stats for skill {skill.skillData.Name} to level {targetLevel}"
+        );
 
         newStats = skill.skillData.GetStatsForLevel(targetLevel);
 
         if (newStats == null)
         {
-            Debug.LogError($"Failed to get stats for level {targetLevel}");
+            Logger.LogError(typeof(SkillSystem), $"Failed to get stats for level {targetLevel}");
             return false;
         }
 
-        Debug.Log($"Got new stats for level {targetLevel}");
+        Logger.Log(typeof(SkillSystem), $"Got new stats for level {targetLevel}");
         skill.GetSkillData().SetStatsForLevel(targetLevel, newStats);
 
         bool result = skill.SkillLevelUpdate(targetLevel);
-        Debug.Log($"SkillLevelUpdate result: {result}");
+        Logger.Log(typeof(SkillSystem), $"SkillLevelUpdate result: {result}");
 
         skill.currentLevel = targetLevel;
 
@@ -85,7 +100,10 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
         try
         {
-            Debug.Log($"Adding/Upgrading skill: {skillData.Name} (ID: {skillData.ID})");
+            Logger.Log(
+                typeof(SkillSystem),
+                $"Adding/Upgrading skill: {skillData.Name} (ID: {skillData.ID})"
+            );
 
             var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStat>();
             float currentHpRatio = 1f;
@@ -94,18 +112,23 @@ public class SkillSystem : MonoBehaviour, IInitializable
             {
                 currentHpRatio =
                     playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-                Debug.Log(
+                Logger.Log(
+                    typeof(SkillSystem),
                     $"Before AddOrUpgradeSkill - HP: {playerStat.GetStat(StatType.CurrentHp)}/{playerStat.GetStat(StatType.MaxHp)} ({currentHpRatio:F2})"
                 );
             }
 
             var existingSkill = GetPlayerSkill(skillData.ID);
-            Debug.Log($"Existing skill check - Found: {existingSkill != null}");
+            Logger.Log(
+                typeof(SkillSystem),
+                $"Existing skill check - Found: {existingSkill != null}"
+            );
 
             if (existingSkill != null)
             {
                 int nextLevel = existingSkill.currentLevel + 1;
-                Debug.Log(
+                Logger.Log(
+                    typeof(SkillSystem),
                     $"Current level: {existingSkill.currentLevel}, Attempting upgrade to level: {nextLevel}"
                 );
 
@@ -116,15 +139,24 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
                 if (levelPrefab != null)
                 {
-                    Debug.Log($"Found level {nextLevel} prefab, replacing skill");
+                    Logger.Log(
+                        typeof(SkillSystem),
+                        $"Found level {nextLevel} prefab, replacing skill"
+                    );
                     ReplaceSkillWithNewPrefab(existingSkill, levelPrefab, skillData, nextLevel);
                 }
                 else
                 {
-                    Debug.Log($"No level {nextLevel} prefab found, updating stats");
+                    Logger.Log(
+                        typeof(SkillSystem),
+                        $"No level {nextLevel} prefab found, updating stats"
+                    );
                     if (UpdateSkillStats(existingSkill, nextLevel, out _))
                     {
-                        Debug.Log($"Successfully upgraded skill to level {nextLevel}");
+                        Logger.Log(
+                            typeof(SkillSystem),
+                            $"Successfully upgraded skill to level {nextLevel}"
+                        );
                     }
                 }
             }
@@ -157,7 +189,8 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
                         tempObj.SetActive(true);
                         GameManager.Instance.PlayerSystem.Player.skills.Add(skillComponent);
-                        Debug.Log(
+                        Logger.Log(
+                            typeof(SkillSystem),
                             $"Successfully added new skill: {skillData.Name} at position {tempObj.transform.localPosition}"
                         );
                     }
@@ -169,14 +202,18 @@ public class SkillSystem : MonoBehaviour, IInitializable
                 float newMaxHp = playerStat.GetStat(StatType.MaxHp);
                 float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
                 playerStat.SetCurrentHp(newCurrentHp);
-                Debug.Log(
+                Logger.Log(
+                    typeof(SkillSystem),
                     $"After AddOrUpgradeSkill - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})"
                 );
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error in AddOrUpgradeSkill: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(SkillSystem),
+                $"Error in AddOrUpgradeSkill: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -201,7 +238,8 @@ public class SkillSystem : MonoBehaviour, IInitializable
             currentHp = playerStat.GetStat(StatType.CurrentHp);
             maxHp = playerStat.GetStat(StatType.MaxHp);
             currentHpRatio = currentHp / maxHp;
-            Debug.Log(
+            Logger.Log(
+                typeof(SkillSystem),
                 $"[SkillManager] Before replace - HP: {currentHp}/{maxHp} ({currentHpRatio:F2})"
             );
         }
@@ -231,14 +269,18 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
             newSkill.Initialize();
             GameManager.Instance.PlayerSystem.Player.skills.Add(newSkill);
-            Debug.Log($"Successfully replaced skill with level {targetLevel} prefab");
+            Logger.Log(
+                typeof(SkillSystem),
+                $"Successfully replaced skill with level {targetLevel} prefab"
+            );
 
             if (playerStat != null)
             {
                 float finalMaxHp = playerStat.GetStat(StatType.MaxHp);
                 float finalCurrentHp = Mathf.Max(currentHp, finalMaxHp * currentHpRatio);
                 playerStat.SetCurrentHp(finalCurrentHp);
-                Debug.Log(
+                Logger.Log(
+                    typeof(SkillSystem),
                     $"[SkillManager] After replace - HP: {finalCurrentHp}/{finalMaxHp} ({currentHpRatio:F2})"
                 );
             }
@@ -265,16 +307,23 @@ public class SkillSystem : MonoBehaviour, IInitializable
     {
         if (availableSkills == null || availableSkills.Count == 0)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(SkillSystem),
                 $"No skills available in SkillManager. Available skills count: {availableSkills?.Count ?? 0}"
             );
             return new List<SkillData>();
         }
 
-        Debug.Log($"Total available skills before filtering: {availableSkills.Count}");
+        Logger.Log(
+            typeof(SkillSystem),
+            $"Total available skills before filtering: {availableSkills.Count}"
+        );
         foreach (var skill in availableSkills)
         {
-            Debug.Log($"Available skill: {skill.Name}, ID: {skill.ID}, Element: {skill.Element}");
+            Logger.Log(
+                typeof(SkillSystem),
+                $"Available skill: {skill.Name}, ID: {skill.ID}, Element: {skill.Element}"
+            );
         }
 
         var selectedSkills = new List<SkillData>();
@@ -283,7 +332,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
             {
                 if (skill == null)
                 {
-                    Debug.LogError("Found null skill");
+                    Logger.LogError(typeof(SkillSystem), "Found null skill");
                     return false;
                 }
 
@@ -291,14 +340,17 @@ public class SkillSystem : MonoBehaviour, IInitializable
                 bool hasStats = stats != null;
                 bool matchesElement = elementType == null || skill.Element == elementType;
 
-                Debug.Log($"Checking skill {skill.Name}:");
-                Debug.Log($"  - ID: {skill.ID}");
-                Debug.Log($"  - Element: {skill.Element}");
-                Debug.Log($"  - HasStats: {hasStats}");
-                Debug.Log($"  - MatchesElement: {matchesElement}");
+                Logger.Log(
+                    typeof(SkillSystem),
+                    $"Checking skill {skill.Name} \n"
+                        + $"  - ID: {skill.ID} \n"
+                        + $"  - Element: {skill.Element} \n"
+                        + $"  - HasStats: {hasStats} \n"
+                        + $"  - MatchesElement: {matchesElement}"
+                );
                 if (!hasStats)
                 {
-                    Debug.LogWarning($"  - No stats found for level 1");
+                    Logger.LogWarning(typeof(SkillSystem), $"  - No stats found for level 1");
                 }
 
                 return hasStats && matchesElement;
@@ -307,11 +359,11 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
         if (!filteredSkills.Any())
         {
-            Debug.LogWarning("No skills match the criteria");
+            Logger.LogWarning(typeof(SkillSystem), "No skills match the criteria");
             return selectedSkills;
         }
 
-        Debug.Log($"Found {filteredSkills.Count} skills matching criteria");
+        Logger.Log(typeof(SkillSystem), $"Found {filteredSkills.Count} skills matching criteria");
 
         if (elementType == null)
         {
@@ -319,25 +371,30 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
             elementType = availableElements[Random.Range(0, availableElements.Count)];
             filteredSkills = filteredSkills.Where(s => s.Element == elementType).ToList();
-            Debug.Log(
+            Logger.Log(
+                typeof(SkillSystem),
                 $"Selected element type: {elementType}, remaining skills: {filteredSkills.Count}"
             );
         }
 
         int possibleCount = Mathf.Min(count, filteredSkills.Count);
-        Debug.Log($"Requested {count} skills, possible to select {possibleCount} skills");
+        Logger.Log(
+            typeof(SkillSystem),
+            $"Requested {count} skills, possible to select {possibleCount} skills"
+        );
 
         while (selectedSkills.Count < possibleCount && filteredSkills.Any())
         {
             int index = Random.Range(0, filteredSkills.Count);
             selectedSkills.Add(filteredSkills[index]);
-            Debug.Log($"Selected skill: {filteredSkills[index].Name}");
+            Logger.Log(typeof(SkillSystem), $"Selected skill: {filteredSkills[index].Name}");
             filteredSkills.RemoveAt(index);
         }
 
         if (selectedSkills.Count < count)
         {
-            Debug.Log(
+            Logger.Log(
+                typeof(SkillSystem),
                 $"Returning {selectedSkills.Count} skills instead of requested {count} due to availability"
             );
         }

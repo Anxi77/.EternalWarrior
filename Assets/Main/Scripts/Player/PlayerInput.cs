@@ -44,7 +44,7 @@ public class PlayerInput : MonoBehaviour
         if (context.ReadValue<Vector2>() != Vector2.zero)
         {
             var moveDirection = context.ReadValue<Vector2>();
-            Debug.Log(moveDirection);
+            Logger.Log(typeof(PlayerInput), $"Move: {moveDirection}");
             moveQueue.Enqueue(moveDirection);
         }
     }

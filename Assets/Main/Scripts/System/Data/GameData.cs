@@ -560,7 +560,7 @@ public class SkillData : ICloneable
     {
         if (stats?.baseStat == null)
         {
-            Debug.LogError("Attempting to set null stats");
+            Logger.LogError(typeof(SkillData), "Attempting to set null stats");
             return;
         }
 
@@ -583,7 +583,7 @@ public class SkillData : ICloneable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error setting stats: {e.Message}");
+            Logger.LogError(typeof(SkillData), $"Error setting stats: {e.Message}");
         }
     }
 
@@ -601,7 +601,7 @@ public class SkillData : ICloneable
                 currentSkillStat = new PassiveSkillStat(passiveStats);
                 break;
             default:
-                Debug.LogWarning($"Unknown skill stat type: {stats.GetType()}");
+                Logger.LogWarning(typeof(SkillData), $"Unknown skill stat type: {stats.GetType()}");
                 break;
         }
     }

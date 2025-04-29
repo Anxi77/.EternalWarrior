@@ -19,7 +19,7 @@ public abstract class Skill : MonoBehaviour
         if (skillData == null || !IsValidSkillData(skillData))
         {
             skillData = new SkillData();
-            Debug.Log($"Skill data is null or invalid for {gameObject.name}");
+            Logger.Log(typeof(Skill), $"Skill data is null or invalid for {gameObject.name}");
         }
     }
 
@@ -27,22 +27,22 @@ public abstract class Skill : MonoBehaviour
     {
         if (data.Name == null)
         {
-            Debug.LogError($"Skill data is null for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Skill data is null for {gameObject.name}");
             return false;
         }
         if (data.Type == SkillType.None)
         {
-            Debug.LogError($"Skill type is None for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Skill type is None for {gameObject.name}");
             return false;
         }
         if (string.IsNullOrEmpty(data.Name))
         {
-            Debug.LogError($"Skill name is null or empty for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Skill name is null or empty for {gameObject.name}");
             return false;
         }
         if (data.ID == SkillID.None)
         {
-            Debug.LogError($"Skill ID is None for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Skill ID is None for {gameObject.name}");
             return false;
         }
 
@@ -50,12 +50,12 @@ public abstract class Skill : MonoBehaviour
         print(currentStats);
         if (currentStats == null)
         {
-            Debug.LogError($"Current stats are null for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Current stats are null for {gameObject.name}");
             return false;
         }
         if (currentStats.baseStat == null)
         {
-            Debug.LogError($"Base stat is null for {gameObject.name}");
+            Logger.LogError(typeof(Skill), $"Base stat is null for {gameObject.name}");
             return false;
         }
 
@@ -74,20 +74,22 @@ public abstract class Skill : MonoBehaviour
 
     public virtual bool SkillLevelUpdate(int newLevel)
     {
-        Debug.Log($"=== Starting SkillLevelUpdate for {skillData.Name} ===");
-        Debug.Log(
+        Logger.Log(typeof(Skill), $"=== Starting SkillLevelUpdate for {skillData.Name} ===");
+        Logger.Log(
+            typeof(Skill),
             $"Current Level: {skillData.GetSkillStats().baseStat.skillLevel}, Attempting to upgrade to: {newLevel}"
         );
 
         if (newLevel <= 0)
         {
-            Debug.LogError($"Invalid level: {newLevel}");
+            Logger.LogError(typeof(Skill), $"Invalid level: {newLevel}");
             return false;
         }
 
         if (newLevel > skillData.GetSkillStats().baseStat.maxSkillLevel)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(Skill),
                 $"Attempted to upgrade {skillData.Name} beyond max level ({skillData.GetSkillStats().baseStat.maxSkillLevel})"
             );
             return false;
@@ -95,7 +97,8 @@ public abstract class Skill : MonoBehaviour
 
         if (newLevel < skillData.GetSkillStats().baseStat.skillLevel)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(Skill),
                 $"Cannot downgrade skill level. Current: {skillData.GetSkillStats().baseStat.skillLevel}, Attempted: {newLevel}"
             );
             return false;
@@ -104,7 +107,8 @@ public abstract class Skill : MonoBehaviour
         try
         {
             var currentStats = GetSkillData()?.GetSkillStats();
-            Debug.Log(
+            Logger.Log(
+                typeof(Skill),
                 $"Current stats - Level: {currentStats?.baseStat?.skillLevel}, Damage: {currentStats?.baseStat?.damage}"
             );
 
@@ -112,29 +116,36 @@ public abstract class Skill : MonoBehaviour
 
             if (newStats == null)
             {
-                Debug.LogError("Failed to get new stats");
+                Logger.LogError(typeof(Skill), "Failed to get new stats");
                 return false;
             }
 
-            Debug.Log(
+            Logger.Log(
+                typeof(Skill),
                 $"New stats received - Level: {newStats.baseStat?.skillLevel}, Damage: {newStats.baseStat?.damage}"
             );
 
             newStats.baseStat.skillLevel = newLevel;
             skillData.GetSkillStats().baseStat.skillLevel = newLevel;
 
-            Debug.Log("Setting new stats...");
+            Logger.Log(typeof(Skill), "Setting new stats...");
             skillData.SetStatsForLevel(newLevel, newStats);
 
-            Debug.Log("Updating skill type stats...");
+            Logger.Log(typeof(Skill), "Updating skill type stats...");
             UpdateSkillTypeStats(newStats);
 
-            Debug.Log($"=== Successfully completed SkillLevelUpdate for {skillData.Name} ===");
+            Logger.Log(
+                typeof(Skill),
+                $"=== Successfully completed SkillLevelUpdate for {skillData.Name} ==="
+            );
             return true;
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Error in SkillLevelUpdate: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(Skill),
+                $"Error in SkillLevelUpdate: {e.Message}\n{e.StackTrace}"
+            );
             return false;
         }
     }
@@ -156,18 +167,18 @@ public abstract class Skill : MonoBehaviour
 
         if (skillData == null)
         {
-            Debug.LogError($"Skill data is missing for {GetType().Name}");
+            Logger.LogError(typeof(Skill), $"Skill data is missing for {GetType().Name}");
             return;
         }
 
         if (!IsValidSkillData(skillData))
         {
-            Debug.LogError($"Invalid skill data for {GetType().Name}");
+            Logger.LogError(typeof(Skill), $"Invalid skill data for {GetType().Name}");
 
             return;
         }
 
-        Debug.Log($"Validated skill data for {skillData.Name}");
+        Logger.Log(typeof(Skill), $"Validated skill data for {skillData.Name}");
     }
 
     public virtual void ApplyItemEffect(ISkillInteractionEffect effect)

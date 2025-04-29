@@ -19,7 +19,8 @@ public static class ElementalEffects
 
         if (!target.TryGetComponent<Monster>(out Monster enemy))
         {
-            Debug.LogWarning(
+            Logger.LogWarning(
+                typeof(ElementalEffects),
                 $"Failed to apply elemental effect: Target {target.name} is not an enemy"
             );
             return;
@@ -42,7 +43,7 @@ public static class ElementalEffects
             case ElementType.None:
                 break;
             default:
-                Debug.LogWarning($"Unknown element type: {element}");
+                Logger.LogWarning(typeof(ElementalEffects), $"Unknown element type: {element}");
                 break;
         }
     }
@@ -52,7 +53,8 @@ public static class ElementalEffects
         float defenseReduction = Mathf.Clamp(power * 0.2f, 0.1f, 0.5f);
         enemy.ApplyDefenseDebuff(defenseReduction, DARK_EFFECT_DURATION);
 
-        Debug.Log(
+        Logger.Log(
+            typeof(ElementalEffects),
             $"Applied Dark effect to {enemy.name}: {defenseReduction * 100}% defense reduction for {DARK_EFFECT_DURATION}s"
         );
     }
@@ -62,7 +64,8 @@ public static class ElementalEffects
         float slowAmount = Mathf.Clamp(power * 0.3f, 0.2f, 0.6f);
         enemy.ApplySlowEffect(slowAmount, WATER_EFFECT_DURATION);
 
-        Debug.Log(
+        Logger.Log(
+            typeof(ElementalEffects),
             $"Applied Water effect to {enemy.name}: {slowAmount * 100}% slow for {WATER_EFFECT_DURATION}s"
         );
     }
@@ -72,7 +75,8 @@ public static class ElementalEffects
         float dotDamage = power * 0.15f;
         enemy.ApplyDotDamage(dotDamage, FIRE_TICK_RATE, FIRE_EFFECT_DURATION);
 
-        Debug.Log(
+        Logger.Log(
+            typeof(ElementalEffects),
             $"Applied Fire effect to {enemy.name}: {dotDamage} damage every {FIRE_TICK_RATE}s for {FIRE_EFFECT_DURATION}s"
         );
     }
@@ -82,7 +86,10 @@ public static class ElementalEffects
         float stunDuration = Mathf.Clamp(power * 0.1f, 0.5f, EARTH_EFFECT_DURATION);
         enemy.ApplyStun(power, stunDuration);
 
-        Debug.Log($"Applied Earth effect to {enemy.name}: Stunned for {stunDuration}s");
+        Logger.Log(
+            typeof(ElementalEffects),
+            $"Applied Earth effect to {enemy.name}: Stunned for {stunDuration}s"
+        );
     }
 
     private static float CalculateEffectPower(float basePower, float scaling)

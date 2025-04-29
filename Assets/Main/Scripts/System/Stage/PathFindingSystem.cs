@@ -36,7 +36,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing PathFindingManager: {e.Message}");
+            Logger.LogError(typeof(PathFindingSystem), $"Error initializing : {e.Message}");
             IsInitialized = false;
         }
     }
@@ -82,7 +82,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found!");
+            Logger.LogError(typeof(PathFindingSystem), "Main Camera not found!");
             return;
         }
 
@@ -659,7 +659,10 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found in PathFindingManager initialization!");
+            Logger.LogError(
+                typeof(PathFindingSystem),
+                "Main Camera not found in PathFindingManager initialization!"
+            );
             return;
         }
 

@@ -14,10 +14,7 @@ public static class JSONIO<T>
     {
         Formatting = Formatting.Indented,
         NullValueHandling = NullValueHandling.Ignore,
-        Converters = new JsonConverter[]
-        {
-            new StringEnumConverter(), // Enum을 문자열로 변환
-        },
+        Converters = new JsonConverter[] { new StringEnumConverter() },
     };
 
     public static void SaveData(string path, string key, T data)
@@ -26,7 +23,7 @@ public static class JSONIO<T>
         {
             if (data == null)
             {
-                Debug.LogError($"Cannot save null data for key: {key}");
+                Logger.LogError(typeof(JSONIO<T>), $"Cannot save null data for key: {key}");
                 return;
             }
 
@@ -45,7 +42,10 @@ public static class JSONIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error saving JSON data: {e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                typeof(JSONIO<T>),
+                $"Error saving JSON data: {e.Message}\n{e.StackTrace}"
+            );
         }
     }
 
@@ -64,7 +64,7 @@ public static class JSONIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error loading JSON data: {e.Message}");
+            Logger.LogError(typeof(JSONIO<T>), $"Error loading JSON data: {e.Message}");
         }
 
         return null;
@@ -86,7 +86,7 @@ public static class JSONIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error deleting JSON data: {e.Message}");
+            Logger.LogError(typeof(JSONIO<T>), $"Error deleting JSON data: {e.Message}");
         }
         return false;
     }
@@ -110,7 +110,7 @@ public static class JSONIO<T>
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error clearing JSON data: {e.Message}");
+            Logger.LogError(typeof(JSONIO<T>), $"Error clearing JSON data: {e.Message}");
         }
     }
 }

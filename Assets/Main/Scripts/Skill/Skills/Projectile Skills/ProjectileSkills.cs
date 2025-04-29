@@ -50,7 +50,7 @@ public abstract class ProjectileSkills : Skill
         }
         else
         {
-            Debug.LogWarning($"No Stat data found for {skillData.Name}");
+            Logger.LogWarning(typeof(ProjectileSkills), $"No Stat data found for {skillData.Name}");
         }
         isInitialized = true;
         canFire = true;
@@ -245,7 +245,10 @@ public abstract class ProjectileSkills : Skill
             _homingRange = HomingRange;
         }
 
-        Debug.Log($"Homing state updated for {skillData.Name}: {activate}");
+        Logger.Log(
+            typeof(ProjectileSkills),
+            $"Homing state updated for {skillData.Name}: {activate}"
+        );
     }
 
     protected override void UpdateSkillTypeStats(ISkillStat newStats)
@@ -260,11 +263,17 @@ public abstract class ProjectileSkills : Skill
     {
         if (stats == null || stats.baseStat == null)
         {
-            Debug.LogError($"Invalid stats passed to UpdateInspectorValues for {GetType().Name}");
+            Logger.LogError(
+                typeof(ProjectileSkills),
+                $"Invalid stats passed to UpdateInspectorValues for {GetType().Name}"
+            );
             return;
         }
 
-        Debug.Log($"[ProjectileSkills] Before Update - Level: {currentLevel}");
+        Logger.Log(
+            typeof(ProjectileSkills),
+            $"[ProjectileSkills] Before Update - Level: {currentLevel}"
+        );
 
         currentLevel = stats.baseStat.skillLevel;
 
@@ -281,7 +290,10 @@ public abstract class ProjectileSkills : Skill
         _projectileCount = stats.projectileCount;
         _innerInterval = stats.innerInterval;
 
-        Debug.Log($"[ProjectileSkills] After Update - Level: {currentLevel}");
+        Logger.Log(
+            typeof(ProjectileSkills),
+            $"[ProjectileSkills] After Update - Level: {currentLevel}"
+        );
     }
 
     public override string GetDetailedDescription()
@@ -362,11 +374,17 @@ public abstract class ProjectileSkills : Skill
             _innerInterval = currentStats.innerInterval;
 
             skillData.SetStatsForLevel(currentLevel, currentStats);
-            Debug.Log($"Updated stats for {GetType().Name} from inspector");
+            Logger.Log(
+                typeof(ProjectileSkills),
+                $"Updated stats for {GetType().Name} from inspector"
+            );
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"Error in OnValidate for {GetType().Name}: {e.Message}");
+            Logger.LogWarning(
+                typeof(ProjectileSkills),
+                $"Error in OnValidate for {GetType().Name}: {e.Message}"
+            );
         }
     }
 

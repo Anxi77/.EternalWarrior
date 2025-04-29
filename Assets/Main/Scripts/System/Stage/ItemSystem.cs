@@ -23,7 +23,8 @@ public class ItemSystem : MonoBehaviour, IInitializable
             }
             catch (Exception e)
             {
-                Debug.LogError(
+                Logger.LogError(
+                    typeof(ItemSystem),
                     $"[ItemManager] Error initializing ItemManager: {e.Message}\n{e.StackTrace}"
                 );
                 isInitialized = false;
@@ -70,18 +71,24 @@ public class ItemSystem : MonoBehaviour, IInitializable
     {
         if (itemId == Guid.Empty)
         {
-            Debug.LogError($"[ItemManager] Attempted to get item with null or empty ID");
+            Logger.LogError(
+                typeof(ItemSystem),
+                "[ItemManager] Attempted to get item with null or empty ID"
+            );
             return null;
         }
 
         var item = itemGenerator.GenerateItem(itemId);
         if (item == null)
         {
-            Debug.LogError($"[ItemManager] Failed to generate item with ID: {itemId}");
+            Logger.LogError(
+                typeof(ItemSystem),
+                $"[ItemManager] Failed to generate item with ID: {itemId} "
+            );
             return null;
         }
 
-        Debug.Log($"[ItemManager] Generated item: {item.GetItemData().Name}");
+        Logger.Log(typeof(ItemSystem), $"[ItemManager] Generated item: {item.GetItemData().Name}");
         return item;
     }
 

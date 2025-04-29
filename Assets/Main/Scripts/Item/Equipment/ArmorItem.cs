@@ -7,7 +7,8 @@ public class ArmorItem : EquipmentItem
     {
         if (itemData.Type != ItemType.Armor)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(ArmorItem),
                 $"Attempted to create ArmorItem with non-armor ItemData: {itemData.Type}"
             );
         }
@@ -23,7 +24,8 @@ public class ArmorItem : EquipmentItem
     {
         if (type != ItemType.Armor)
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(ArmorItem),
                 $"잘못된 아이템 타입입니다: {type}. ArmorItem은 ItemType.Armor이어야 합니다."
             );
         }

@@ -43,7 +43,8 @@ public class ItemDataManager : Singleton<ItemDataManager>
         }
         else
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(ItemDataManager),
                 $"[ItemDataManager] ItemDatabase.json not found at path: Resources/{ITEM_DB_PATH}/ItemDatabase"
             );
         }
@@ -55,7 +56,8 @@ public class ItemDataManager : Singleton<ItemDataManager>
         }
         else
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(ItemDataManager),
                 $"[ItemDataManager] DropTables.json not found at path: Resources/{DROP_TABLES_PATH}/DropTables"
             );
         }
@@ -65,7 +67,8 @@ public class ItemDataManager : Singleton<ItemDataManager>
             itemDatabase = itemData.items.ToDictionary(item => item.ID);
             foreach (var item in itemDatabase)
             {
-                Debug.Log(
+                Logger.Log(
+                    typeof(ItemDataManager),
                     $"[ItemDataManager] Loaded item [Name : {item.Value.Name}] [ID : {item.Value.ID}]"
                 );
 
@@ -76,11 +79,15 @@ public class ItemDataManager : Singleton<ItemDataManager>
         }
         else
         {
-            Debug.LogError(
+            Logger.LogError(
+                typeof(ItemDataManager),
                 "[ItemDataManager] Failed to deserialize item data or items list is null"
             );
         }
-        Debug.Log($"[ItemDataManager] Total loaded item data count : {itemDatabase.Count}");
+        Logger.Log(
+            typeof(ItemDataManager),
+            $"[ItemDataManager] Total loaded item data count : {itemDatabase.Count}"
+        );
 
         yield return new WaitForSeconds(0.5f);
         LoadingManager.Instance.SetLoadingText("Loading Drop Tables...");
@@ -101,7 +108,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
         }
         else
         {
-            Debug.LogError("No drop tables found.");
+            Logger.LogError(typeof(ItemDataManager), "No drop tables found.");
         }
 
         foreach (var item in itemDatabase)
@@ -134,7 +141,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
         {
             return itemData.Clone();
         }
-        Debug.LogWarning($"Item not found: {itemId}");
+        Logger.LogWarning(typeof(ItemDataManager), $"Item not found: {itemId}");
         return null;
     }
 

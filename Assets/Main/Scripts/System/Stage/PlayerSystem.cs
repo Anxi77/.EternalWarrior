@@ -18,7 +18,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing PlayerSystem: {e.Message}");
+            Logger.LogError(typeof(PlayerSystem), $"Error initializing PlayerSystem: {e.Message}");
             IsInitialized = false;
         }
     }
@@ -52,7 +52,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error spawning player: {e.Message}");
+            Logger.LogError(typeof(PlayerSystem), $"Error spawning player: {e.Message}");
         }
     }
 
@@ -83,7 +83,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
     {
         if (player == null)
         {
-            Debug.LogWarning("Player is not initialized");
+            Logger.LogWarning(typeof(PlayerSystem), "Player is not initialized");
             return;
         }
 
@@ -106,7 +106,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
     {
         if (player == null)
         {
-            Debug.LogWarning("Player is not initialized");
+            Logger.LogWarning(typeof(PlayerSystem), "Player is not initialized");
             return;
         }
 

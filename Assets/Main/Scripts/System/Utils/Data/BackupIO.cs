@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ public static class BackupIO
     {
         try
         {
-            string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string backupPath = Path.Combine(Application.dataPath, BACKUP_PATH, timestamp);
 
             Directory.CreateDirectory(backupPath);
@@ -24,11 +25,11 @@ public static class BackupIO
 
             CleanupOldBackups();
 
-            Debug.Log($"Backup created successfully: {backupPath}");
+            Logger.Log(typeof(BackupIO), $"Backup created successfully: {backupPath}");
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Backup failed: {e.Message}");
+            Logger.LogError(typeof(BackupIO), $"Backup failed: {e.Message}");
         }
     }
 
@@ -45,7 +46,7 @@ public static class BackupIO
         {
             if (
                 BACKUP_EXTENSIONS.Any(ext =>
-                    filePath.EndsWith(ext, System.StringComparison.OrdinalIgnoreCase)
+                    filePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase)
                 )
             )
             {
@@ -70,14 +71,17 @@ public static class BackupIO
             string content = File.ReadAllText(metaFilePath);
 
             string pattern = @"guid: \w+";
-            string newGuid = System.Guid.NewGuid().ToString("N");
+            string newGuid = Guid.NewGuid().ToString("N");
             content = Regex.Replace(content, pattern, $"guid: {newGuid}");
 
             File.WriteAllText(metaFilePath, content);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogWarning($"��Ÿ ���� GUID ������Ʈ ����: {metaFilePath}, ����: {e.Message}");
+            Logger.LogWarning(
+                typeof(BackupIO),
+                $"Error Occured while updating GUID: {metaFilePath}, Error: {e.Message}"
+            );
         }
     }
 
@@ -102,9 +106,12 @@ public static class BackupIO
                     File.Delete(metaFilePath);
                 }
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                Debug.LogError($"��� ���� �� ���� �߻�: {oldBackup}, ����: {e.Message}");
+                Logger.LogError(
+                    typeof(BackupIO),
+                    $"Error Occured while deleting backup: {oldBackup}, Error: {e.Message}"
+                );
             }
         }
 #if UNITY_EDITOR
@@ -121,7 +128,7 @@ public static class BackupIO
 
             if (!Directory.Exists(backupPath))
             {
-                Debug.LogError($"Backup not found: {backupPath}");
+                Logger.LogError(typeof(BackupIO), $"Backup not found: {backupPath}");
                 return false;
             }
 
@@ -133,9 +140,9 @@ public static class BackupIO
 #endif
             return true;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Restore failed: {e.Message}");
+            Logger.LogError(typeof(BackupIO), $"Restore failed: {e.Message}");
             return false;
         }
     }

@@ -18,7 +18,10 @@ public class RotatingOrb : MonoBehaviour
         parentSkill = GetComponentInParent<AreaSkills>();
         if (parentSkill == null)
         {
-            Debug.LogError("RotatingOrb must be a child of an AreaSkills component!");
+            Logger.LogError(
+                typeof(RotatingOrb),
+                "RotatingOrb must be a child of an AreaSkills component!"
+            );
         }
     }
 

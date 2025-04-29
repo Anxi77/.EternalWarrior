@@ -52,7 +52,10 @@ public class TestPanel : Panel
             itemDropdown.CreateNewItem($"{itemData.Name} ({itemData.Type})", true);
         }
 
-        Debug.Log($"[Test] Initialized dropdown with {skillDatas.Count} skills");
+        Logger.Log(
+            typeof(TestPanel),
+            $"[Test] Initialized dropdown with {skillDatas.Count} skills"
+        );
     }
 
     private void SetupButton()
@@ -65,13 +68,13 @@ public class TestPanel : Panel
     {
         if (!isInitialized)
         {
-            Debug.LogWarning("[Test] Not yet initialized!");
+            Logger.LogWarning(typeof(TestPanel), "[Test] Not yet initialized!");
             return;
         }
 
         if (GameManager.Instance?.PlayerSystem?.Player == null)
         {
-            Debug.LogWarning("[Test] Player not found!");
+            Logger.LogWarning(typeof(TestPanel), "[Test] Player not found!");
             return;
         }
 
@@ -80,7 +83,10 @@ public class TestPanel : Panel
         {
             var selectedSkill = skillDatas[skillDropdown.selectedItemIndex];
             GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(selectedSkill);
-            Debug.Log($"SkillTester: Added/Upgraded skill: {selectedSkill.Name}");
+            Logger.Log(
+                typeof(TestPanel),
+                $"SkillTester: Added/Upgraded skill: {selectedSkill.Name}"
+            );
         }
     }
 
@@ -95,7 +101,7 @@ public class TestPanel : Panel
 
             GameManager.Instance.PlayerSystem.Player.inventory.AddItem(item);
 
-            Debug.Log($"[Test] Added item: {selectedItem.Name}");
+            Logger.Log(typeof(TestPanel), $"[Test] Added item: {selectedItem.Name}");
         }
     }
 

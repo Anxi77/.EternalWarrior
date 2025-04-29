@@ -120,7 +120,10 @@ public class PassiveSkill : Skill
         }
         else
         {
-            Debug.LogError($"PlayerStatSystem not found for {skillData.Name}");
+            Logger.LogError(
+                typeof(PassiveSkill),
+                $"PlayerStatSystem not found for {skillData.Name}"
+            );
         }
     }
 
@@ -138,7 +141,7 @@ public class PassiveSkill : Skill
         }
         else
         {
-            Debug.LogWarning($"No Stat data found for {skillData.Name}");
+            Logger.LogWarning(typeof(PassiveSkill), $"No Stat data found for {skillData.Name}");
         }
     }
 
@@ -291,7 +294,10 @@ public class PassiveSkill : Skill
     {
         if (stats == null || stats.baseStat == null)
         {
-            Debug.LogError($"Invalid stats passed to UpdateInspectorValues for {GetType().Name}");
+            Logger.LogError(
+                typeof(PassiveSkill),
+                $"Invalid stats passed to UpdateInspectorValues for {GetType().Name}"
+            );
             return;
         }
 
@@ -301,12 +307,13 @@ public class PassiveSkill : Skill
         {
             currentHpRatio =
                 playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-            Debug.Log(
+            Logger.Log(
+                typeof(PassiveSkill),
                 $"Before UpdateInspectorValues - HP: {playerStat.GetStat(StatType.CurrentHp)}/{playerStat.GetStat(StatType.MaxHp)} ({currentHpRatio:F2})"
             );
         }
 
-        Debug.Log($"[PassiveSkills] Before Update - Level: {currentLevel}");
+        Logger.Log(typeof(PassiveSkill), $"[PassiveSkills] Before Update - Level: {currentLevel}");
 
         currentLevel = stats.baseStat.skillLevel;
         _damage = stats.baseStat.damage;
@@ -324,14 +331,15 @@ public class PassiveSkill : Skill
         _attackRangeIncrease = stats.attackRangeIncrease;
         _hpRegenIncrease = stats.hpRegenIncrease;
 
-        Debug.Log($"[PassiveSkills] After Update - Level: {currentLevel}");
+        Logger.Log(typeof(PassiveSkill), $"[PassiveSkills] After Update - Level: {currentLevel}");
 
         if (playerStat != null)
         {
             float newMaxHp = playerStat.GetStat(StatType.MaxHp);
             float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
             playerStat.SetCurrentHp(newCurrentHp);
-            Debug.Log(
+            Logger.Log(
+                typeof(PassiveSkill),
                 $"After UpdateInspectorValues - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})"
             );
         }
@@ -356,7 +364,8 @@ public class PassiveSkill : Skill
         );
         playerStat.AddModifier(modifier);
         statModifiers.Add(modifier);
-        Debug.Log(
+        Logger.Log(
+            typeof(PassiveSkill),
             $"Applied {statType} increase: Current({currentStat}) + {percentageIncrease}% = {currentStat + increase}"
         );
     }
@@ -373,7 +382,10 @@ public class PassiveSkill : Skill
             if (_homingActivate)
                 player.ActivateHoming(false);
 
-            Debug.Log($"Removed all effects for {skillData?.Name ?? "Unknown Skill"}");
+            Logger.Log(
+                typeof(PassiveSkill),
+                $"Removed all effects for {skillData?.Name ?? "Unknown Skill"}"
+            );
         }
     }
 }

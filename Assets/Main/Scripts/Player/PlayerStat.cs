@@ -28,7 +28,7 @@ public class PlayerStat : MonoBehaviour
     {
         if (saveData == null)
         {
-            Debug.LogWarning("[PlayerStatSystem] Save Data is null");
+            Logger.LogWarning(typeof(PlayerStat), "Save Data is null");
             return;
         }
 

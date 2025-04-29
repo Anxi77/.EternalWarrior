@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -24,14 +25,17 @@ public class PlayerSkillIcon : MonoBehaviour
                 if (iconSprite == null)
                 {
                     iconSprite = Resources.Load<Sprite>("Icons/Default/SkillIcon");
-                    Debug.LogWarning($"Using default icon for skill: {skill?.GetType().Name}");
+                    Logger.LogWarning(
+                        typeof(PlayerSkillIcon),
+                        $"Using default icon for skill: {skill?.GetType().Name}"
+                    );
                 }
                 iconImage.sprite = iconSprite;
                 iconImage.gameObject.SetActive(iconSprite != null);
             }
             else
             {
-                Debug.LogError("Icon Image component is missing!");
+                Logger.LogError(typeof(PlayerSkillIcon), "Icon Image component is missing!");
             }
 
             if (levelText != null && skill != null)
@@ -47,9 +51,9 @@ public class PlayerSkillIcon : MonoBehaviour
                 elementalBorder.gameObject.SetActive(element != ElementType.None);
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Error setting skill icon: {e.Message}");
+            Logger.LogError(typeof(PlayerSkillIcon), $"Error setting skill icon: {e.Message}");
         }
     }
 

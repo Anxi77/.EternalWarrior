@@ -19,7 +19,10 @@ public class StageTimer : MonoBehaviour, IInitializable
         }
         catch (Exception e)
         {
-            Debug.LogError($"Error initializing StageTimeManager: {e.Message}");
+            Logger.LogError(
+                typeof(StageTimer),
+                $"Error initializing StageTimeManager: {e.Message}"
+            );
             IsInitialized = false;
         }
     }

@@ -119,7 +119,10 @@ public class ItemSlot
         var item = slotData.item;
         if (item == null)
         {
-            Debug.LogError($"Failed to get item data for ID: {slotData.item.GetItemData().ID}");
+            Logger.LogError(
+                typeof(ItemSlot),
+                $"Failed to get item data for ID: {slotData.item.GetItemData().ID}"
+            );
             return;
         }
 
@@ -158,8 +161,10 @@ public class ItemSlot
         var equipSlot = GetEquipmentSlot(item.GetItemData().Type, accessoryType);
         if (equipSlot != SlotType.Storage)
         {
-            Debug.Log($"Equipping {item.GetItemData().Name} to slot {equipSlot}");
-
+            Logger.Log(
+                typeof(ItemSlot),
+                $"Equipping {item.GetItemData().Name} to slot {equipSlot}"
+            );
             inventory.EquipItem(item, equipSlot);
         }
     }

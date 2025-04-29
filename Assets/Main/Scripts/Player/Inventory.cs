@@ -135,7 +135,10 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Inventory is full!");
+            Logger.Log(
+                typeof(Inventory),
+                $"Inventory is full Current Size: {inventorySlots.Count} \n Max Size: {MAX_SLOTS}"
+            );
         }
     }
 
@@ -206,7 +209,7 @@ public class Inventory : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Inventory is full");
+                Logger.LogWarning(typeof(Inventory), "Inventory is full");
             }
         }
     }
@@ -215,11 +218,14 @@ public class Inventory : MonoBehaviour
     {
         if (item == null)
         {
-            Debug.LogError("Attempted to equip Null Item");
+            Logger.LogError(typeof(Inventory), "Attempted to equip Null Item");
             return;
         }
 
-        Debug.Log($"Attempting to equip {item.GetItemData().Name} to slot {slotType}");
+        Logger.Log(
+            typeof(Inventory),
+            $"Attempting to equip {item.GetItemData().Name} to slot {slotType}"
+        );
 
         if (equipmentSlots.Find(slot => slot.slotType == slotType) != null)
         {
@@ -249,11 +255,17 @@ public class Inventory : MonoBehaviour
                 inventoryPanel.UpdateUI();
             }
 
-            Debug.Log($"Successfully equipped {item.GetItemData().Name} to slot {slotType}");
+            Logger.Log(
+                typeof(Inventory),
+                $"Successfully equipped {item.GetItemData().Name} to slot {slotType}"
+            );
         }
         else
         {
-            Debug.LogError($"Failed to create equipment item for {item.GetItemData().Name}");
+            Logger.LogError(
+                typeof(Inventory),
+                $"Failed to create equipment item for {item.GetItemData().Name}"
+            );
         }
     }
 

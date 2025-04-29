@@ -27,7 +27,7 @@ public class TownStateHandler : BaseStateHandler
     {
         if (Game != null && Game.PlayerSystem.Player == null)
         {
-            Debug.LogError("Cannot initialize town: Player is null");
+            Logger.LogError(typeof(TownStateHandler), "Cannot initialize town: Player is null");
             return;
         }
 

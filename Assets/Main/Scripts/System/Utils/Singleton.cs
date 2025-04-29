@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public abstract class Singleton<T> : MonoBehaviour
     where T : MonoBehaviour
@@ -20,7 +19,10 @@ public abstract class Singleton<T> : MonoBehaviour
 
             if (instance == null)
             {
-                Debug.Log($"[{typeof(T)}] Creating new instance \n{GetCallStack()}");
+                Logger.Log(
+                    typeof(Singleton<T>),
+                    $"[{typeof(T)}] Creating new instance \n{GetCallStack()}"
+                );
                 var go = new GameObject(typeof(T).Name);
                 instance = go.AddComponent<T>();
                 DontDestroyOnLoad(go);

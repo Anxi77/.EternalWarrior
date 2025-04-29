@@ -69,12 +69,15 @@ public class WorldDropItem : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"No icon found for item: {item.GetItemData().ID}");
+                Logger.LogWarning(
+                    typeof(WorldDropItem),
+                    $"No icon found for item: {item.GetItemData().ID}"
+                );
             }
         }
         else
         {
-            Debug.LogError("SpriteRenderer is missing on WorldDropItem!");
+            Logger.LogError(typeof(WorldDropItem), "SpriteRenderer is missing on WorldDropItem!");
         }
     }
 
