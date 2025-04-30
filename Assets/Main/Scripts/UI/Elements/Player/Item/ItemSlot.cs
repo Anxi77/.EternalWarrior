@@ -18,10 +18,10 @@ public class ItemSlot
     private Image backgroundImage;
 
     [SerializeField]
-    private TextMeshProUGUI amountText;
+    private GameObject hoverImage;
 
     [SerializeField]
-    private GameObject equippedIndicator;
+    private TextMeshProUGUI amountText;
 
     [Header("Slot Settings")]
     public ItemType slotType = ItemType.None;
@@ -58,7 +58,6 @@ public class ItemSlot
     {
         itemIcon.enabled = false;
         amountText.enabled = false;
-        equippedIndicator.SetActive(false);
     }
 
     private void UpdateSlotVisuals(ItemData itemData, int amount, bool isEquipped)
@@ -75,7 +74,6 @@ public class ItemSlot
             amountText.text = amount.ToString();
         }
 
-        equippedIndicator.SetActive(isEquipped);
         backgroundImage.color = GetRarityColor(itemData.Rarity);
     }
     #endregion
@@ -182,6 +180,7 @@ public class ItemSlot
     {
         if (slotData?.item != null)
         {
+            hoverImage.SetActive(true);
             ShowTooltip(slotData.item.GetItemData());
         }
     }

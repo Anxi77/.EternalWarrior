@@ -42,7 +42,6 @@ public static class ResourceIO<T>
 
         AssetDatabase.Refresh();
         cache[path] = data;
-        Logger.Log(typeof(ResourceIO<T>), $"Saved resource to: {path}");
         return true;
     }
 #endif
@@ -68,7 +67,6 @@ public static class ResourceIO<T>
 #if UNITY_EDITOR
     public static bool DeleteData(string key)
     {
-        Logger.Log(typeof(ResourceIO<T>), $"Deleting resource: {key}");
         string assetPath = Path.Combine(RESOURCES_PATH, key);
         if (File.Exists(assetPath))
         {
@@ -104,8 +102,6 @@ public static class ResourceIO<T>
             string directory = Path.GetDirectoryName(targetPath);
             directory = directory.Replace("\\", "/");
 
-            Logger.Log(typeof(ResourceIO<T>), $"Directory: {directory}");
-
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
@@ -113,10 +109,6 @@ public static class ResourceIO<T>
 
             if (sourcePath.Equals(targetPath, StringComparison.OrdinalIgnoreCase))
             {
-                Logger.Log(
-                    typeof(ResourceIO<T>),
-                    $"Source and target are the same, skipping copy: {targetPath}"
-                );
                 return;
             }
 

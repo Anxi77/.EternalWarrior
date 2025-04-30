@@ -1,0 +1,9 @@
+{
+  "ID": "Vine",
+  "Name": "Vine",
+  "Description": "Withers Enemy",
+  "Type": "Area",
+  "Element": "Earth",
+  "Tier": 0,
+  "Tags": []
+}

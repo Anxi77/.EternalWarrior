@@ -1,0 +1,6 @@
+skillID,level,damage,maxSkillLevel,element,elementalPower,radius,duration,tickRate,isPersistent,moveSpeed
+Vine,1,10,5,Earth,1,5,3,1,0,0
+Vine,2,15,5,Earth,1.2,5,3,1,0,0
+Vine,3,20,5,Earth,1.4,5,3,1,0,0
+Vine,4,25,5,Earth,1.6,5,3,1,0,0
+Vine,5,30,5,Earth,1.8,5,3,1,0,0

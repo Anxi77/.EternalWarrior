@@ -28,7 +28,7 @@ public class ItemEditorWindow : EditorWindow
     private bool showEffects = true;
     private bool showResources = true;
 
-    [MenuItem("Anxi/Item Editor")]
+    [MenuItem("Anxi/RPG/Item/Item Editor")]
     public static void ShowWindow()
     {
         GetWindow<ItemEditorWindow>("Item Editor");
@@ -311,10 +311,6 @@ public class ItemEditorWindow : EditorWindow
                     EditorGUILayout.LabelField(
                         $"- {subEffect.effectType}: {subEffect.minValue} to {subEffect.maxValue}"
                     );
-                    if (!string.IsNullOrEmpty(subEffect.description))
-                    {
-                        EditorGUILayout.LabelField($"  {subEffect.description}");
-                    }
                 }
 
                 if (GUILayout.Button("Remove"))
@@ -638,8 +634,6 @@ public class ItemEditorWindow : EditorWindow
             {
                 selectedItemId = Guid.Empty;
             }
-
-            Logger.Log(typeof(ItemEditorWindow), "All data loaded successfully!");
         }
         catch (Exception e)
         {

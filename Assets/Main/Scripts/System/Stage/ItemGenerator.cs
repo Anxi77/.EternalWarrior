@@ -147,7 +147,6 @@ public class ItemGenerator : MonoBehaviour
                     {
                         effectType = subEffectRange.effectType,
                         value = value,
-                        description = subEffectRange.description,
                         isEnabled = true,
                     };
 

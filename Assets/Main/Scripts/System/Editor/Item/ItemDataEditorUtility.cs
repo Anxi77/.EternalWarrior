@@ -93,10 +93,6 @@ public static class ItemDataEditorUtility
             SaveDropTables();
 
             AssetDatabase.Refresh();
-            Logger.Log(
-                typeof(ItemDataEditorUtility),
-                $"Item {itemId} and its resources deleted successfully"
-            );
         }
     }
 
@@ -118,7 +114,6 @@ public static class ItemDataEditorUtility
         {
             var wrapper = new ItemList { items = itemDatabase.Values.ToList() };
             JSONIO<ItemList>.SaveData(ITEM_DB_PATH, "ItemDatabase", wrapper);
-            Logger.Log(typeof(ItemDataEditorUtility), "Database saved successfully");
             AssetDatabase.Refresh();
         }
         catch (Exception e)
@@ -267,7 +262,6 @@ public static class ItemDataEditorUtility
         effectRangeDatabase.RemoveEffectRange(rangeId);
         SaveEffectRangeDatabase();
 
-        // 아이템 데이터베이스에서 해당 이펙트 레인지 ID 제거
         foreach (var item in itemDatabase.Values)
         {
             item.EffectRanges.effectIDs.RemoveAll(id => id == rangeId);
@@ -284,7 +278,6 @@ public static class ItemDataEditorUtility
                 "EffectRangeDatabase",
                 effectRangeDatabase
             );
-            Logger.Log(typeof(ItemDataEditorUtility), "Effect range database saved successfully");
             AssetDatabase.Refresh();
         }
         catch (Exception e)

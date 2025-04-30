@@ -95,8 +95,6 @@ public static class CSVIO<T>
             }
 
             File.WriteAllText(fullPath, csv.ToString());
-            Logger.Log(typeof(CSVIO<T>), $"Successfully saved data to {fullPath}");
-
 #if UNITY_EDITOR
             AssetDatabase.Refresh();
 #endif
@@ -312,7 +310,6 @@ public static class CSVIO<T>
             if (!File.Exists(fullPath))
             {
                 File.WriteAllText(fullPath, headers + "\n");
-                Logger.Log(typeof(CSVIO<T>), $"Created new CSV file: {fullPath}");
 #if UNITY_EDITOR
                 AssetDatabase.Refresh();
 #endif

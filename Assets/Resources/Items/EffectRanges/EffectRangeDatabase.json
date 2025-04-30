@@ -1,3 +1,13 @@
 {
-  "effectRanges": []
+  "effectRanges": [
+    {
+      "effectId": "3575f265-47c4-469e-8988-9b4664e4001f",
+      "effectName": "New Effect Range",
+      "description": "",
+      "subEffectRanges": [],
+      "weight": 1.0,
+      "applicableSkills": [],
+      "applicableElements": []
+    }
+  ]
 }

@@ -8,9 +8,6 @@ public class InventoryPanel : Panel
     public override PanelType PanelType => PanelType.Inventory;
 
     #region Variables
-    [Header("Settings")]
-    [SerializeField]
-    private GameObject inventoryPanel;
 
     [SerializeField]
     private ItemSlot[] equipmentSlots;
@@ -42,7 +39,6 @@ public class InventoryPanel : Panel
         }
 
         InitializeUI();
-        inventoryPanel.SetActive(false);
         IsInitialized = true;
     }
 
@@ -58,7 +54,6 @@ public class InventoryPanel : Panel
 
     private void InitializeUI()
     {
-        itemTooltip = Resources.Load<ItemTooltip>("UI/Elements/ItemTooltip");
         InitializeEquipmentSlots();
         InitializeInventorySlots();
     }

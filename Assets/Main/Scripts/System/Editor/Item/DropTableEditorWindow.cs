@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -16,7 +15,7 @@ public class DropTableEditorWindow : EditorWindow
     private Vector2 dropTableListScrollPosition;
     private Vector2 dropTableDetailScrollPosition;
 
-    [MenuItem("Anxi/Drop Table Editor")]
+    [MenuItem("Anxi/RPG/Item/Drop Table Editor")]
     public static void ShowWindow()
     {
         GetWindow<DropTableEditorWindow>("Drop Table Editor");
@@ -303,9 +302,9 @@ public class DropTableEditorWindow : EditorWindow
         dropTable.dropEntries.Add(
             new DropTableEntry
             {
-                itemId = itemDatabase.Values.FirstOrDefault()?.ID ?? Guid.Empty,
+                itemId = Guid.Empty,
                 dropRate = 0.1f,
-                rarity = ItemRarity.Common,
+                rarity = ItemRarity.None,
                 minAmount = 1,
                 maxAmount = 1,
             }

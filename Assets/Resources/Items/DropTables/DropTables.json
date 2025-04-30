@@ -2,15 +2,7 @@
   "dropTables": [
     {
       "enemyType": "Normal",
-      "dropEntries": [
-        {
-          "itemId": "c5ea13a1-8675-4446-ad3e-eba5b5ab1dfe",
-          "dropRate": 0.1,
-          "rarity": "Common",
-          "minAmount": 1,
-          "maxAmount": 1
-        }
-      ],
+      "dropEntries": [],
       "guaranteedDropRate": 0.1,
       "maxDrops": 2
     },

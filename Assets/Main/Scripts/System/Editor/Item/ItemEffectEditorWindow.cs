@@ -15,7 +15,7 @@ public class ItemEffectEditorWindow : EditorWindow
 
     private GUIStyle headerStyle;
 
-    [MenuItem("Anxi/Item Effect Editor")]
+    [MenuItem("Anxi/RPG/Item/Item Effect Editor")]
     public static void ShowWindow()
     {
         GetWindow<ItemEffectEditorWindow>("Item Effect Editor");
@@ -281,7 +281,6 @@ public class ItemEffectEditorWindow : EditorWindow
                                 effectType = EffectType.None,
                                 minValue = 0f,
                                 maxValue = 1f,
-                                description = "",
                                 isEnabled = true,
                             }
                         );
@@ -311,16 +310,6 @@ public class ItemEffectEditorWindow : EditorWindow
                                     if (newEffectType != subEffect.effectType)
                                     {
                                         subEffect.effectType = newEffectType;
-                                        changed = true;
-                                    }
-
-                                    string newSubDescription = EditorGUILayout.TextField(
-                                        "Description",
-                                        subEffect.description
-                                    );
-                                    if (newSubDescription != subEffect.description)
-                                    {
-                                        subEffect.description = newSubDescription;
                                         changed = true;
                                     }
 

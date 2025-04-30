@@ -8,10 +8,10 @@ using UnityEngine;
 public static class SkillDataEditorUtility
 {
     #region Constants
-    private const string SKILL_DB_PATH = "SkillData/Json";
-    private const string SKILL_ICON_PATH = "SkillData/Icons";
-    private const string SKILL_PREFAB_PATH = "SkillData/Prefabs";
-    private const string SKILL_STAT_PATH = "SkillData/Stats";
+    private const string SKILL_DB_PATH = "Skills/Json";
+    private const string SKILL_ICON_PATH = "Skills/Icons";
+    private const string SKILL_PREFAB_PATH = "Skills/Prefabs";
+    private const string SKILL_STAT_PATH = "Skills/Stats";
     #endregion
 
     #region Data Management
@@ -338,11 +338,6 @@ public static class SkillDataEditorUtility
             passiveStats,
             true,
             SkillStatFilters.GetFieldsForSkillType(SkillType.Passive)
-        );
-
-        Logger.Log(
-            typeof(SkillDataEditorUtility),
-            $"Saved Stat Database - Projectile: {projectileStats.Count}, Area: {areaStats.Count}, Passive: {passiveStats.Count}"
         );
     }
 

@@ -426,7 +426,6 @@ public class SubEffect
 {
     public EffectType effectType;
     public float value;
-    public string description;
     public bool isEnabled = true;
 }
 
@@ -436,15 +435,9 @@ public class SubEffectRange
     public EffectType effectType;
     public float minValue;
     public float maxValue;
-    public string description;
     public bool isEnabled = true;
 }
 
-public class ItemEffecta
-{
-    public EffectType effectType;
-    public float value;
-}
 #endregion
 
 #region Drop Table
