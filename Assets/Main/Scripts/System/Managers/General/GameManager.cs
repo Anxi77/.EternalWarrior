@@ -13,34 +13,30 @@ public interface IGameState
 
 public class GameManager : Singleton<GameManager>
 {
-    private List<Monster> monsters = new();
-    public List<Monster> Monsters => monsters;
-
     private StageTimer stageTimer;
-    public StageTimer StageTimer => stageTimer;
     private CameraSystem cameraSystem;
-    public CameraSystem CameraSystem => cameraSystem;
     private ItemSystem itemSystem;
-    public ItemSystem ItemSystem => itemSystem;
     private SkillSystem skillSystem;
+    private PlayerSystem playerSystem;
+    private MonsterSystem monsterSystem;
+    private List<Monster> monsters = new();
+
+    public StageTimer StageTimer => stageTimer;
+    public CameraSystem CameraSystem => cameraSystem;
+    public ItemSystem ItemSystem => itemSystem;
     public SkillSystem SkillSystem => skillSystem;
     private PathFindingSystem pathFindingSystem;
     public PathFindingSystem PathFindingSystem => pathFindingSystem;
-    private PlayerSystem playerSystem;
     public PlayerSystem PlayerSystem => playerSystem;
-    private MonsterSystem monsterSystem;
     public MonsterSystem MonsterSystem => monsterSystem;
+    public List<Monster> Monsters => monsters;
 
     private int lastPlayerLevel = 1;
     private Coroutine levelCheckCoroutine;
     private GameState currentState = GameState.Initialize;
-
     private Dictionary<GameState, IGameState> stateHandlers;
-
     private bool isStateTransitioning = false;
-
     private readonly Queue<GameState> stateTransitionQueue = new();
-
     private readonly WaitForSeconds LOADING_TIME = new WaitForSeconds(0.3f);
 
     public bool IsInitialized { get; private set; }

@@ -1,4 +1,6 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -7,18 +9,29 @@ public class ItemSlot
     : MonoBehaviour,
         IPointerEnterHandler,
         IPointerExitHandler,
-        IPointerClickHandler
+        IPointerClickHandler,
+        IDragHandler,
+        IBeginDragHandler,
+        IEndDragHandler,
+        IDropHandler
 {
+    [Serializable]
+    class RaritySlot
+    {
+        public ItemRarity rarity;
+        public GameObject slot;
+    }
+
     #region Variables
     [Header("UI Components")]
     [SerializeField]
     private Image itemIcon;
 
     [SerializeField]
-    private Image backgroundImage;
+    private Animator hoverImage;
 
     [SerializeField]
-    private GameObject hoverImage;
+    private List<RaritySlot> raritySlots;
 
     [SerializeField]
     private TextMeshProUGUI amountText;
@@ -32,7 +45,17 @@ public class ItemSlot
     private ItemTooltip tooltip;
 
     public bool isInventorySlot;
+    public Vector2 originalPositon;
+
+    private Vector3 dragStartPosition;
+    private Transform originalParent;
+    private Canvas canvas;
     #endregion
+
+    private void Start()
+    {
+        canvas = GetComponentInParent<Canvas>();
+    }
 
     public void Initialize(Inventory inventory, ItemTooltip tooltip)
     {
@@ -74,7 +97,10 @@ public class ItemSlot
             amountText.text = amount.ToString();
         }
 
-        backgroundImage.color = GetRarityColor(itemData.Rarity);
+        foreach (var raritySlot in raritySlots)
+        {
+            raritySlot.slot.SetActive(raritySlot.rarity == itemData.Rarity);
+        }
     }
     #endregion
 
@@ -91,6 +117,73 @@ public class ItemSlot
         }
 
         HandleLeftClick();
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        // if (slotData?.item == null)
+        //     return;
+
+        dragStartPosition = transform.position;
+        originalParent = transform.parent;
+
+        transform.SetParent(canvas.transform);
+        transform.SetAsLastSibling();
+
+        GetComponent<CanvasGroup>().blocksRaycasts = false;
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        transform.position = eventData.position;
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        // if (slotData?.item == null)
+        //     return;
+
+        GetComponent<CanvasGroup>().blocksRaycasts = true;
+
+        var dropSlot = GetDropSlot(eventData);
+
+        if (dropSlot != null)
+        {
+            return;
+        }
+
+        transform.SetParent(originalParent);
+        transform.position = dragStartPosition;
+    }
+
+    private ItemSlot GetDropSlot(PointerEventData eventData)
+    {
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        foreach (var result in results)
+        {
+            ItemSlot slot = result.gameObject.GetComponent<ItemSlot>();
+            if (slot != null && slot != this)
+            {
+                return slot;
+            }
+        }
+
+        return null;
+    }
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        if (eventData.pointerDrag == null)
+            return;
+
+        ItemSlot draggedSlot = eventData.pointerDrag.GetComponent<ItemSlot>();
+        if (draggedSlot != null && draggedSlot != this)
+        {
+            itemIcon.sprite = draggedSlot.itemIcon.sprite;
+            draggedSlot.itemIcon.sprite = null;
+        }
     }
 
     private void HandleRightClick()
@@ -178,15 +271,17 @@ public class ItemSlot
     #region Tooltip
     public void OnPointerEnter(PointerEventData eventData)
     {
+        hoverImage.SetBool("subOpen", true);
+
         if (slotData?.item != null)
         {
-            hoverImage.SetActive(true);
             ShowTooltip(slotData.item.GetItemData());
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        hoverImage.SetBool("subOpen", false);
         HideTooltip();
     }
 
@@ -197,9 +292,6 @@ public class ItemSlot
 
     private void ShowTooltip(ItemData itemData)
     {
-        if (tooltip != null)
-            return;
-
         if (tooltip != null)
         {
             tooltip.SetupTooltip(itemData);
