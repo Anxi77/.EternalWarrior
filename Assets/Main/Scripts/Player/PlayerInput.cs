@@ -13,6 +13,8 @@ public class PlayerInput : MonoBehaviour
 
     private Queue<Vector2> moveQueue = new Queue<Vector2>();
 
+    private InventoryPanel inventoryPanel;
+
     public void Initialize(Player player)
     {
         this.player = player;
@@ -22,7 +24,7 @@ public class PlayerInput : MonoBehaviour
 
         if (inventoryAction != null)
         {
-            inventoryAction.performed += OpenInventory;
+            inventoryAction.performed += ToggleInventory;
         }
 
         if (moveAction != null)
@@ -31,6 +33,8 @@ public class PlayerInput : MonoBehaviour
             moveAction.canceled += StopMovement;
         }
         playerInput.Enable();
+
+        inventoryPanel = UIManager.Instance.GetPanel(PanelType.Inventory) as InventoryPanel;
     }
 
     private void Update()
@@ -52,14 +56,21 @@ public class PlayerInput : MonoBehaviour
         moveQueue.Enqueue(Vector2.zero);
     }
 
-    private void OpenInventory(InputAction.CallbackContext context)
+    private void ToggleInventory(InputAction.CallbackContext context)
     {
-        UIManager.Instance.OpenPanel(PanelType.Inventory);
+        if (inventoryPanel.IsOpen)
+        {
+            inventoryPanel.Close();
+        }
+        else
+        {
+            inventoryPanel.Open();
+        }
     }
 
     public void Cleanup()
     {
-        inventoryAction.performed -= OpenInventory;
+        inventoryAction.performed -= ToggleInventory;
         moveAction.performed -= GetMoveInput;
         moveAction.canceled -= StopMovement;
         playerInput.Disable();

@@ -48,6 +48,7 @@ public class GameManager : Singleton<GameManager>
     {
         UIManager.Instance.Initialize();
         LoadingManager.Instance.Initialize();
+        PoolManager.Instance.Initialize();
 
         List<Func<IEnumerator>> operations = new()
         {
@@ -79,27 +80,37 @@ public class GameManager : Singleton<GameManager>
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        skillSystem.transform.SetParent(transform);
         itemSystem = new GameObject("ItemSystem").AddComponent<ItemSystem>();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        itemSystem.transform.SetParent(transform);
+
         playerSystem = new GameObject("PlayerSystem").AddComponent<PlayerSystem>();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        playerSystem.transform.SetParent(transform);
         stageTimer = new GameObject("StageTimer").AddComponent<StageTimer>();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        stageTimer.transform.SetParent(transform);
         cameraSystem = new GameObject("CameraSystem").AddComponent<CameraSystem>();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        cameraSystem.transform.SetParent(transform);
         pathFindingSystem = new GameObject("PathFindingSystem").AddComponent<PathFindingSystem>();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+        pathFindingSystem.transform.SetParent(transform);
         monsterSystem = new GameObject("MonsterSystem").AddComponent<MonsterSystem>();
+        monsterSystem.transform.SetParent(transform);
+        progress += 1f / steps;
+        yield return progress;
         yield return LOADING_TIME;
         CreateStateHandlers();
         progress += 1f / steps;

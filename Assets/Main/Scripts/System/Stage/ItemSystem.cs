@@ -18,7 +18,7 @@ public class ItemSystem : MonoBehaviour, IInitializable
         {
             try
             {
-                itemGenerator = gameObject.AddComponent<ItemGenerator>();
+                itemGenerator = new GameObject("ItemGenerator").AddComponent<ItemGenerator>();
                 isInitialized = true;
             }
             catch (Exception e)
@@ -77,7 +77,11 @@ public class ItemSystem : MonoBehaviour, IInitializable
             );
             return null;
         }
-
+        if (itemGenerator == null)
+        {
+            Logger.LogError(typeof(ItemSystem), "[ItemManager] ItemGenerator is not initialized");
+            return null;
+        }
         var item = itemGenerator.GenerateItem(itemId);
         if (item == null)
         {
@@ -108,5 +112,11 @@ public class ItemSystem : MonoBehaviour, IInitializable
             .Where(item => item.Rarity == rarity)
             .Select(item => item.Clone())
             .ToList();
+    }
+
+    public Item TestItem()
+    {
+        Guid itemId = ItemDataManager.Instance.GetAllData()[0].ID;
+        return GetItem(itemId);
     }
 }

@@ -12,8 +12,7 @@ public class ItemSlot
         IPointerClickHandler,
         IDragHandler,
         IBeginDragHandler,
-        IEndDragHandler,
-        IDropHandler
+        IEndDragHandler
 {
     [Serializable]
     class RaritySlot
@@ -34,65 +33,66 @@ public class ItemSlot
     private List<RaritySlot> raritySlots;
 
     [SerializeField]
+    private GameObject placeHolder;
+
+    [SerializeField]
     private TextMeshProUGUI amountText;
 
     [Header("Slot Settings")]
-    public ItemType slotType = ItemType.None;
-    public AccessoryType accessoryType = AccessoryType.None;
+    public SlotType slotType = SlotType.Storage;
+    private InventoryPanel inventoryPanel;
 
     private Inventory inventory;
     private InventorySlot slotData;
     private ItemTooltip tooltip;
-
-    public bool isInventorySlot;
-    public Vector2 originalPositon;
-
-    private Vector3 dragStartPosition;
-    private Transform originalParent;
-    private Canvas canvas;
     #endregion
 
-    private void Start()
-    {
-        canvas = GetComponentInParent<Canvas>();
-    }
-
-    public void Initialize(Inventory inventory, ItemTooltip tooltip)
+    public void Initialize(
+        Inventory inventory,
+        InventorySlot slotData,
+        ItemTooltip tooltip,
+        InventoryPanel inventoryPanel
+    )
     {
         this.inventory = inventory;
+        this.slotData = slotData;
         this.tooltip = tooltip;
+        this.inventoryPanel = inventoryPanel;
     }
 
     #region UI Updates
-    public void UpdateUI(InventorySlot slot)
+    public void UpdateUI()
     {
-        slotData = slot;
-
-        if (slot == null || slot.item == null)
+        if (slotData == null || slotData.item == null)
         {
             SetSlotEmpty();
             return;
         }
 
-        UpdateSlotVisuals(slot.item.GetItemData(), slot.amount, slot.isEquipped);
+        UpdateSlotVisuals(slotData.item.GetItemData(), slotData.amount);
     }
 
     private void SetSlotEmpty()
     {
-        itemIcon.enabled = false;
-        amountText.enabled = false;
+        itemIcon.gameObject.SetActive(false);
+        amountText.gameObject.SetActive(false);
+        foreach (var raritySlot in raritySlots)
+        {
+            raritySlot.slot.SetActive(false);
+        }
+        placeHolder.SetActive(true);
     }
 
-    private void UpdateSlotVisuals(ItemData itemData, int amount, bool isEquipped)
+    public void UpdateSlotVisuals(ItemData itemData, int amount)
     {
         if (itemData == null)
             return;
 
-        itemIcon.enabled = true;
+        itemIcon.gameObject.SetActive(true);
         itemIcon.sprite = itemData.Icon;
 
-        amountText.enabled = itemData.MaxStack > 1;
-        if (amountText.enabled)
+        amountText.gameObject.SetActive(itemData.MaxStack > 1);
+        if (amountText.gameObject.activeSelf)
         {
             amountText.text = amount.ToString();
         }
@@ -110,85 +110,58 @@ public class ItemSlot
         if (slotData?.item == null)
             return;
 
-        if (eventData.button == PointerEventData.InputButton.Right)
+        switch (eventData.button)
         {
-            HandleRightClick();
-            return;
+            case PointerEventData.InputButton.Left:
+                HandleLeftClick();
+                break;
+            case PointerEventData.InputButton.Right:
+                HandleRightClick();
+                break;
         }
-
-        HandleLeftClick();
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        // if (slotData?.item == null)
-        //     return;
-
-        dragStartPosition = transform.position;
-        originalParent = transform.parent;
-
-        transform.SetParent(canvas.transform);
-        transform.SetAsLastSibling();
-
-        GetComponent<CanvasGroup>().blocksRaycasts = false;
+        if (slotData?.item == null)
+            return;
+        inventoryPanel.BeginItemDrag(
+            this,
+            itemIcon.sprite,
+            new Vector2(50, 50),
+            eventData.position
+        );
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        transform.position = eventData.position;
+        inventoryPanel.UpdateItemDrag(eventData.position);
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        // if (slotData?.item == null)
-        //     return;
-
-        GetComponent<CanvasGroup>().blocksRaycasts = true;
-
-        var dropSlot = GetDropSlot(eventData);
-
-        if (dropSlot != null)
-        {
-            return;
-        }
-
-        transform.SetParent(originalParent);
-        transform.position = dragStartPosition;
-    }
-
-    private ItemSlot GetDropSlot(PointerEventData eventData)
-    {
-        List<RaycastResult> results = new List<RaycastResult>();
+        ItemSlot targetSlot = null;
+        var results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
-
-        foreach (var result in results)
+        foreach (var r in results)
         {
-            ItemSlot slot = result.gameObject.GetComponent<ItemSlot>();
-            if (slot != null && slot != this)
-            {
-                return slot;
-            }
+            targetSlot = r.gameObject.GetComponentInParent<ItemSlot>();
+            if (targetSlot != null)
+                break;
         }
-
-        return null;
-    }
-
-    public void OnDrop(PointerEventData eventData)
-    {
-        if (eventData.pointerDrag == null)
-            return;
-
-        ItemSlot draggedSlot = eventData.pointerDrag.GetComponent<ItemSlot>();
-        if (draggedSlot != null && draggedSlot != this)
+        if (targetSlot == null)
         {
-            itemIcon.sprite = draggedSlot.itemIcon.sprite;
-            draggedSlot.itemIcon.sprite = null;
+            inventoryPanel.EndItemDrag(this);
+        }
+        else
+        {
+            inventoryPanel.EndItemDrag(targetSlot);
         }
     }
 
     private void HandleRightClick()
     {
-        if (!isInventorySlot)
+        if (slotData.slotType == SlotType.Storage)
         {
             UIManager.Instance.OpenPopUp(
                 "Warning",
@@ -217,7 +190,7 @@ public class ItemSlot
             return;
         }
 
-        if (isInventorySlot)
+        if (slotData.slotType != SlotType.Storage)
         {
             UnequipItem();
         }
@@ -229,7 +202,7 @@ public class ItemSlot
             }
         }
 
-        UpdateUI(slotData);
+        UpdateUI();
     }
 
     private void DropItem()
@@ -238,26 +211,65 @@ public class ItemSlot
             return;
 
         inventory.RemoveItem(slotData.item.GetItemData().ID);
-        UpdateUI(slotData);
+
+        UpdateUI();
     }
 
-    private void UnequipItem()
+    public void EquipItem(Item item)
     {
-        var equipSlot = GetEquipmentSlot(slotData.item.GetItemData().Type, accessoryType);
-        inventory.UnequipItem(equipSlot);
-    }
-
-    private void EquipItem(Item item)
-    {
-        var equipSlot = GetEquipmentSlot(item.GetItemData().Type, accessoryType);
-        if (equipSlot != SlotType.Storage)
+        Logger.Log(typeof(ItemSlot), $"Equipping {item.GetItemData().Name} to slot {slotType}");
+        if (slotType == SlotType.Storage)
         {
-            Logger.Log(
-                typeof(ItemSlot),
-                $"Equipping {item.GetItemData().Name} to slot {equipSlot}"
-            );
-            inventory.EquipItem(item, equipSlot);
+            ItemType itemType = item.GetItemData().Type;
+            SlotType targetSlotType = new SlotType();
+            switch (itemType)
+            {
+                case ItemType.Weapon:
+                    targetSlotType = SlotType.Weapon;
+                    break;
+                case ItemType.Armor:
+                    targetSlotType = SlotType.Armor;
+                    break;
+                case ItemType.Accessory:
+                    if (item.GetItemData().AccessoryType == AccessoryType.Necklace)
+                    {
+                        targetSlotType = SlotType.Necklace;
+                    }
+                    else
+                    {
+                        if (item.GetItemData().AccessoryType == AccessoryType.Ring)
+                        {
+                            targetSlotType = SlotType.Ring;
+                        }
+                    }
+                    break;
+            }
+            inventory.EquipItem(item, targetSlotType);
+            slotData.isEmpty = true;
+            slotData.item = null;
+            UpdateUI();
         }
+        else
+        {
+            inventory.EquipItem(item, slotType);
+        }
+    }
+
+    public void UnequipItem()
+    {
+        inventory.UnequipItem(slotType);
+        inventoryPanel.UpdateUI();
+    }
+
+    public void EquipItemTo(ItemSlot targetSlot)
+    {
+        var item = GetItem();
+        if (item == null)
+            return;
+        targetSlot.EquipItem(item);
+        slotData.isEmpty = true;
+        slotData.item = null;
+        UpdateUI();
     }
 
     private bool IsEquippableItem(ItemType itemType)
@@ -309,43 +321,15 @@ public class ItemSlot
     #endregion
 
     #region Equipment Slot Utilities
-    private SlotType GetEquipmentSlot(ItemType itemType, AccessoryType accessoryType)
+
+    public InventorySlot GetSlotData() => slotData;
+
+    public void SetSlotData(InventorySlot data)
     {
-        return itemType switch
-        {
-            ItemType.Weapon => SlotType.Weapon,
-            ItemType.Armor => SlotType.Armor,
-            ItemType.Accessory => GetAccessorySlot(accessoryType),
-            _ => SlotType.Storage,
-        };
+        slotData = data;
+        UpdateUI();
     }
 
-    private SlotType GetAccessorySlot(AccessoryType accessoryType)
-    {
-        if (accessoryType == AccessoryType.Ring)
-        {
-            return SlotType.Ring;
-        }
-        if (accessoryType == AccessoryType.Necklace)
-        {
-            return SlotType.Necklace;
-        }
-
-        return SlotType.Storage;
-    }
-
-    private Color GetRarityColor(ItemRarity rarity)
-    {
-        return rarity switch
-        {
-            ItemRarity.Common => Color.white,
-            ItemRarity.Uncommon => new Color(0.3f, 1f, 0.3f),
-            ItemRarity.Rare => new Color(0.3f, 0.5f, 1f),
-            ItemRarity.Epic => new Color(0.8f, 0.3f, 1f),
-            ItemRarity.Legendary => new Color(1f, 0.8f, 0.2f),
-            _ => Color.white,
-        };
-    }
-
+    public Item GetItem() => slotData?.item;
     #endregion
 }

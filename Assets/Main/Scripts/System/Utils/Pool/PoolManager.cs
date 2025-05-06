@@ -8,11 +8,6 @@ public class PoolManager : Singleton<PoolManager>, IInitializable
 
     private static ObjectPool objectPool;
 
-    protected override void Awake()
-    {
-        base.Awake();
-    }
-
     public void Initialize()
     {
         try

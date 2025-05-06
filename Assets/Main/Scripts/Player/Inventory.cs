@@ -5,7 +5,10 @@ using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
+    [SerializeField]
     private List<InventorySlot> inventorySlots = new();
+
+    [SerializeField]
     private List<InventorySlot> equipmentSlots = new();
 
     [SerializeField]
@@ -13,7 +16,7 @@ public class Inventory : MonoBehaviour
 
     [SerializeField]
     private int gold = 0;
-    public const int MAX_SLOTS = 20;
+    public const int MAX_SLOTS = 63;
     public bool IsInitialized { get; private set; }
     public int MaxSlots => MAX_SLOTS;
 
@@ -37,6 +40,16 @@ public class Inventory : MonoBehaviour
                         new InventorySlot() { slotType = SlotType.Ring, isEquipmentSlot = true }
                     );
                 }
+                if (slotType == SlotType.SecondaryRing)
+                {
+                    equipmentSlots.Add(
+                        new InventorySlot()
+                        {
+                            slotType = SlotType.SecondaryRing,
+                            isEquipmentSlot = true,
+                        }
+                    );
+                }
                 equipmentSlots.Add(
                     new InventorySlot() { slotType = slotType, isEquipmentSlot = true }
                 );
@@ -55,7 +68,7 @@ public class Inventory : MonoBehaviour
 
             if (inventoryPanel != null)
             {
-                inventoryPanel.SetupInventory(this);
+                inventoryPanel.SetupInventory(this, player.playerStat);
             }
 
             IsInitialized = true;
@@ -71,9 +84,14 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    public List<InventorySlot> GetSlots()
+    public List<InventorySlot> GetStorageSlots()
     {
-        return new List<InventorySlot>(inventorySlots);
+        return inventorySlots;
+    }
+
+    public List<InventorySlot> GetEquipmentSlots()
+    {
+        return equipmentSlots;
     }
 
     public InventoryData GetInventoryData()
@@ -108,7 +126,7 @@ public class Inventory : MonoBehaviour
 
         ItemData itemData = item.GetItemData();
 
-        var existingSlot = inventorySlots.Find(slot => slot.item.GetItemData().ID == itemData.ID);
+        var existingSlot = inventorySlots.Find(slot => slot.item?.GetItemData().ID == itemData.ID);
         if (existingSlot != null)
         {
             if (existingSlot.AddItem(item))
@@ -117,21 +135,18 @@ public class Inventory : MonoBehaviour
             }
             else
             {
-                var firstEmptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
-                if (firstEmptySlot != null)
+                var fEmptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
+                if (fEmptySlot != null)
                 {
-                    firstEmptySlot.AddItem(item);
+                    fEmptySlot.AddItem(item);
                 }
             }
         }
 
-        if (inventorySlots.Count < MAX_SLOTS)
+        var firstEmptySlot = inventorySlots.FirstOrDefault(slot => slot.isEmpty);
+        if (firstEmptySlot != null)
         {
-            var firstEmptySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
-            if (firstEmptySlot != null)
-            {
-                firstEmptySlot.AddItem(item);
-            }
+            firstEmptySlot.AddItem(item);
         }
         else
         {
@@ -140,52 +155,22 @@ public class Inventory : MonoBehaviour
                 $"Inventory is full Current Size: {inventorySlots.Count} \n Max Size: {MAX_SLOTS}"
             );
         }
+
+        inventoryPanel.UpdateUI();
     }
 
-    public InventorySlot GetEquippedItemSlot(
-        ItemType itemType,
-        AccessoryType accessoryType = AccessoryType.None
-    )
+    public InventorySlot GetEquippedItemSlot(SlotType slotType)
     {
-        if (itemType != ItemType.Accessory)
-        {
-            return equipmentSlots.Find(slot => slot.item.GetItemData().Type == itemType);
-        }
-        else
-        {
-            return equipmentSlots.Find(slot =>
-                slot.item.GetItemData().Type == ItemType.Accessory
-                && slot.item.GetItemData().AccessoryType == accessoryType
-            );
-        }
+        return equipmentSlots.Find(slot => slot.slotType == slotType);
     }
 
-    public Item GetEquippedItem(ItemType itemType, AccessoryType accessoryType = AccessoryType.None)
+    public Item GetEquippedItem(ItemType itemType)
     {
-        if (itemType != ItemType.Accessory)
-        {
-            var slot = equipmentSlots
-                .Where(slot => slot.item.GetItemData().Type == itemType)
-                .FirstOrDefault();
+        var slot = equipmentSlots.Find(slot => slot?.item?.GetItemData().Type == itemType);
 
-            if (slot != null && slot.item != null)
-            {
-                return slot.item;
-            }
-        }
-        else
+        if (slot != null && slot.item != null)
         {
-            var slot = equipmentSlots
-                .Where(slot =>
-                    slot.item.GetItemData().Type == ItemType.Accessory
-                    && slot.item.GetItemData().AccessoryType == accessoryType
-                )
-                .FirstOrDefault();
-
-            if (slot != null && slot.item != null)
-            {
-                return slot.item;
-            }
+            return slot.item;
         }
 
         return null;
@@ -197,12 +182,12 @@ public class Inventory : MonoBehaviour
 
         if (equipSlot != null && equipSlot.item != null && equipSlot.isEquipped)
         {
-            equipSlot.item.OnUnequip(player);
-            equipSlot.RemoveItem();
-            var inventorySlot = inventorySlots.FirstOrDefault(slot => slot.item == null);
+            var inventorySlot = inventorySlots.FirstOrDefault(slot => slot.isEmpty == true);
             if (inventorySlot != null)
             {
                 inventorySlot.AddItem(equipSlot.item);
+                equipSlot.item.OnUnequip(player);
+                equipSlot.RemoveItem();
             }
             else
             {
@@ -219,12 +204,7 @@ public class Inventory : MonoBehaviour
             return;
         }
 
-        Logger.Log(
-            typeof(Inventory),
-            $"Attempting to equip {item.GetItemData().Name} to slot {slotType}"
-        );
-
-        if (equipmentSlots.Find(slot => slot.slotType == slotType) != null)
+        if (equipmentSlots.Find(slot => slot.slotType == slotType).isEquipped == true)
         {
             UnequipItem(slotType);
         }
@@ -248,11 +228,6 @@ public class Inventory : MonoBehaviour
             {
                 inventoryPanel.UpdateUI();
             }
-
-            Logger.Log(
-                typeof(Inventory),
-                $"Successfully equipped {item.GetItemData().Name} to slot {slotType}"
-            );
         }
         else
         {

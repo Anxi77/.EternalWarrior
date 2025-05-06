@@ -17,7 +17,6 @@ public class ArmorItem : EquipmentItem
     public override void Initialize(ItemData data)
     {
         base.Initialize(data);
-        equipmentSlot = SlotType.Armor;
     }
 
     protected override void ValidateItemType(ItemType type)

@@ -2,11 +2,27 @@
   "effectRanges": [
     {
       "effectId": "3575f265-47c4-469e-8988-9b4664e4001f",
-      "effectName": "New Effect Range",
-      "description": "",
-      "subEffectRanges": [],
+      "effectName": "Test Effect",
+      "description": "issa Test",
+      "subEffectRanges": [
+        {
+          "effectType": "DamageBonus",
+          "minValue": 0.0,
+          "maxValue": 25.0,
+          "isEnabled": true
+        },
+        {
+          "effectType": "ProjectileSpeed",
+          "minValue": 0.0,
+          "maxValue": 25.0,
+          "isEnabled": true
+        }
+      ],
       "weight": 1.0,
-      "applicableSkills": [],
+      "applicableSkills": [
+        "Projectile",
+        "Passive"
+      ],
       "applicableElements": []
     }
   ]

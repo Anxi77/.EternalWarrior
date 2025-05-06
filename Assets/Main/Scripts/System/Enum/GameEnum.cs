@@ -110,19 +110,10 @@ public enum StatType
     AttackRadius,
     ExpCollectionRadius,
     HpRegenRate,
-    ExpGainRate,
-    GoldGainRate,
     CriticalChance,
     CriticalDamage,
-    FireResistance,
-    IceResistance,
-    LightningResistance,
-    PoisonResistance,
-    StunResistance,
-    SlowResistance,
     Luck,
     DodgeChance,
-    ReflectDamage,
     LifeSteal,
 }
 
@@ -205,6 +196,7 @@ public enum SlotType
     Weapon,
     Armor,
     Ring,
+    SecondaryRing,
     Necklace,
     Special,
 }

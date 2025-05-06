@@ -5,13 +5,11 @@ using UnityEngine;
 
 public class PlayerStat : MonoBehaviour
 {
+    private Dictionary<StatType, float> baseStats = new();
     private Dictionary<StatType, float> currentStats = new();
     private Dictionary<SourceType, List<StatModifier>> activeModifiers = new();
+
     public event Action<StatType, float> OnStatChanged;
-
-    public float GetCurrentHp() => GetStat(StatType.CurrentHp);
-
-    public float GetMaxHp() => GetStat(StatType.MaxHp);
 
     public void Initialize()
     {
@@ -21,6 +19,8 @@ public class PlayerStat : MonoBehaviour
     private void InitializeStats()
     {
         var defaultData = PlayerDataManager.Instance.CurrentPlayerStatData;
+        baseStats = new Dictionary<StatType, float>(defaultData.baseStats);
+        currentStats = new Dictionary<StatType, float>(baseStats);
         LoadFromSaveData(defaultData);
     }
 
@@ -32,9 +32,10 @@ public class PlayerStat : MonoBehaviour
             return;
         }
 
-        currentStats = new Dictionary<StatType, float>(saveData.baseStats);
+        baseStats = new Dictionary<StatType, float>(saveData.baseStats);
+        currentStats = new Dictionary<StatType, float>(baseStats);
 
-        float maxHp = currentStats.GetValueOrDefault(StatType.MaxHp);
+        float maxHp = baseStats.GetValueOrDefault(StatType.MaxHp);
         currentStats[StatType.CurrentHp] = maxHp;
 
         activeModifiers.Clear();
@@ -96,8 +97,23 @@ public class PlayerStat : MonoBehaviour
     {
         if (activeModifiers.ContainsKey(modifier.Source))
         {
-            activeModifiers[modifier.Source].Remove(modifier);
-            RecalculateStats(modifier.Type);
+            var list = activeModifiers[modifier.Source];
+            int removed = list.RemoveAll(m =>
+                m.Type == modifier.Type
+                && m.Source == modifier.Source
+                && m.IncreaseType == modifier.IncreaseType
+            );
+            if (removed > 0)
+            {
+                RecalculateStats(modifier.Type);
+            }
+            else
+            {
+                Logger.LogWarning(
+                    typeof(PlayerStat),
+                    $"Modifier not found for removal: {modifier.Type} {modifier.Value}"
+                );
+            }
         }
     }
 
@@ -118,6 +134,7 @@ public class PlayerStat : MonoBehaviour
             }
         }
 
+        float oldValue = currentStats.ContainsKey(statType) ? currentStats[statType] : 0f;
         float newValue = (baseValue + addValue) * mulValue;
         if (
             currentStats.ContainsKey(statType)
@@ -139,12 +156,13 @@ public class PlayerStat : MonoBehaviour
 
     public float GetStat(StatType type)
     {
-        return currentStats.TryGetValue(type, out float value) ? value : 0f;
+        var stat = currentStats.TryGetValue(type, out float value) ? value : 0f;
+        return stat;
     }
 
     private float GetBaseValue(StatType type)
     {
-        return currentStats.TryGetValue(type, out float value) ? value : 0f;
+        return baseStats.TryGetValue(type, out float value) ? value : 0f;
     }
 
     private bool IsPermanentSource(SourceType source)
@@ -174,22 +192,28 @@ public class PlayerStat : MonoBehaviour
     {
         if (activeModifiers.ContainsKey(source))
         {
-            foreach (var modifier in activeModifiers[source])
+            var modifiers = new List<StatModifier>(activeModifiers[source]);
+            foreach (var modifier in modifiers)
             {
                 RemoveModifier(modifier);
             }
         }
     }
 
-    public void RemoveStatsBySource(StatType statType, SourceType source)
+    private void OnGUI()
     {
-        if (activeModifiers.ContainsKey(source))
+        if (GUILayout.Button("Debug"))
         {
-            if (activeModifiers[source].Any(modifier => modifier.Type == statType))
+            GUILayout.Label("Current Stats");
+            foreach (var stat in currentStats)
             {
-                RemoveModifier(
-                    activeModifiers[source].First(modifier => modifier.Type == statType)
-                );
+                GUILayout.Label($"{stat.Key}: {stat.Value}");
+            }
+
+            GUILayout.Label("Active Modifiers");
+            foreach (var modifier in activeModifiers)
+            {
+                GUILayout.Label($"{modifier.Key}: {modifier.Value}");
             }
         }
     }

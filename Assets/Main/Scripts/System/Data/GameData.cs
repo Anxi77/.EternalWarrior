@@ -134,15 +134,16 @@ public class InventoryData
 public class InventorySlot
 {
     public SlotType slotType = SlotType.Storage;
-    public AccessoryType accessoryType = AccessoryType.None;
     public Item item = null;
+    public ItemData currentItem = null;
     public int amount = 0;
     public bool isEquipmentSlot = false;
     public bool isEquipped = false;
+    public bool isEmpty = true;
 
     public bool AddItem(Item item, int amount = 1)
     {
-        if (this.item == null && amount < this.item.GetItemData().MaxStack)
+        if (this.item == null)
         {
             this.item = item;
             this.amount += amount;
@@ -150,6 +151,8 @@ public class InventorySlot
             {
                 isEquipped = true;
             }
+            currentItem = item.GetItemData();
+            isEmpty = false;
             return true;
         }
         else
@@ -157,6 +160,7 @@ public class InventorySlot
             if (this.item.GetItemData().MaxStack > amount)
             {
                 this.amount += amount;
+                isEmpty = false;
                 return true;
             }
             else
@@ -168,7 +172,7 @@ public class InventorySlot
 
     public bool RemoveItem(int amount = 1)
     {
-        if (this.amount > amount)
+        if (this.amount >= amount)
         {
             this.amount -= amount;
             if (isEquipmentSlot)
@@ -177,7 +181,9 @@ public class InventorySlot
             }
             if (this.amount <= 0)
             {
-                this.item = null;
+                item = null;
+                currentItem = null;
+                isEmpty = true;
             }
             return true;
         }
@@ -477,23 +483,49 @@ public class DropTableData
     public int maxDrops = 3;
 }
 
-public static class RarerityColor
+public static class RarityColor
 {
-    public static Color Common = ColorUtility.TryParseHtmlString("#808080", out var common)
+    public static Color Common = ColorUtility.TryParseHtmlString("#878787", out var common)
         ? common
         : Color.grey;
-    public static Color Uncommon = ColorUtility.TryParseHtmlString("#73FF73", out var uncommon)
+    public static Color Uncommon = ColorUtility.TryParseHtmlString("#91BF49", out var uncommon)
         ? uncommon
         : Color.green;
-    public static Color Rare = ColorUtility.TryParseHtmlString("#73CCFF", out var rare)
+    public static Color Rare = ColorUtility.TryParseHtmlString("#4DAAFF", out var rare)
         ? rare
         : Color.blue;
-    public static Color Epic = ColorUtility.TryParseHtmlString("#CC73FF", out var epic)
+    public static Color Epic = ColorUtility.TryParseHtmlString("#6C008F", out var epic)
         ? epic
         : Color.magenta;
-    public static Color Legendary = ColorUtility.TryParseHtmlString("#FFD700", out var legendary)
+    public static Color Legendary = ColorUtility.TryParseHtmlString("#FCD36C", out var legendary)
         ? legendary
         : Color.yellow;
+
+    public static Color GetRarityColor(ItemRarity rarity)
+    {
+        return rarity switch
+        {
+            ItemRarity.Common => Common,
+            ItemRarity.Uncommon => Uncommon,
+            ItemRarity.Rare => Rare,
+            ItemRarity.Epic => Epic,
+            ItemRarity.Legendary => Legendary,
+            _ => Common,
+        };
+    }
+
+    public static string GetRarityColorString(ItemRarity rarity)
+    {
+        return rarity switch
+        {
+            ItemRarity.Common => "#878787",
+            ItemRarity.Uncommon => "#91BF49",
+            ItemRarity.Rare => "#4DAAFF",
+            ItemRarity.Epic => "#6C008F",
+            ItemRarity.Legendary => "#FCD36C",
+            _ => "#878787",
+        };
+    }
 }
 
 #endregion

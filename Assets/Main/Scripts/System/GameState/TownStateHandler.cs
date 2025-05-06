@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Drawing.Printing;
 using UnityEngine;
 
 public class TownStateHandler : BaseStateHandler
@@ -33,11 +34,6 @@ public class TownStateHandler : BaseStateHandler
 
         GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Town);
 
-        if (GameManager.Instance.PathFindingSystem != null)
-        {
-            GameManager.Instance.PathFindingSystem.gameObject.SetActive(false);
-        }
-
         if (UIManager.Instance.GetPanel(PanelType.PlayerInfo) != null)
         {
             UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
@@ -53,13 +49,30 @@ public class TownStateHandler : BaseStateHandler
             ItemDataManager.Instance.Initialize();
         }
 
-        UIManager.Instance.OpenPanel(PanelType.Inventory);
-
         GameManager.Instance.SpawnPortal(
             new Vector3(5f, 0f, 5f),
             SceneType.Main_Stage,
             OnStagePortalEnter
         );
+
+        Game.PlayerSystem.Player.Initialize();
+
+        Game.ItemSystem.Initialize();
+
+        Item item = GameManager.Instance.ItemSystem.TestItem();
+
+        Logger.Log(
+            typeof(TownStateHandler),
+            $"Item Generated \n"
+                + $"ItemName : {item.GetItemData().Name}\n"
+                + $"ItemType : {item.GetItemData().Type}\n"
+                + $"ItemRarity : {item.GetItemData().Rarity}\n"
+                + $"ItemDescription : {item.GetItemData().Description}\n"
+                + $"ItemStat : {item.GetItemData().StatRanges}\n"
+                + $"ItemEffect : {item.GetItemData().Effects}\n"
+        );
+
+        GameManager.Instance.PlayerSystem.Player.inventory.AddItem(item);
     }
 
     private void OnStagePortalEnter(SceneType sceneType)

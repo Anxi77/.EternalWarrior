@@ -25,35 +25,29 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
     public void SpawnPlayer(Vector3 position)
     {
-        try
+        Player player = Instantiate(playerPrefab, position, Quaternion.identity)
+            .GetComponent<Player>();
+
+        player.Initialize();
+
+        this.player = player;
+
+        if (player.playerStat != null)
         {
-            Player player = Instantiate(playerPrefab, position, Quaternion.identity);
-
-            player.Initialize();
-
-            this.player = player;
-
-            if (player.playerStat != null)
+            if (PlayerDataManager.Instance.HasSaveData())
             {
-                if (PlayerDataManager.Instance.HasSaveData())
-                {
-                    LoadGameState();
-                }
+                LoadGameState();
             }
-
-            if (player.animationController != null)
-            {
-                player.animationController.Initialize();
-            }
-
-            player.playerStatus = Player.Status.Alive;
-
-            player.StartCombatSystems();
         }
-        catch (Exception e)
+
+        if (player.animationController != null)
         {
-            Logger.LogError(typeof(PlayerSystem), $"Error spawning player: {e.Message}");
+            player.animationController.Initialize();
         }
+
+        player.playerStatus = Player.Status.Alive;
+
+        player.StartCombatSystems();
     }
 
     public void DespawnPlayer()

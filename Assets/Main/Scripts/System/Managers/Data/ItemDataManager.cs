@@ -11,6 +11,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
     private const string ITEM_DB_PATH = "Items/Database";
     private const string DROP_TABLES_PATH = "Items/DropTables";
     private const string EFFECT_RANGES_PATH = "Items/EffectRanges";
+    private const string ICONS_PATH = "Items/Icons";
     #endregion
 
     #region Fields
@@ -88,11 +89,6 @@ public class ItemDataManager : Singleton<ItemDataManager>
             itemDatabase = itemData.items.ToDictionary(item => item.ID);
             foreach (var item in itemDatabase)
             {
-                Logger.Log(
-                    typeof(ItemDataManager),
-                    $" Loaded item [Name : {item.Value.Name}] [ID : {item.Value.ID}]"
-                );
-
                 progress += 1f / steps;
                 yield return progress;
                 yield return new WaitForSeconds(0.1f);
@@ -105,10 +101,6 @@ public class ItemDataManager : Singleton<ItemDataManager>
                 " Failed to deserialize item data or items list is null"
             );
         }
-        Logger.Log(
-            typeof(ItemDataManager),
-            $" Total loaded item data count : {itemDatabase.Count}"
-        );
 
         yield return new WaitForSeconds(0.5f);
         LoadingManager.Instance.SetLoadingText("Loading Drop Tables...");
@@ -134,7 +126,7 @@ public class ItemDataManager : Singleton<ItemDataManager>
 
         foreach (var item in itemDatabase)
         {
-            item.Value.Icon = Resources.Load<Sprite>($"{ITEM_DB_PATH}/Icons/{item.Value.ID}_Icon");
+            item.Value.Icon = Resources.Load<Sprite>($"{ICONS_PATH}/{item.Value.ID}_Icon");
         }
 
         if (itemDatabase.Count > 0)
@@ -160,7 +152,9 @@ public class ItemDataManager : Singleton<ItemDataManager>
     {
         if (itemDatabase.TryGetValue(itemId, out var itemData))
         {
-            return itemData.Clone();
+            ItemData item = itemData.Clone();
+            item.Icon = itemData.Icon;
+            return item;
         }
         Logger.LogWarning(typeof(ItemDataManager), $"Item not found: {itemId}");
         return null;

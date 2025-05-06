@@ -359,10 +359,19 @@ public class Player : MonoBehaviour
 
         foreach (Monster enemy in enemiesInRange)
         {
-            enemy.TakeDamage(damage);
-        }
+            float random = Random.Range(0f, 100f);
 
-        playerStatus = Status.Alive;
+            if (random <= playerStat.GetStat(StatType.CriticalChance))
+            {
+                damage *= playerStat.GetStat(StatType.CriticalDamage);
+            }
+
+            enemy.TakeDamage(damage);
+            playerStat.SetCurrentHp(
+                playerStat.GetStat(StatType.CurrentHp)
+                    + playerStat.GetStat(StatType.LifeSteal) / 100 * damage
+            );
+        }
     }
 
     private Monster FindNearestEnemy()

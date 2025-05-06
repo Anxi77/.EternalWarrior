@@ -137,19 +137,19 @@ public class ItemEditorWindow : EditorWindow
                         switch (item.Rarity)
                         {
                             case ItemRarity.Common:
-                                GUI.backgroundColor = RarerityColor.Common;
+                                GUI.backgroundColor = RarityColor.Common;
                                 break;
                             case ItemRarity.Uncommon:
-                                GUI.backgroundColor = RarerityColor.Uncommon;
+                                GUI.backgroundColor = RarityColor.Uncommon;
                                 break;
                             case ItemRarity.Rare:
-                                GUI.backgroundColor = RarerityColor.Rare;
+                                GUI.backgroundColor = RarityColor.Rare;
                                 break;
                             case ItemRarity.Epic:
-                                GUI.backgroundColor = RarerityColor.Epic;
+                                GUI.backgroundColor = RarityColor.Epic;
                                 break;
                             case ItemRarity.Legendary:
-                                GUI.backgroundColor = RarerityColor.Legendary;
+                                GUI.backgroundColor = RarityColor.Legendary;
                                 break;
                             default:
                                 GUI.backgroundColor = Color.white;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TMPro;
@@ -7,7 +8,13 @@ using UnityEngine.UI;
 public class ItemTooltip : MonoBehaviour
 {
     [SerializeField]
-    private Image itemIcon;
+    private Animator animator;
+
+    [SerializeField]
+    private ItemSlot itemSlot;
+
+    [SerializeField]
+    private Image[] headerBorders;
 
     [SerializeField]
     private TextMeshProUGUI itemNameText;
@@ -22,106 +29,176 @@ public class ItemTooltip : MonoBehaviour
     private TextMeshProUGUI itemStatsText;
 
     [SerializeField]
-    private TextMeshProUGUI itemEffectsText;
+    private TextMeshProUGUI itemDescText;
 
     [SerializeField]
-    private CanvasGroup canvasGroup;
+    private TextMeshProUGUI mainStatValueText;
 
-    private void Awake()
-    {
-        ValidateComponents();
-        Hide();
-    }
+    [SerializeField]
+    private GameObject defIcon;
 
-    private void ValidateComponents()
-    {
-        if (canvasGroup == null)
-            canvasGroup = GetComponent<CanvasGroup>();
-    }
+    [SerializeField]
+    private GameObject atkIcon;
+
+    [SerializeField]
+    private Transform effectBoxContainer;
+
+    [SerializeField]
+    private EffectBox effectBoxPrefab;
+
+    [SerializeField]
+    private List<EffectBox> effectBoxes;
+
+    [SerializeField]
+    public RectTransform rectTransform;
 
     public void SetupTooltip(ItemData itemData)
     {
         if (itemData == null)
         {
-            Logger.LogError(typeof(ItemTooltip), "Attempted to setup tooltip with null ItemData");
+            Logger.LogWarning(typeof(ItemTooltip), "Attempted to setup tooltip with null ItemData");
             return;
         }
 
-        Logger.Log(typeof(ItemTooltip), $"Setting up tooltip for item: {itemData.Name}");
-        Logger.Log(typeof(ItemTooltip), $"Item stats count: {itemData.Stats?.Count ?? 0}");
-
-        itemNameText.text = $"{GetRarityColor(itemData.Rarity)}{itemData.Name}</color>";
-        itemTypeText.text = $"Type: {itemData.Type}";
-        itemRarityText.text = $"Rarity: {itemData.Rarity}";
-
-        if (itemIcon != null)
-        {
-            itemIcon.sprite = itemData.Icon;
-            itemIcon.enabled = itemData.Icon != null;
-        }
-
-        var statsBuilder = new StringBuilder("Stats:\n");
-        if (itemData.Stats != null && itemData.Stats.Any())
-        {
-            foreach (var stat in itemData.Stats)
-            {
-                string valueStr = stat.Value >= 0 ? "+" + stat.Value : stat.Value.ToString();
-                statsBuilder.AppendLine($"{stat.Type}: {valueStr}");
-                Logger.Log(
-                    typeof(ItemTooltip),
-                    $"Adding stat to tooltip: {stat.Type} = {valueStr}"
-                );
-            }
-        }
-        else
-        {
-            statsBuilder.AppendLine("No stats");
-            Logger.Log(typeof(ItemTooltip), "No stats found for item");
-        }
-        itemStatsText.text = statsBuilder.ToString();
-
-        var effectsBuilder = new StringBuilder("Effects:\n");
-        if (itemData.Effects != null && itemData.Effects.Any())
-        {
-            foreach (var effect in itemData.Effects)
-            {
-                effectsBuilder.AppendLine($"{effect.effectName}");
-                Logger.Log(typeof(ItemTooltip), $"Adding effect to tooltip: {effect.effectName}");
-            }
-        }
-        else
-        {
-            effectsBuilder.AppendLine("No effects");
-            Logger.Log(typeof(ItemTooltip), "No effects found for item");
-        }
-        itemEffectsText.text = effectsBuilder.ToString();
-
-        Logger.Log(typeof(ItemTooltip), $"Tooltip setup complete for {itemData.Name}");
+        SetTexts(itemData);
+        SetMainStat(itemData);
+        SetEffects(itemData);
+        SetHeaderBorders(itemData.Rarity);
     }
 
-    private string GetRarityColor(ItemRarity rarity)
+    private void SetTexts(ItemData itemData)
     {
-        return rarity switch
+        itemNameText.text =
+            $"<color={RarityColor.GetRarityColorString(itemData.Rarity)}>{itemData.Name}</color>";
+        itemTypeText.text = itemData.Type.ToString();
+        itemRarityText.text =
+            $"<color={RarityColor.GetRarityColorString(itemData.Rarity)}>{itemData.Rarity}</color>";
+        itemDescText.text = itemData.Description;
+        itemSlot.UpdateSlotVisuals(itemData, 1);
+        itemStatsText.text = BuildStatsText(itemData);
+    }
+
+    private string BuildStatsText(ItemData itemData)
+    {
+        if (itemData.Stats == null || !itemData.Stats.Any())
+            return "No stats";
+
+        var builder = new StringBuilder();
+        foreach (var stat in itemData.Stats)
         {
-            ItemRarity.Common => "<color=white>",
-            ItemRarity.Uncommon => "<color=#00FF00>",
-            ItemRarity.Rare => "<color=#0080FF>",
-            ItemRarity.Epic => "<color=#CC33FF>",
-            ItemRarity.Legendary => "<color=#FFD700>",
-            _ => "<color=white>",
-        };
+            if (stat.Type == StatType.Defense || stat.Type == StatType.Damage)
+                continue;
+            builder.AppendLine(FormatStat(stat, itemData.Type));
+        }
+        return builder.ToString();
+    }
+
+    private void SetMainStat(ItemData itemData)
+    {
+        mainStatValueText.text = "0";
+        atkIcon.SetActive(false);
+        defIcon.SetActive(false);
+
+        StatModifier mainStat = null;
+        if (itemData.Type == ItemType.Weapon)
+        {
+            atkIcon.SetActive(true);
+            mainStat = itemData.Stats?.Find(s => s.Type == StatType.Damage);
+        }
+        else if (itemData.Type == ItemType.Armor)
+        {
+            defIcon.SetActive(true);
+            mainStat = itemData.Stats?.Find(s => s.Type == StatType.Defense);
+        }
+
+        if (mainStat != null)
+            mainStatValueText.text = FormatStat(mainStat, itemData.Type, true);
+    }
+
+    private string FormatStat(StatModifier stat, ItemType itemType, bool isMainStat = false)
+    {
+        var inventory = GameManager.Instance.PlayerSystem?.Player?.inventory;
+        var equipped = inventory?.GetEquippedItem(itemType);
+        var equippedStat = equipped?.GetItemData().Stats.Find(s => s.Type == stat.Type);
+
+        int equippedValue = (int)(equippedStat?.Value ?? 0);
+        int statValue = (int)stat.Value;
+        int diff = statValue - equippedValue;
+        string color = diff >= 0 ? "#20E070" : "#FF0000";
+        string sign = diff >= 0 ? "+" : "-";
+
+        if (isMainStat)
+            return $"<color={color}> {sign}{Mathf.Abs(statValue)}</color>";
+
+        return $"{stat.Type} <color={color}> {sign}{Mathf.Abs(statValue)}</color>";
+    }
+
+    private void SetEffects(ItemData itemData)
+    {
+        ClearEffects();
+        if (itemData.Effects == null || !itemData.Effects.Any())
+            return;
+
+        foreach (var effect in itemData.Effects)
+        {
+            var eb = PoolManager.Instance.Spawn<EffectBox>(
+                effectBoxPrefab.gameObject,
+                effectBoxContainer.position,
+                Quaternion.identity
+            );
+            eb.transform.SetParent(effectBoxContainer);
+            eb.SetEffect(effect);
+            effectBoxes.Add(eb);
+        }
+    }
+
+    private void ClearEffects()
+    {
+        foreach (var effectBox in effectBoxes)
+            PoolManager.Instance.Despawn(effectBox);
+        effectBoxes.Clear();
+    }
+
+    private void SetHeaderBorders(ItemRarity rarity)
+    {
+        var color = RarityColor.GetRarityColor(rarity);
+        foreach (var border in headerBorders)
+            border.color = color;
+    }
+
+    private void ForceUpdateLayout()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+        }
     }
 
     public void Show(Vector2 position)
     {
-        transform.position = position;
-        canvasGroup.alpha = 1f;
         gameObject.SetActive(true);
+        ForceUpdateLayout();
+
+        Vector2 tooltipSize = rectTransform.sizeDelta * rectTransform.lossyScale;
+        Vector2 screenSize = new Vector2(Screen.width, Screen.height);
+
+        Vector2 pivot = new Vector2(0, 1);
+
+        if (position.x + tooltipSize.x > screenSize.x)
+            pivot.x = 1;
+        if (position.y - tooltipSize.y < 0)
+            pivot.y = 0;
+
+        rectTransform.pivot = pivot;
+
+        rectTransform.position = position;
+
+        animator.SetBool("subOpen", true);
     }
 
     public void Hide()
     {
-        canvasGroup.alpha = 0f;
+        animator.SetBool("subOpen", false);
         Clear();
         gameObject.SetActive(false);
     }
@@ -132,6 +209,13 @@ public class ItemTooltip : MonoBehaviour
         itemTypeText.text = "";
         itemRarityText.text = "";
         itemStatsText.text = "";
-        itemEffectsText.text = "";
+        mainStatValueText.text = "";
+        defIcon.SetActive(false);
+        atkIcon.SetActive(false);
+        foreach (var border in headerBorders)
+        {
+            border.color = Color.white;
+        }
+        ClearEffects();
     }
 }

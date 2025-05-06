@@ -4,7 +4,6 @@ using UnityEngine;
 
 public abstract class EquipmentItem : Item
 {
-    protected SlotType equipmentSlot;
     protected List<SkillIneractionEffect> skillEffects = new();
 
     protected EquipmentItem(ItemData itemData)

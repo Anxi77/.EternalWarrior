@@ -421,8 +421,7 @@ public class ItemEffectEditorWindow : EditorWindow
             var skillTypes = Enum.GetValues(typeof(SkillType));
             foreach (SkillType skillType in skillTypes)
             {
-                bool isSelected =
-                    System.Array.IndexOf(effectRange.applicableSkills, skillType) != -1;
+                bool isSelected = Array.IndexOf(effectRange.applicableSkills, skillType) != -1;
                 bool newValue = EditorGUILayout.Toggle(skillType.ToString(), isSelected);
 
                 if (newValue != isSelected)

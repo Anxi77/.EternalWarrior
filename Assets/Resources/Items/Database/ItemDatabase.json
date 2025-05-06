@@ -1,3 +1,62 @@
 {
-  "items": []
+  "items": [
+    {
+      "ID": "799e307a-9e8f-4911-8814-ca50b087dd21",
+      "Name": "Test101",
+      "Description": "Test item it is",
+      "MaxStack": 1,
+      "Type": "Weapon",
+      "Rarity": "Legendary",
+      "Element": "None",
+      "AccessoryType": "None",
+      "StatRanges": {
+        "possibleStats": [
+          {
+            "statType": "MaxHp",
+            "minValue": 0.0,
+            "maxValue": 250.0,
+            "weight": 1.0,
+            "increaseType": "Flat"
+          },
+          {
+            "statType": "Damage",
+            "minValue": 50.0,
+            "maxValue": 200.0,
+            "weight": 1.0,
+            "increaseType": "Flat"
+          },
+          {
+            "statType": "HpRegenRate",
+            "minValue": 0.0,
+            "maxValue": 199.0,
+            "weight": 1.0,
+            "increaseType": "Flat"
+          },
+          {
+            "statType": "ExpCollectionRadius",
+            "minValue": 0.0,
+            "maxValue": 299.0,
+            "weight": 1.0,
+            "increaseType": "Flat"
+          },
+          {
+            "statType": "AttackSpeed",
+            "minValue": 0.0,
+            "maxValue": 599.0,
+            "weight": 1.0,
+            "increaseType": "Flat"
+          }
+        ],
+        "minStatCount": 1,
+        "maxStatCount": 4
+      },
+      "EffectRanges": {
+        "effectIDs": [
+          "3575f265-47c4-469e-8988-9b4664e4001f"
+        ],
+        "minEffectCount": 1,
+        "maxEffectCount": 3
+      }
+    }
+  ]
 }

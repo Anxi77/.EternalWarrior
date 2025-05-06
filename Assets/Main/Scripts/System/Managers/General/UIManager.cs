@@ -86,7 +86,17 @@ public partial class UIManager : Singleton<UIManager>, IInitializable
 
     public Panel GetPanel(PanelType panelType)
     {
-        return Panels.Find(p => p.PanelType == panelType);
+        Panel panel = Panels.Find(p => p.PanelType == panelType);
+        if (panel == null)
+        {
+            Panel prefab = panelPrefabs.Find(p => p.PanelType == panelType);
+            if (prefab != null)
+            {
+                panel = Instantiate(prefab, mainCanvas.transform);
+                Panels.Add(panel);
+            }
+        }
+        return panel;
     }
 
     public void CloseAllPanels()
