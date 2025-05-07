@@ -166,18 +166,9 @@ public class ItemTooltip : MonoBehaviour
             border.color = color;
     }
 
-    private void ForceUpdateLayout()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-        }
-    }
-
     public void Show(Vector2 position)
     {
         gameObject.SetActive(true);
-        ForceUpdateLayout();
 
         Vector2 tooltipSize = rectTransform.sizeDelta * rectTransform.lossyScale;
         Vector2 screenSize = new Vector2(Screen.width, Screen.height);

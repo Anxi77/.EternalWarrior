@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
-//Todo : Startcombat
 public class Player : MonoBehaviour
 {
     #region Members
@@ -68,6 +69,9 @@ public class Player : MonoBehaviour
     public List<Skill> skills;
     public Inventory inventory;
     public PlayerInput playerInput;
+
+    public Action<float, float> OnHpChanged;
+    public Action<float, float> OnExpChanged;
     #endregion
 
     #endregion
@@ -236,6 +240,8 @@ public class Player : MonoBehaviour
 
         exp += amount;
 
+        OnExpChanged?.Invoke(exp, GetExpForNextLevel());
+
         if (level < expList.Count && exp >= expList[level - 1])
         {
             LevelUp();
@@ -293,6 +299,7 @@ public class Player : MonoBehaviour
 
         currentHp = Mathf.Min(currentHp + heal, maxHp);
         playerStat.SetCurrentHp(currentHp);
+        OnHpChanged?.Invoke(currentHp, maxHp);
     }
 
     public void TakeDamage(float damage)
@@ -300,9 +307,11 @@ public class Player : MonoBehaviour
         float defense = playerStat.GetStat(StatType.Defense);
         float actualDamage = Mathf.Max(1, damage - defense);
         float currentHp = playerStat.GetStat(StatType.CurrentHp);
-
+        float maxHp = playerStat.GetStat(StatType.MaxHp);
         currentHp -= actualDamage;
         playerStat.SetCurrentHp(currentHp);
+
+        OnHpChanged?.Invoke(currentHp, maxHp);
 
         if (currentHp <= 0)
         {

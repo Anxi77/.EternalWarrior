@@ -7,6 +7,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
     private Vector3 defaultSpawnPosition = Vector3.zero;
     private Player player;
     public Player Player => player;
+    public PlayerInfoPanel playerInfoPanel;
     public bool IsInitialized { get; private set; }
 
     public void Initialize()
@@ -46,8 +47,12 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         }
 
         player.playerStatus = Player.Status.Alive;
-
         player.StartCombatSystems();
+        playerInfoPanel = UIManager.Instance.OpenPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
+        if (playerInfoPanel != null)
+        {
+            playerInfoPanel.InitializePlayerUI(player);
+        }
     }
 
     public void DespawnPlayer()
@@ -56,6 +61,11 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         {
             Destroy(player.gameObject);
             player = null;
+        }
+
+        if (playerInfoPanel != null)
+        {
+            playerInfoPanel.Close();
         }
     }
 

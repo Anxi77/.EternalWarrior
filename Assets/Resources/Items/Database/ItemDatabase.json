@@ -12,37 +12,23 @@
       "StatRanges": {
         "possibleStats": [
           {
-            "statType": "MaxHp",
+            "statType": "HpRegenRate",
             "minValue": 0.0,
-            "maxValue": 250.0,
+            "maxValue": 5.0,
             "weight": 1.0,
             "increaseType": "Flat"
           },
           {
             "statType": "Damage",
-            "minValue": 50.0,
-            "maxValue": 200.0,
+            "minValue": 0.0,
+            "maxValue": 30.0,
             "weight": 1.0,
             "increaseType": "Flat"
           },
           {
-            "statType": "HpRegenRate",
+            "statType": "LifeSteal",
             "minValue": 0.0,
-            "maxValue": 199.0,
-            "weight": 1.0,
-            "increaseType": "Flat"
-          },
-          {
-            "statType": "ExpCollectionRadius",
-            "minValue": 0.0,
-            "maxValue": 299.0,
-            "weight": 1.0,
-            "increaseType": "Flat"
-          },
-          {
-            "statType": "AttackSpeed",
-            "minValue": 0.0,
-            "maxValue": 599.0,
+            "maxValue": 5.0,
             "weight": 1.0,
             "increaseType": "Flat"
           }

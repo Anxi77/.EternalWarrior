@@ -79,16 +79,7 @@ public class InventoryPanel : Panel
         itemTooltip.Hide();
         itemTooltip.Clear();
         UpdateStatInfos();
-        ForceUpdateLayout();
         base.Open();
-    }
-
-    public void ForceUpdateLayout()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(layoutRoot);
-        }
     }
 
     public override void Close(bool objActive = true)
@@ -117,7 +108,6 @@ public class InventoryPanel : Panel
             return;
         }
         levelText.text = player.level.ToString();
-        ForceUpdateLayout();
     }
 
     private void InitializeEquipmentSlots()

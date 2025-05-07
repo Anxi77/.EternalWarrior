@@ -58,6 +58,7 @@ public class ItemSlot
         this.slotData = slotData;
         this.tooltip = tooltip;
         this.inventoryPanel = inventoryPanel;
+        SetSlotEmpty();
     }
 
     #region UI Updates

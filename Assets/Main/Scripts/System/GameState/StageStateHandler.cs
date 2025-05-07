@@ -43,8 +43,8 @@ public class StageStateHandler : BaseStateHandler
         if (UIManager.Instance.GetPanel(PanelType.PlayerInfo) != null)
         {
             UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
-            PlayerPanel playerPanel =
-                UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerPanel;
+            PlayerInfoPanel playerPanel =
+                UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
             playerPanel.InitializePlayerUI(Game.PlayerSystem.Player);
         }
 
