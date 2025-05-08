@@ -50,13 +50,6 @@ public class ItemGenerator : MonoBehaviour
             Mathf.Min(item.StatRanges.maxStatCount + 1, item.StatRanges.possibleStats.Count)
         );
 
-        Logger.Log(
-            typeof(ItemGenerator),
-            $"Max stat count: {item.StatRanges.maxStatCount} , possible stats count: {item.StatRanges.possibleStats.Count}"
-        );
-
-        Logger.Log(typeof(ItemGenerator), $"Generating {statCount} stats for item {item.Name}");
-
         var availableStats = item.StatRanges.possibleStats.ToList();
 
         if (item.Type == ItemType.Weapon)
@@ -65,14 +58,7 @@ public class ItemGenerator : MonoBehaviour
             if (damageStat != null)
             {
                 float value = GenerateStatValue(damageStat);
-                item.AddStat(
-                    new StatModifier(
-                        damageStat.statType,
-                        SourceType.Weapon,
-                        IncreaseType.Flat,
-                        value
-                    )
-                );
+                item.AddStat(new StatModifier(damageStat.statType, item, IncreaseType.Flat, value));
             }
             availableStats.Remove(damageStat);
         }
@@ -83,12 +69,7 @@ public class ItemGenerator : MonoBehaviour
             {
                 float value = GenerateStatValue(defenseStat);
                 item.AddStat(
-                    new StatModifier(
-                        defenseStat.statType,
-                        SourceType.Armor,
-                        IncreaseType.Flat,
-                        value
-                    )
+                    new StatModifier(defenseStat.statType, item, IncreaseType.Flat, value)
                 );
             }
             availableStats.Remove(defenseStat);
@@ -100,14 +81,9 @@ public class ItemGenerator : MonoBehaviour
             if (selectedStat != null)
             {
                 float value = GenerateStatValue(selectedStat);
-                SourceType sourceType = (SourceType)
-                    Enum.Parse(typeof(SourceType), item.Type.ToString());
                 item.AddStat(
-                    new StatModifier(selectedStat.statType, sourceType, IncreaseType.Flat, value)
+                    new StatModifier(selectedStat.statType, item, IncreaseType.Flat, value)
                 );
-
-                Logger.Log(typeof(ItemGenerator), $"Added stat: {selectedStat.statType} = {value}");
-                availableStats.Remove(selectedStat);
             }
         }
     }

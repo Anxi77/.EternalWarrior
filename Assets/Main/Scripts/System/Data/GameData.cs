@@ -25,7 +25,6 @@ public class LevelData
 public class StatData
 {
     public Dictionary<StatType, float> baseStats = new();
-    public List<StatModifier> permanentModifiers = new();
 
     public StatData()
     {
@@ -56,7 +55,7 @@ public class StatData
 public class StatModifier
 {
     private StatType type;
-    private SourceType source;
+    private object source;
     private IncreaseType increaseType;
     private float value;
 
@@ -67,7 +66,7 @@ public class StatModifier
     }
 
     [JsonIgnore]
-    public SourceType Source
+    public object Source
     {
         get => source;
     }
@@ -84,7 +83,7 @@ public class StatModifier
         get => value;
     }
 
-    public StatModifier(StatType type, SourceType source, IncreaseType increaseType, float value)
+    public StatModifier(StatType type, object source, IncreaseType increaseType, float value)
     {
         this.type = type;
         this.source = source;

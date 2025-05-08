@@ -1,35 +1,21 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class ItemSystem : MonoBehaviour, IInitializable
+public class ItemSystem : MonoBehaviour
 {
     [SerializeField]
     private WorldDropItem worldDropItemPrefab;
     private ItemGenerator itemGenerator;
-    private bool isInitialized;
-    public bool IsInitialized => isInitialized;
 
     public void Initialize()
     {
-        if (!IsInitialized)
-        {
-            try
-            {
-                itemGenerator = new GameObject("ItemGenerator").AddComponent<ItemGenerator>();
-                isInitialized = true;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(
-                    typeof(ItemSystem),
-                    $"[ItemManager] Error initializing ItemManager: {e.Message}\n{e.StackTrace}"
-                );
-                isInitialized = false;
-            }
-        }
+        LoadingManager.Instance.SetLoadingText("Initializing Item Generator...");
+        itemGenerator = new GameObject("ItemGenerator").AddComponent<ItemGenerator>();
+        itemGenerator.transform.SetParent(this.transform);
     }
 
     public void DropItem(Vector3 position, MonsterType monsterType, float luckMultiplier = 1f)

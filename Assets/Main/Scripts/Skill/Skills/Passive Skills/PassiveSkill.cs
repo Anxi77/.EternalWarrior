@@ -258,7 +258,11 @@ public class PassiveSkill : Skill
 
             currentHpRatio =
                 playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-            playerStat.RemoveStatsBySource(SourceType.Passive);
+
+            foreach (var modifier in statModifiers)
+            {
+                playerStat.RemoveModifier(modifier);
+            }
 
             if (_hpIncrease > 0)
             {
@@ -356,12 +360,7 @@ public class PassiveSkill : Skill
 
         float currentStat = playerStat.GetStat(statType);
         float increase = currentStat * (percentageIncrease / 100f);
-        StatModifier modifier = new StatModifier(
-            statType,
-            SourceType.Passive,
-            IncreaseType.Flat,
-            increase
-        );
+        StatModifier modifier = new StatModifier(statType, this, IncreaseType.Flat, increase);
         playerStat.AddModifier(modifier);
         statModifiers.Add(modifier);
         Logger.Log(
@@ -378,7 +377,11 @@ public class PassiveSkill : Skill
             Player player = GameManager.Instance.PlayerSystem.Player;
             var playerStat = player.GetComponent<PlayerStat>();
 
-            playerStat.RemoveStatsBySource(SourceType.Passive);
+            foreach (var modifier in statModifiers)
+            {
+                playerStat.RemoveModifier(modifier);
+            }
+
             if (_homingActivate)
                 player.ActivateHoming(false);
 

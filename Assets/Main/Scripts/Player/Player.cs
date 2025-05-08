@@ -78,7 +78,7 @@ public class Player : MonoBehaviour
 
     public bool IsInitialized { get; private set; }
 
-    public void Initialize()
+    public void Initialize(StatData saveData, InventoryData inventoryData)
     {
         gameObject.name = "Player";
         if (rb != null)
@@ -87,8 +87,8 @@ public class Player : MonoBehaviour
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
         animationController.Initialize();
-        playerStat.Initialize();
-        inventory.Initialize(this);
+        playerStat.Initialize(saveData);
+        inventory.Initialize(this, inventoryData);
         playerInput.Initialize(this);
         StartCombatSystems();
         IsInitialized = true;
@@ -407,7 +407,15 @@ public class Player : MonoBehaviour
 
     public void ResetPassiveEffects()
     {
-        playerStat.RemoveStatsBySource(SourceType.Passive);
+        var passiveSkills = skills.Where(skill => skill is PassiveSkill).ToList();
+        foreach (var skill in passiveSkills)
+        {
+            var passiveSkill = skill as PassiveSkill;
+            foreach (var modifier in passiveSkill.statModifiers)
+            {
+                playerStat.RemoveModifier(modifier);
+            }
+        }
     }
     #endregion
 

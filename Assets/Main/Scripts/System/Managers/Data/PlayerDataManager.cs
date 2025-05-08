@@ -13,8 +13,14 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
     private StatData currentPlayerStatData;
     private InventoryData currentInventoryData;
     private LevelData currentLevelData = new LevelData { level = 1, exp = 0f };
-    public StatData CurrentPlayerStatData => currentPlayerStatData;
-    public InventoryData CurrentInventoryData => currentInventoryData;
+
+    public PlayerData CurrentPlayerData =>
+        new PlayerData
+        {
+            stats = currentPlayerStatData,
+            inventory = currentInventoryData,
+            levelData = currentLevelData,
+        };
 
     public IEnumerator Initialize()
     {
@@ -37,6 +43,8 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         {
             CreateDefaultFiles();
         }
+
+        Logger.Log(typeof(PlayerDataManager), $"PlayerData: {CurrentPlayerData}");
 
         progress += 1f;
         yield return progress;

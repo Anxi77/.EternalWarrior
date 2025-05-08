@@ -22,47 +22,15 @@ public class Inventory : MonoBehaviour
 
     private InventoryPanel inventoryPanel;
 
-    public void Initialize(Player player)
+    public void Initialize(Player player, InventoryData inventoryData)
     {
         if (!IsInitialized)
         {
             this.player = player;
 
-            foreach (SlotType slotType in Enum.GetValues(typeof(SlotType)))
-            {
-                if (slotType == SlotType.Storage)
-                {
-                    continue;
-                }
-                if (slotType == SlotType.Ring)
-                {
-                    equipmentSlots.Add(
-                        new InventorySlot() { slotType = SlotType.Ring, isEquipmentSlot = true }
-                    );
-                }
-                if (slotType == SlotType.SecondaryRing)
-                {
-                    equipmentSlots.Add(
-                        new InventorySlot()
-                        {
-                            slotType = SlotType.SecondaryRing,
-                            isEquipmentSlot = true,
-                        }
-                    );
-                }
-                equipmentSlots.Add(
-                    new InventorySlot() { slotType = slotType, isEquipmentSlot = true }
-                );
-            }
+            InitializeSlot();
 
-            for (int i = 0; i < MAX_SLOTS; i++)
-            {
-                inventorySlots.Add(
-                    new InventorySlot() { slotType = SlotType.Storage, isEquipmentSlot = false }
-                );
-            }
-
-            LoadInventoryData();
+            LoadInventoryData(inventoryData);
 
             inventoryPanel = UIManager.Instance.GetPanel(PanelType.Inventory) as InventoryPanel;
 
@@ -75,28 +43,39 @@ public class Inventory : MonoBehaviour
         }
     }
 
-    private void LoadInventoryData()
+    private void InitializeSlot()
     {
-        var savedData = PlayerDataManager.Instance.LoadPlayerData();
-        if (savedData != null)
+        foreach (SlotType slotType in Enum.GetValues(typeof(SlotType)))
         {
-            LoadInventoryData(savedData.inventory);
+            if (slotType == SlotType.Storage)
+            {
+                continue;
+            }
+            if (slotType == SlotType.Ring)
+            {
+                equipmentSlots.Add(
+                    new InventorySlot() { slotType = SlotType.Ring, isEquipmentSlot = true }
+                );
+            }
+            if (slotType == SlotType.SecondaryRing)
+            {
+                equipmentSlots.Add(
+                    new InventorySlot()
+                    {
+                        slotType = SlotType.SecondaryRing,
+                        isEquipmentSlot = true,
+                    }
+                );
+            }
+            equipmentSlots.Add(new InventorySlot() { slotType = slotType, isEquipmentSlot = true });
         }
-    }
 
-    public List<InventorySlot> GetStorageSlots()
-    {
-        return inventorySlots;
-    }
-
-    public List<InventorySlot> GetEquipmentSlots()
-    {
-        return equipmentSlots;
-    }
-
-    public InventoryData GetInventoryData()
-    {
-        return new InventoryData { slots = new List<InventorySlot>(inventorySlots), gold = gold };
+        for (int i = 0; i < MAX_SLOTS; i++)
+        {
+            inventorySlots.Add(
+                new InventorySlot() { slotType = SlotType.Storage, isEquipmentSlot = false }
+            );
+        }
     }
 
     public void LoadInventoryData(InventoryData data)
@@ -117,6 +96,21 @@ public class Inventory : MonoBehaviour
                 AddItem(slot.item);
             }
         }
+    }
+
+    public List<InventorySlot> GetStorageSlots()
+    {
+        return inventorySlots;
+    }
+
+    public List<InventorySlot> GetEquipmentSlots()
+    {
+        return equipmentSlots;
+    }
+
+    public InventoryData GetInventoryData()
+    {
+        return new InventoryData { slots = new List<InventorySlot>(inventorySlots), gold = gold };
     }
 
     public void AddItem(Item item)

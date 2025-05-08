@@ -7,24 +7,10 @@ public class PlayerStat : MonoBehaviour
 {
     private Dictionary<StatType, float> baseStats = new();
     private Dictionary<StatType, float> currentStats = new();
-    private Dictionary<SourceType, List<StatModifier>> activeModifiers = new();
-
+    private List<StatModifier> activeModifiers = new();
     public event Action<StatType, float> OnStatChanged;
 
-    public void Initialize()
-    {
-        InitializeStats();
-    }
-
-    private void InitializeStats()
-    {
-        var defaultData = PlayerDataManager.Instance.CurrentPlayerStatData;
-        baseStats = new Dictionary<StatType, float>(defaultData.baseStats);
-        currentStats = new Dictionary<StatType, float>(baseStats);
-        LoadFromSaveData(defaultData);
-    }
-
-    public void LoadFromSaveData(StatData saveData)
+    public void Initialize(StatData saveData)
     {
         if (saveData == null)
         {
@@ -37,22 +23,6 @@ public class PlayerStat : MonoBehaviour
 
         float maxHp = baseStats.GetValueOrDefault(StatType.MaxHp);
         currentStats[StatType.CurrentHp] = maxHp;
-
-        activeModifiers.Clear();
-
-        foreach (var modifierData in saveData.permanentModifiers)
-        {
-            AddModifier(
-                new StatModifier(
-                    modifierData.Type,
-                    modifierData.Source,
-                    modifierData.IncreaseType,
-                    modifierData.Value
-                )
-            );
-        }
-
-        RecalculateAllStats();
     }
 
     public StatData CreateSaveData()
@@ -64,57 +34,19 @@ public class PlayerStat : MonoBehaviour
             saveData.baseStats[stat.Key] = GetBaseValue(stat.Key);
         }
 
-        foreach (var modifierList in activeModifiers.Values)
-        {
-            foreach (var modifier in modifierList.Where(m => IsPermanentSource(m.Source)))
-            {
-                saveData.permanentModifiers.Add(
-                    new StatModifier(
-                        modifier.Type,
-                        modifier.Source,
-                        modifier.IncreaseType,
-                        modifier.Value
-                    )
-                );
-            }
-        }
-
         return saveData;
     }
 
     public void AddModifier(StatModifier modifier)
     {
-        if (!activeModifiers.ContainsKey(modifier.Source))
-        {
-            activeModifiers[modifier.Source] = new List<StatModifier>();
-        }
-
-        activeModifiers[modifier.Source].Add(modifier);
+        activeModifiers.Add(modifier);
         RecalculateStats(modifier.Type);
     }
 
     public void RemoveModifier(StatModifier modifier)
     {
-        if (activeModifiers.ContainsKey(modifier.Source))
-        {
-            var list = activeModifiers[modifier.Source];
-            int removed = list.RemoveAll(m =>
-                m.Type == modifier.Type
-                && m.Source == modifier.Source
-                && m.IncreaseType == modifier.IncreaseType
-            );
-            if (removed > 0)
-            {
-                RecalculateStats(modifier.Type);
-            }
-            else
-            {
-                Logger.LogWarning(
-                    typeof(PlayerStat),
-                    $"Modifier not found for removal: {modifier.Type} {modifier.Value}"
-                );
-            }
-        }
+        activeModifiers.Remove(modifier);
+        RecalculateStats(modifier.Type);
     }
 
     private void RecalculateStats(StatType statType)
@@ -123,23 +55,22 @@ public class PlayerStat : MonoBehaviour
         float addValue = 0;
         float mulValue = 1f;
 
-        foreach (var modifierList in activeModifiers.Values)
+        foreach (var modifier in activeModifiers.Where(m => m.Type == statType))
         {
-            foreach (var modifier in modifierList.Where(m => m.Type == statType))
+            switch (modifier.IncreaseType)
             {
-                if (modifier.IncreaseType == IncreaseType.Flat)
+                case IncreaseType.Flat:
                     addValue += modifier.Value;
-                else
+                    break;
+                case IncreaseType.Multiply:
                     mulValue *= (1 + modifier.Value);
+                    break;
             }
         }
 
         float oldValue = currentStats.ContainsKey(statType) ? currentStats[statType] : 0f;
         float newValue = (baseValue + addValue) * mulValue;
-        if (
-            currentStats.ContainsKey(statType)
-            && !Mathf.Approximately(currentStats[statType], newValue)
-        )
+        if (!Mathf.Approximately(oldValue, newValue))
         {
             currentStats[statType] = newValue;
             OnStatChanged?.Invoke(statType, newValue);
@@ -156,8 +87,7 @@ public class PlayerStat : MonoBehaviour
 
     public float GetStat(StatType type)
     {
-        var stat = currentStats.TryGetValue(type, out float value) ? value : 0f;
-        return stat;
+        return currentStats.TryGetValue(type, out float value) ? value : 0f;
     }
 
     private float GetBaseValue(StatType type)
@@ -165,56 +95,15 @@ public class PlayerStat : MonoBehaviour
         return baseStats.TryGetValue(type, out float value) ? value : 0f;
     }
 
-    private bool IsPermanentSource(SourceType source)
-    {
-        return source == SourceType.Weapon
-            || source == SourceType.Armor
-            || source == SourceType.Accessory
-            || source == SourceType.Special;
-    }
-
     public void SetCurrentHp(float value)
     {
         float maxHp = GetStat(StatType.MaxHp);
         float newHp = Mathf.Clamp(value, 0, maxHp);
 
-        if (
-            !currentStats.ContainsKey(StatType.CurrentHp)
-            || !Mathf.Approximately(currentStats[StatType.CurrentHp], newHp)
-        )
+        if (!Mathf.Approximately(currentStats[StatType.CurrentHp], newHp))
         {
             currentStats[StatType.CurrentHp] = newHp;
             OnStatChanged?.Invoke(StatType.CurrentHp, newHp);
-        }
-    }
-
-    public void RemoveStatsBySource(SourceType source)
-    {
-        if (activeModifiers.ContainsKey(source))
-        {
-            var modifiers = new List<StatModifier>(activeModifiers[source]);
-            foreach (var modifier in modifiers)
-            {
-                RemoveModifier(modifier);
-            }
-        }
-    }
-
-    private void OnGUI()
-    {
-        if (GUILayout.Button("Debug"))
-        {
-            GUILayout.Label("Current Stats");
-            foreach (var stat in currentStats)
-            {
-                GUILayout.Label($"{stat.Key}: {stat.Value}");
-            }
-
-            GUILayout.Label("Active Modifiers");
-            foreach (var modifier in activeModifiers)
-            {
-                GUILayout.Label($"{modifier.Key}: {modifier.Value}");
-            }
         }
     }
 

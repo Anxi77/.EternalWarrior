@@ -27,9 +27,8 @@ public class ObjectPool : MonoBehaviour
         public int totalSpawns;
     }
 
-    private void Awake()
+    public void Initialize()
     {
-        DontDestroyOnLoad(gameObject);
         poolDictionary = new Dictionary<string, Queue<Component>>();
         prefabDictionary = new Dictionary<string, Component>();
         poolParents = new Dictionary<string, Transform>();

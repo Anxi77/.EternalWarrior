@@ -486,10 +486,11 @@ GameObject:
   m_Component:
   - component: {fileID: 9040869322625756562}
   - component: {fileID: 3213487113762707645}
-  - component: {fileID: -7447113314976174837}
   - component: {fileID: 7463882402777868343}
+  - component: {fileID: 8791870868913642193}
+  - component: {fileID: 553110960673106459}
   m_Layer: 7
-  m_Name: Bat
+  m_Name: MeleeMonster
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -539,50 +540,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &-7447113314976174837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2974742278653649114}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc2dc7c3874e05c41887739abe25d0b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHp: 0
-  hp: 10
-  damage: 5
-  moveSpeed: 3
-  mobEXP: 10
-  damageInterval: 0
-  preDamageTime: 0
-  attackRange: 1.2
-  preferredDistance: 1
-  elementType: 0
-  baseDefense: 5
-  currentDefense: 0
-  maxDefenseReduction: 0.9
-  defenseDebuffAmount: 0
-  moveSpeedDebuffAmount: 0
-  isStunned: 0
-  expParticlePrefab: {fileID: 5334211976707995158, guid: 8156f81e49faef04a8c59f5abb3f3cd6, type: 3}
-  minExpParticles: 3
-  maxExpParticles: 6
-  dropRadiusMin: 0.5
-  dropRadiusMax: 0
-  enemyType: 1
-  hpBar: {fileID: 3306363183409375035}
-  attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
-  isInit: 0
-  enemyCollider: {fileID: 7463882402777868343}
-  attackAnimationDuration: 0.5
-  attackPrepareTime: 0.2
-  attackRadius: 1.5
-  attackLayer:
-    serializedVersion: 2
-    m_Bits: 128
 --- !u!70 &7463882402777868343
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -618,6 +575,69 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1.02, y: 2.04}
   m_Direction: 0
+--- !u!114 &8791870868913642193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2974742278653649114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28d57c54bc8195541ae351217156d4ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHp: 0
+  hp: 10
+  damage: 5
+  moveSpeed: 3
+  mobEXP: 10
+  damageInterval: 0
+  originalMoveSpeed: 0
+  preDamageTime: 0
+  attackRange: 1.2
+  preferredDistance: 1
+  elementType: 0
+  baseDefense: 5
+  currentDefense: 0
+  maxDefenseReduction: 0.9
+  defenseDebuffAmount: 0
+  moveSpeedDebuffAmount: 0
+  isStunned: 0
+  expParticlePrefab: {fileID: 5334211976707995158, guid: 8156f81e49faef04a8c59f5abb3f3cd6, type: 3}
+  minExpParticles: 3
+  maxExpParticles: 6
+  dropRadiusMin: 0.5
+  dropRadiusMax: 1.5
+  monsterType: 1
+  target: {fileID: 0}
+  hpBar: {fileID: 3306363183409375035}
+  rb: {fileID: 3213487113762707645}
+  attackParticle: {fileID: 0}
+  isInit: 0
+  enemyCollider: {fileID: 7463882402777868343}
+  pathFinder: {fileID: 553110960673106459}
+  isAttacking: 0
+  attackAnimationDuration: 0.5
+  attackPrepareTime: 0.2
+  attackRadius: 1.5
+  attackLayer:
+    serializedVersion: 2
+    m_Bits: 0
+--- !u!114 &553110960673106459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2974742278653649114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  previousXPosition: 0
+  monster: {fileID: 8791870868913642193}
 --- !u!1 &3867542108395319768
 GameObject:
   m_ObjectHideFlags: 0

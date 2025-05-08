@@ -17,8 +17,8 @@ public class MonsterSystem : MonoBehaviour, IInitializable
     public float spawnInterval;
 
     [Header("Monster Settings")]
-    public MeleeMonster meleeEnemyPrefab;
-    public RangedMonster rangedEnemyPrefab;
+    public MeleeMonster meleeMonsterPrefab;
+    public RangedMonster rangedMonsterPrefab;
 
     [Header("Boss Settings")]
     public BossMonster bossPrefab;
@@ -41,6 +41,9 @@ public class MonsterSystem : MonoBehaviour, IInitializable
         }
         try
         {
+            meleeMonsterPrefab = Resources.Load<MeleeMonster>("Prefabs/Units/MeleeMonster");
+            rangedMonsterPrefab = Resources.Load<RangedMonster>("Prefabs/Units/RangedMonster");
+            bossPrefab = Resources.Load<BossMonster>("Prefabs/Units/BossMonster");
             IsInitialized = true;
         }
         catch (Exception e)
@@ -95,7 +98,7 @@ public class MonsterSystem : MonoBehaviour, IInitializable
             if (Random.value < 0.5f)
             {
                 PoolManager.Instance.Spawn<MeleeMonster>(
-                    meleeEnemyPrefab.gameObject,
+                    meleeMonsterPrefab.gameObject,
                     spawnPos,
                     Quaternion.identity
                 );
@@ -103,7 +106,7 @@ public class MonsterSystem : MonoBehaviour, IInitializable
             else
             {
                 PoolManager.Instance.Spawn<RangedMonster>(
-                    rangedEnemyPrefab.gameObject,
+                    rangedMonsterPrefab.gameObject,
                     spawnPos,
                     Quaternion.identity
                 );

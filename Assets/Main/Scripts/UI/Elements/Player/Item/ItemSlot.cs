@@ -218,7 +218,6 @@ public class ItemSlot
 
     public void EquipItem(Item item)
     {
-        Logger.Log(typeof(ItemSlot), $"Equipping {item.GetItemData().Name} to slot {slotType}");
         if (slotType == SlotType.Storage)
         {
             ItemType itemType = item.GetItemData().Type;

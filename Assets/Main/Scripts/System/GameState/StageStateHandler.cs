@@ -11,13 +11,13 @@ public class StageStateHandler : BaseStateHandler
     {
         base.OnEnter();
         isInitialized = false;
-
         UIManager.Instance.ClosePanel(PanelType.Inventory);
-
         if (Game.PlayerSystem.Player == null)
         {
             Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Stage);
-            PlayerSystem.SpawnPlayer(spawnPos);
+            PlayerInfoPanel playerInfoPanel =
+                UIManager.Instance.OpenPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
+            PlayerSystem.SpawnPlayer(spawnPos, playerInfoPanel);
         }
         else
         {
@@ -40,19 +40,11 @@ public class StageStateHandler : BaseStateHandler
             GameManager.Instance.PathFindingSystem.InitializeWithNewCamera();
         }
 
-        if (UIManager.Instance.GetPanel(PanelType.PlayerInfo) != null)
-        {
-            UIManager.Instance.GetPanel(PanelType.PlayerInfo).gameObject.SetActive(true);
-            PlayerInfoPanel playerPanel =
-                UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
-            playerPanel.InitializePlayerUI(Game.PlayerSystem.Player);
-        }
-
         Game.StartLevelCheck();
 
         GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
 
-        UIManager.Instance.OpenPanel(PanelType.StageTime);
+        //UIManager.Instance.OpenPanel(PanelType.StageTime);
         isInitialized = true;
 
         StartMonsterSpawningWhenReady();
@@ -80,6 +72,8 @@ public class StageStateHandler : BaseStateHandler
         {
             GameManager.Instance.PathFindingSystem.gameObject.SetActive(false);
         }
+
+        UIManager.Instance.ClosePanel(PanelType.PlayerInfo);
     }
 
     public override void OnUpdate()

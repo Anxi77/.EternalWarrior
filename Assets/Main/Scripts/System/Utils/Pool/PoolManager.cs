@@ -2,42 +2,31 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class PoolManager : Singleton<PoolManager>, IInitializable
+public class PoolManager : Singleton<PoolManager>
 {
     public bool IsInitialized { get; private set; }
 
-    private static ObjectPool objectPool;
+    private ObjectPool objectPool;
 
-    public void Initialize()
+    public IEnumerator Initialize()
     {
-        try
-        {
-            InitializePool();
-            IsInitialized = true;
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(typeof(PoolManager), $"Error initializing PoolManager: {e.Message}");
-            IsInitialized = false;
-        }
-    }
+        yield return null;
+        yield return new WaitForSeconds(0.5f);
 
-    private void InitializePool()
-    {
+        LoadingManager.Instance.SetLoadingText("Loading Pool");
+
         if (objectPool == null)
         {
-            GameObject poolObj = GameObject.Find("ObjectPool");
-            if (poolObj == null)
-            {
-                poolObj = new GameObject("ObjectPool");
-                DontDestroyOnLoad(poolObj);
-            }
-            objectPool = poolObj.GetComponent<ObjectPool>();
-            if (objectPool == null)
-            {
-                objectPool = poolObj.AddComponent<ObjectPool>();
-            }
+            ObjectPool poolObj = new GameObject("ObjectPool").AddComponent<ObjectPool>();
+            poolObj.transform.SetParent(transform);
+            objectPool = poolObj;
         }
+
+        objectPool.Initialize();
+
+        yield return new WaitForSeconds(0.5f);
+
+        IsInitialized = true;
     }
 
     public T Spawn<T>(GameObject prefab, Vector3 position, Quaternion rotation)

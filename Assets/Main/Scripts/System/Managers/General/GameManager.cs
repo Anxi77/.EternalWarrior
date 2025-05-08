@@ -48,13 +48,13 @@ public class GameManager : Singleton<GameManager>
     {
         UIManager.Instance.Initialize();
         LoadingManager.Instance.Initialize();
-        PoolManager.Instance.Initialize();
 
         List<Func<IEnumerator>> operations = new()
         {
             SkillDataManager.Instance.Initialize,
             ItemDataManager.Instance.Initialize,
             PlayerDataManager.Instance.Initialize,
+            PoolManager.Instance.Initialize,
             LoadSystems,
         };
 
@@ -74,44 +74,62 @@ public class GameManager : Singleton<GameManager>
         int steps = 8;
         yield return progress;
         yield return LOADING_TIME;
-        LoadingManager.Instance.SetLoadingText("Initializing Skill System...");
 
+        LoadingManager.Instance.SetLoadingText("Initializing Skill System...");
         skillSystem = new GameObject("SkillSystem").AddComponent<SkillSystem>();
-        progress += 1f / steps;
-        yield return progress;
-        yield return LOADING_TIME;
         skillSystem.transform.SetParent(transform);
-        itemSystem = new GameObject("ItemSystem").AddComponent<ItemSystem>();
+        skillSystem.Initialize();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+
+        LoadingManager.Instance.SetLoadingText("Initializing Item System...");
+        itemSystem = new GameObject("ItemSystem").AddComponent<ItemSystem>();
         itemSystem.transform.SetParent(transform);
+        itemSystem.Initialize();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
 
         playerSystem = new GameObject("PlayerSystem").AddComponent<PlayerSystem>();
-        progress += 1f / steps;
-        yield return progress;
-        yield return LOADING_TIME;
         playerSystem.transform.SetParent(transform);
+        playerSystem.Initialize();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+
         stageTimer = new GameObject("StageTimer").AddComponent<StageTimer>();
-        progress += 1f / steps;
-        yield return progress;
-        yield return LOADING_TIME;
         stageTimer.transform.SetParent(transform);
+        stageTimer.Initialize();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+
+        LoadingManager.Instance.SetLoadingText("Initializing Camera System...");
         cameraSystem = new GameObject("CameraSystem").AddComponent<CameraSystem>();
-        progress += 1f / steps;
-        yield return progress;
-        yield return LOADING_TIME;
         cameraSystem.transform.SetParent(transform);
-        pathFindingSystem = new GameObject("PathFindingSystem").AddComponent<PathFindingSystem>();
+        cameraSystem.Initialize();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+
+        LoadingManager.Instance.SetLoadingText("Initializing Path Finding System...");
+        pathFindingSystem = new GameObject("PathFindingSystem").AddComponent<PathFindingSystem>();
         pathFindingSystem.transform.SetParent(transform);
+        pathFindingSystem.Initialize();
+        progress += 1f / steps;
+        yield return progress;
+        yield return LOADING_TIME;
+
+        LoadingManager.Instance.SetLoadingText("Initializing Monster System...");
         monsterSystem = new GameObject("MonsterSystem").AddComponent<MonsterSystem>();
         monsterSystem.transform.SetParent(transform);
+        monsterSystem.Initialize();
         progress += 1f / steps;
         yield return progress;
         yield return LOADING_TIME;
+
+        LoadingManager.Instance.SetLoadingText("Creating State Handlers...");
         CreateStateHandlers();
         progress += 1f / steps;
         yield return progress;

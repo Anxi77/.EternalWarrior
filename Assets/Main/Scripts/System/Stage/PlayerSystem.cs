@@ -12,26 +12,22 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
     public void Initialize()
     {
-        try
-        {
-            playerPrefab = Resources.Load<Player>("Prefabs/Units/Player");
-            IsInitialized = true;
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(typeof(PlayerSystem), $"Error initializing PlayerSystem: {e.Message}");
-            IsInitialized = false;
-        }
+        playerPrefab = Resources.Load<Player>("Prefabs/Units/Player");
+        IsInitialized = true;
     }
 
-    public void SpawnPlayer(Vector3 position)
+    public void SpawnPlayer(Vector3 position, PlayerInfoPanel playerInfoPanel = null)
     {
         Player player = Instantiate(playerPrefab, position, Quaternion.identity)
             .GetComponent<Player>();
 
-        player.Initialize();
+        var playerData = PlayerDataManager.Instance.CurrentPlayerData;
+        var inventoryData = playerData.inventory;
+        var saveData = playerData.stats;
 
         this.player = player;
+
+        player.Initialize(saveData, inventoryData);
 
         if (player.playerStat != null)
         {
@@ -48,7 +44,6 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
         player.playerStatus = Player.Status.Alive;
         player.StartCombatSystems();
-        playerInfoPanel = UIManager.Instance.OpenPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
         if (playerInfoPanel != null)
         {
             playerInfoPanel.InitializePlayerUI(player);
@@ -122,20 +117,9 @@ public class PlayerSystem : MonoBehaviour, IInitializable
             var savedData = PlayerDataManager.Instance.LoadPlayerData();
             if (savedData != null)
             {
-                playerStat.LoadFromSaveData(savedData.stats);
+                playerStat.Initialize(savedData.stats);
                 inventory.LoadInventoryData(savedData.inventory);
             }
         }
-    }
-
-    public void ClearTemporaryEffects()
-    {
-        if (player.playerStat != null)
-        {
-            player.playerStat.RemoveStatsBySource(SourceType.Buff);
-            player.playerStat.RemoveStatsBySource(SourceType.Debuff);
-            player.playerStat.RemoveStatsBySource(SourceType.Consumable);
-        }
-        player.ResetPassiveEffects();
     }
 }

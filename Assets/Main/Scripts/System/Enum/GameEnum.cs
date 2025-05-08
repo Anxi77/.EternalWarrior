@@ -118,23 +118,6 @@ public enum StatType
 }
 
 [Serializable]
-public enum SourceType
-{
-    None,
-    Base,
-    Level,
-    Passive,
-    Active,
-    Weapon,
-    Armor,
-    Accessory,
-    Special,
-    Consumable,
-    Buff,
-    Debuff,
-}
-
-[Serializable]
 public enum IncreaseType
 {
     Flat,
