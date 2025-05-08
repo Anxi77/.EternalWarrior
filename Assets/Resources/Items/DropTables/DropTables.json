@@ -1,13 +1,13 @@
 {
   "dropTables": [
     {
-      "enemyType": "Normal",
+      "enemyType": "Wasp",
       "dropEntries": [],
       "guaranteedDropRate": 0.1,
       "maxDrops": 2
     },
     {
-      "enemyType": "Elite",
+      "enemyType": "Bat",
       "dropEntries": [],
       "guaranteedDropRate": 0.3,
       "maxDrops": 3

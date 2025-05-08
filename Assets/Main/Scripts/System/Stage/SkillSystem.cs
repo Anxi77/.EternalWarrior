@@ -21,7 +21,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
         availableSkills = SkillDataManager.Instance.GetAllData();
         Logger.Log(
             typeof(SkillSystem),
-            $" Loaded {availableSkills.Count} skills from SkillDataManager"
+            $"Loaded {availableSkills.Count} skills from SkillDataManager"
         );
     }
 

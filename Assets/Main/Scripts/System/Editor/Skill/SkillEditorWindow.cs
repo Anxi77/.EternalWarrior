@@ -459,8 +459,6 @@ public class SkillEditorWindow : EditorWindow
 
             if (newIcon != oldIcon && newIcon != null)
             {
-                string resourcePath = $"SkillData/Icons/{CurrentSkill.ID}/{CurrentSkill.ID}_Icon";
-                ResourceIO<Sprite>.SaveData(resourcePath, newIcon);
                 CurrentSkill.Icon = newIcon;
                 wasModified = true;
             }
@@ -487,21 +485,8 @@ public class SkillEditorWindow : EditorWindow
                 }
                 else
                 {
-                    string resourcePath =
-                        $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Prefab";
-                    try
-                    {
-                        ResourceIO<GameObject>.SaveData(resourcePath, newBasePrefab);
-                        CurrentSkill.BasePrefab = newBasePrefab;
-                        wasModified = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogError(
-                            typeof(SkillEditorWindow),
-                            $"Failed to save prefab: {e.Message}"
-                        );
-                    }
+                    CurrentSkill.BasePrefab = newBasePrefab;
+                    wasModified = true;
                 }
             }
 
@@ -518,9 +503,6 @@ public class SkillEditorWindow : EditorWindow
 
                 if (newProjectilePrefab != oldProjectilePrefab && newProjectilePrefab != null)
                 {
-                    string resourcePath =
-                        $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Projectile";
-                    ResourceIO<GameObject>.SaveData(resourcePath, newProjectilePrefab);
                     CurrentSkill.ProjectilePrefab = newProjectilePrefab;
                     wasModified = true;
                 }
@@ -560,9 +542,6 @@ public class SkillEditorWindow : EditorWindow
 
                         if (newLevelPrefab != oldLevelPrefab && newLevelPrefab != null)
                         {
-                            string resourcePath =
-                                $"SkillData/Prefabs/{CurrentSkill.ID}/{CurrentSkill.ID}_Level_{i + 1}";
-                            ResourceIO<GameObject>.SaveData(resourcePath, newLevelPrefab);
                             CurrentSkill.PrefabsByLevel[i] = newLevelPrefab;
                             wasModified = true;
                         }
@@ -1122,12 +1101,12 @@ public class SkillEditorWindow : EditorWindow
         }
 
         var currentId = selectedSkillId;
+        var prevSkill = CurrentSkill;
         SkillDataEditorUtility.SaveSkillData(CurrentSkill);
 
-        // 데이터베이스 리로드
         skillDatabase = SkillDataEditorUtility.GetSkillDatabase();
+        statDatabase = SkillDataEditorUtility.GetStatDatabase();
 
-        // 현재 스킬의 리소스 명시적 리로드
         if (skillDatabase.TryGetValue(currentId, out var skill))
         {
             skill.Icon = ResourceIO<Sprite>.LoadData(
@@ -1160,6 +1139,7 @@ public class SkillEditorWindow : EditorWindow
         }
 
         selectedSkillId = currentId;
+        RefreshData();
         Repaint();
     }
 

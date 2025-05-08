@@ -11,7 +11,7 @@ public class BossMonster : Monster
     public Assets.FantasyMonsters.Common.Scripts.Monster monster;
     private bool isEnraged = false;
 
-    protected override void Initialize()
+    public override void Initialize()
     {
         base.Initialize();
         InitializeBossStats();

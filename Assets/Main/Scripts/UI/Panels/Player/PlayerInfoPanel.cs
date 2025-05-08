@@ -52,6 +52,10 @@ public class PlayerInfoPanel : Panel
         }
 
         this.player = player;
+        float maxHp = player.playerStat.GetStat(StatType.MaxHp);
+        float currentHp = player.playerStat.GetStat(StatType.CurrentHp);
+        hpBar.maxValue = maxHp;
+        hpBar.SetValue(currentHp);
         player.OnHpChanged += UpdateHealthUI;
         player.OnExpChanged += UpdateExpUI;
     }

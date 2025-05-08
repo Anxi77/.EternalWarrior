@@ -16,7 +16,7 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         IsInitialized = true;
     }
 
-    public void SpawnPlayer(Vector3 position, PlayerInfoPanel playerInfoPanel = null)
+    public void SpawnPlayer(Vector3 position)
     {
         Player player = Instantiate(playerPrefab, position, Quaternion.identity)
             .GetComponent<Player>();
@@ -29,29 +29,20 @@ public class PlayerSystem : MonoBehaviour, IInitializable
 
         player.Initialize(saveData, inventoryData);
 
-        if (player.playerStat != null)
-        {
-            if (PlayerDataManager.Instance.HasSaveData())
-            {
-                LoadGameState();
-            }
-        }
-
         if (player.animationController != null)
         {
             player.animationController.Initialize();
         }
 
         player.playerStatus = Player.Status.Alive;
+
         player.StartCombatSystems();
-        if (playerInfoPanel != null)
-        {
-            playerInfoPanel.InitializePlayerUI(player);
-        }
     }
 
     public void DespawnPlayer()
     {
+        SavePlayerData();
+
         if (player != null)
         {
             Destroy(player.gameObject);
@@ -71,14 +62,15 @@ public class PlayerSystem : MonoBehaviour, IInitializable
             case SceneType.Main_Town:
                 return new Vector3(0, 0, 0);
             case SceneType.Main_Stage:
+                return new Vector3(0, 0, 0);
             case SceneType.Test:
-                return defaultSpawnPosition;
+                return new Vector3(0, 0, 0);
             default:
                 return Vector3.zero;
         }
     }
 
-    public void SaveGameState()
+    public void SavePlayerData()
     {
         if (player == null)
         {
@@ -92,33 +84,11 @@ public class PlayerSystem : MonoBehaviour, IInitializable
         if (playerStat != null && inventory != null)
         {
             PlayerData data = new PlayerData();
-            data.stats = playerStat.CreateSaveData();
-            data.inventory = inventory.GetInventoryData();
+            data.stats = playerStat.GetSaveData();
+            data.inventory = inventory.GetSaveData();
             if (PlayerDataManager.Instance != null)
             {
                 PlayerDataManager.Instance.SavePlayerData(data);
-            }
-        }
-    }
-
-    public void LoadGameState()
-    {
-        if (player == null)
-        {
-            Logger.LogWarning(typeof(PlayerSystem), "Player is not initialized");
-            return;
-        }
-
-        var playerStat = player.GetComponent<PlayerStat>();
-        var inventory = player.GetComponent<Inventory>();
-
-        if (playerStat != null && inventory != null)
-        {
-            var savedData = PlayerDataManager.Instance.LoadPlayerData();
-            if (savedData != null)
-            {
-                playerStat.Initialize(savedData.stats);
-                inventory.LoadInventoryData(savedData.inventory);
             }
         }
     }

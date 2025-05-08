@@ -38,10 +38,7 @@ public class TitlePanel : Panel
         GameManager.Instance.InitializeNewGame();
     }
 
-    public void OnLoadGame()
-    {
-        GameManager.Instance.LoadGameData();
-    }
+    public void OnLoadGame() { }
 
     public void OnExitGame()
     {

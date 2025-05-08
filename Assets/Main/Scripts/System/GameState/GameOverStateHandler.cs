@@ -16,7 +16,11 @@ public class GameOverStateHandler : BaseStateHandler
         if (Game.PlayerSystem.Player != null)
         {
             PlayerSystem.SpawnPlayer(Vector3.zero);
-            PlayerSystem.LoadGameState();
+
+            PlayerSystem.Player.Initialize(
+                PlayerDataManager.Instance.CurrentPlayerData.stats,
+                PlayerDataManager.Instance.CurrentPlayerData.inventory
+            );
 
             GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Stage);
 
@@ -56,13 +60,14 @@ public class GameOverStateHandler : BaseStateHandler
     {
         List<Func<IEnumerator>> loadSceneRoutines = new List<Func<IEnumerator>> { LoadTownScene };
 
+        PlayerDataManager.Instance.SavePlayerData(PlayerDataManager.Instance.CurrentPlayerData);
+
         LoadingManager.Instance.LoadScene(
             sceneType,
             loadSceneRoutines,
             () =>
             {
                 PlayerSystem.SpawnPlayer(Vector3.zero);
-                PlayerSystem.LoadGameState();
             }
         );
     }

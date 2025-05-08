@@ -364,20 +364,20 @@ public static class ItemDataEditorUtility
         dropTables = new Dictionary<MonsterType, DropTableData>
         {
             {
-                MonsterType.Normal,
+                MonsterType.Wasp,
                 new DropTableData
                 {
-                    enemyType = MonsterType.Normal,
+                    enemyType = MonsterType.Wasp,
                     guaranteedDropRate = 0.1f,
                     maxDrops = 2,
                     dropEntries = new List<DropTableEntry>(),
                 }
             },
             {
-                MonsterType.Elite,
+                MonsterType.Bat,
                 new DropTableData
                 {
-                    enemyType = MonsterType.Elite,
+                    enemyType = MonsterType.Bat,
                     guaranteedDropRate = 0.3f,
                     maxDrops = 3,
                     dropEntries = new List<DropTableEntry>(),

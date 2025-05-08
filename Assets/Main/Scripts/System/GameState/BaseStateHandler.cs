@@ -34,12 +34,12 @@ public abstract class BaseStateHandler : IGameState
         {
             if (Game.PlayerSystem.Player.TryGetComponent<Inventory>(out var inventory))
             {
-                var inventoryData = inventory.GetInventoryData();
+                var inventoryData = inventory.GetSaveData();
                 PlayerDataManager.Instance.SaveInventoryData(inventoryData);
             }
             if (PlayerSystem != null)
             {
-                PlayerSystem.SaveGameState();
+                PlayerSystem.SavePlayerData();
             }
         }
     }

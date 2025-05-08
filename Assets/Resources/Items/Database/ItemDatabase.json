@@ -13,7 +13,7 @@
         "possibleStats": [
           {
             "statType": "HpRegenRate",
-            "minValue": 0.0,
+            "minValue": 5.0,
             "maxValue": 5.0,
             "weight": 1.0,
             "increaseType": "Flat"

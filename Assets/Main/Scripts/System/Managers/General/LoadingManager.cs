@@ -105,9 +105,14 @@ public class LoadingManager : Singleton<LoadingManager>
 
     private IEnumerator LoadSceneRoutine(string targetSceneName, Action onComplete)
     {
-        GameManager.Instance.PlayerSystem.DespawnPlayer();
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
+        if (GameManager.Instance.PlayerSystem != null)
+        {
+            if (GameManager.Instance.PlayerSystem.Player != null)
+            {
+                GameManager.Instance.PlayerSystem.DespawnPlayer();
+            }
+            yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
+        }
 
         AsyncOperation loadLoadingScene = SceneManager.LoadSceneAsync(LOADING_SCENE_NAME);
 
@@ -146,10 +151,6 @@ public class LoadingManager : Singleton<LoadingManager>
 
         isLoading = false;
 
-        GameManager.Instance.PlayerSystem.DespawnPlayer();
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
-
         loadTargetScene.allowSceneActivation = true;
 
         yield return new WaitUntil(() => loadTargetScene.isDone);
@@ -165,9 +166,14 @@ public class LoadingManager : Singleton<LoadingManager>
         Action onComplete = null
     )
     {
-        GameManager.Instance.PlayerSystem.DespawnPlayer();
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
+        if (GameManager.Instance.PlayerSystem != null)
+        {
+            if (GameManager.Instance.PlayerSystem.Player != null)
+            {
+                GameManager.Instance.PlayerSystem.DespawnPlayer();
+            }
+            yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
+        }
 
         UIManager.Instance.OpenPanel(PanelType.Loading);
 
@@ -198,10 +204,6 @@ public class LoadingManager : Singleton<LoadingManager>
             yield return new WaitForSeconds(MINIMUM_LOADING_TIME - elapsedTime);
         }
 
-        GameManager.Instance.PlayerSystem.DespawnPlayer();
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
-
         loadTargetScene.allowSceneActivation = true;
 
         yield return new WaitUntil(() => loadTargetScene.isDone);
@@ -221,8 +223,10 @@ public class LoadingManager : Singleton<LoadingManager>
     {
         if (GameManager.Instance.PlayerSystem != null)
         {
-            GameManager.Instance.PlayerSystem.DespawnPlayer();
-
+            if (GameManager.Instance.PlayerSystem.Player != null)
+            {
+                GameManager.Instance.PlayerSystem.DespawnPlayer();
+            }
             yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
         }
 
@@ -272,10 +276,6 @@ public class LoadingManager : Singleton<LoadingManager>
 
         UpdateProgress(1.0f);
 
-        GameManager.Instance.PlayerSystem.DespawnPlayer();
-
-        yield return new WaitUntil(() => GameManager.Instance.PlayerSystem.Player == null);
-
         loadTargetSceneAsync.allowSceneActivation = true;
 
         yield return new WaitUntil(() => loadTargetSceneAsync.isDone);
@@ -287,10 +287,6 @@ public class LoadingManager : Singleton<LoadingManager>
         onComplete?.Invoke();
     }
 
-    /// <summary>
-    /// 로딩 진행 상태를 업데이트합니다.
-    /// </summary>
-    /// <param name="progress">진행 상태 (0~1)</param>
     public void UpdateProgress(float progress)
     {
         if (loadingUI != null)
@@ -306,10 +302,6 @@ public class LoadingManager : Singleton<LoadingManager>
         OnProgressUpdated?.Invoke(progress);
     }
 
-    /// <summary>
-    /// 로딩 텍스트를 설정합니다.
-    /// </summary>
-    /// <param name="text">로딩 텍스트</param>
     public void SetLoadingText(string text)
     {
         if (loadingUI != null)

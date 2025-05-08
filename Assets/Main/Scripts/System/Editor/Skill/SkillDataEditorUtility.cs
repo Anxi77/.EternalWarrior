@@ -134,7 +134,6 @@ public static class SkillDataEditorUtility
             skillType = SkillType.Passive;
         }
 
-        // 스킬 타입에 맞는 필드 목록 가져오기
         var includeFields = SkillStatFilters.GetFieldsForSkillType(skillType);
 
         var stats = CSVIO<SkillStatData>.LoadBulkData(SKILL_STAT_PATH, fileName, includeFields);
@@ -171,6 +170,8 @@ public static class SkillDataEditorUtility
             SaveStatData(skillData);
 
             SaveStatDatabase();
+
+            LoadSkillDatabase();
         }
         catch (Exception e)
         {
@@ -368,23 +369,9 @@ public static class SkillDataEditorUtility
 
     private static void DeleteSkillResources(SkillID skillId)
     {
-        ResourceIO<Sprite>.DeleteData($"{SKILL_ICON_PATH}/{skillId}/{skillId}_Icon");
+        ResourceIO<Sprite>.DeleteData($"{SKILL_ICON_PATH}/{skillId}/");
 
-        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Prefab");
-
-        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Projectile");
-
-        var stats = GetStatDatabase().GetValueOrDefault(skillId);
-        if (stats != null)
-        {
-            int maxLevel = stats.Values.Max(s => s.maxSkillLevel);
-            for (int i = 1; i <= maxLevel; i++)
-            {
-                ResourceIO<GameObject>.DeleteData(
-                    $"{SKILL_PREFAB_PATH}/{skillId}/{skillId}_Level_{i}"
-                );
-            }
-        }
+        ResourceIO<GameObject>.DeleteData($"{SKILL_PREFAB_PATH}/{skillId}/");
     }
 
     public static void InitializeDefaultData()

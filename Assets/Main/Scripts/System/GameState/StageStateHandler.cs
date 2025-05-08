@@ -10,27 +10,23 @@ public class StageStateHandler : BaseStateHandler
     public override void OnEnter()
     {
         base.OnEnter();
-        isInitialized = false;
-        UIManager.Instance.ClosePanel(PanelType.Inventory);
-        if (Game.PlayerSystem.Player == null)
-        {
-            Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Stage);
-            PlayerInfoPanel playerInfoPanel =
-                UIManager.Instance.OpenPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
-            PlayerSystem.SpawnPlayer(spawnPos, playerInfoPanel);
-        }
-        else
-        {
-            InitializeStage();
-        }
+        LoadingManager.Instance.LoadScene(
+            SceneType.Main_Stage,
+            () =>
+            {
+                Game.PlayerSystem.SpawnPlayer(Vector3.zero);
+                InitializeStage();
+                isInitialized = true;
+            }
+        );
     }
 
     private void InitializeStage()
     {
-        if (Game.HasSaveData())
-        {
-            PlayerSystem.LoadGameState();
-        }
+        PlayerInfoPanel playerInfoPanel =
+            UIManager.Instance.OpenPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
+
+        playerInfoPanel.InitializePlayerUI(GameManager.Instance.PlayerSystem.Player);
 
         GameManager.Instance.CameraSystem.SetupCamera(SceneType.Main_Stage);
 
@@ -44,16 +40,14 @@ public class StageStateHandler : BaseStateHandler
 
         GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
 
-        //UIManager.Instance.OpenPanel(PanelType.StageTime);
+        UIManager.Instance.OpenPanel(PanelType.StageTime);
         isInitialized = true;
 
-        StartMonsterSpawningWhenReady();
+        StartSpawn();
     }
 
-    private IEnumerator StartMonsterSpawningWhenReady()
+    private void StartSpawn()
     {
-        yield return new WaitForSeconds(0.5f);
-
         GameManager.Instance.MonsterSystem.StartSpawning();
     }
 

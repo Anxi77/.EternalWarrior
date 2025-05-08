@@ -149,15 +149,15 @@ public enum PanelType
     GameOver,
     Pause,
     BossWarning,
-    LevelUp,
+    Skill,
     Test,
 }
 
 public enum MonsterType
 {
     None,
-    Normal,
-    Elite,
+    Wasp,
+    Bat,
     Boss,
 }
 #endregion

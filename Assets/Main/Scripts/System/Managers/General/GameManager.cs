@@ -301,7 +301,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (UIManager.Instance != null)
         {
-            UIManager.Instance.OpenPanel(PanelType.LevelUp);
+            UIManager.Instance.OpenPanel(PanelType.Skill);
         }
     }
 
@@ -327,7 +327,6 @@ public class GameManager : Singleton<GameManager>
         if (PlayerSystem.Player != null)
         {
             PlayerSystem.Player.playerStatus = Player.Status.Alive;
-            PlayerSystem.LoadGameState();
         }
     }
 
@@ -359,17 +358,12 @@ public class GameManager : Singleton<GameManager>
 
     public void SaveGameData()
     {
-        if (PlayerSystem.Player != null)
+        if (PlayerSystem != null)
         {
-            PlayerSystem.SaveGameState();
-        }
-    }
-
-    public void LoadGameData()
-    {
-        if (PlayerSystem.Player != null)
-        {
-            PlayerSystem.LoadGameState();
+            if (PlayerSystem.Player != null)
+            {
+                PlayerSystem.SavePlayerData();
+            }
         }
     }
 

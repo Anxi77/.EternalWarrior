@@ -17,10 +17,10 @@ public class SkillList
 public class SkillDataManager : Singleton<SkillDataManager>
 {
     #region Constants
-    private const string PREFAB_PATH = "SkillData/Prefabs";
-    private const string ICON_PATH = "SkillData/Icons";
-    private const string STAT_PATH = "SkillData/Stats";
-    private const string JSON_PATH = "SkillData/Json";
+    private const string PREFAB_PATH = "Skills/Prefabs";
+    private const string ICON_PATH = "Skills/Icons";
+    private const string STAT_PATH = "Skills/Stats";
+    private const string JSON_PATH = "Skills/Json";
     #endregion
 
     #region Field
@@ -45,8 +45,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
         yield return new WaitForSeconds(0.5f);
         LoadingManager.Instance.SetLoadingText("Initializing Skill Data...");
 
-        yield return LoadResources();
-
         yield return LoadSkillData();
 
         foreach (var skill in skillDatabase)
@@ -55,30 +53,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
         }
 
         isInitialized = true;
-    }
-
-    private IEnumerator LoadResources()
-    {
-        float progress = 0f;
-
-        List<Sprite> icons = Resources.LoadAll<Sprite>(ICON_PATH).ToList();
-        for (int i = 0; i < icons.Count; i++)
-        {
-            iconCache[icons[i].name] = icons[i];
-            progress = (float)i / icons.Count * 0.3f;
-            yield return progress;
-            LoadingManager.Instance.SetLoadingText($"Loading Icon... {progress * 100f:F0}%");
-        }
-
-        List<GameObject> prefabs = Resources.LoadAll<GameObject>(PREFAB_PATH).ToList();
-        for (int i = 0; i < prefabs.Count; i++)
-        {
-            var prefab = prefabs[i];
-            prefabCache[prefab.name] = prefab;
-            progress = 0.3f + (float)i / prefabs.Count * 0.3f;
-            yield return progress;
-            LoadingManager.Instance.SetLoadingText($"Loading Prefab... {progress * 100f:F0}%");
-        }
     }
 
     private IEnumerator LoadSkillData()
@@ -197,13 +171,15 @@ public class SkillDataManager : Singleton<SkillDataManager>
         string iconName = $"{skillId}_Icon";
         if (iconCache.TryGetValue(iconName, out var icon))
         {
-            skillData.Icon = icon;
+            var iconPath = $"{ICON_PATH}/{skillId}/{iconName}";
+            skillData.Icon = ResourceIO<Sprite>.LoadData(iconPath);
         }
 
         string prefabName = $"{skillId}_Prefab";
         if (prefabCache.TryGetValue(prefabName, out var prefab))
         {
-            skillData.BasePrefab = prefab;
+            var prefabPath = $"{PREFAB_PATH}/{skillId}/{prefabName}";
+            skillData.BasePrefab = ResourceIO<GameObject>.LoadData(prefabPath);
         }
 
         if (skillData.Type == SkillType.Projectile)
@@ -211,7 +187,8 @@ public class SkillDataManager : Singleton<SkillDataManager>
             string projectileName = $"{skillId}_Projectile";
             if (prefabCache.TryGetValue(projectileName, out var projectile))
             {
-                skillData.ProjectilePrefab = projectile;
+                var projectilePath = $"{PREFAB_PATH}/{skillId}/{projectileName}";
+                skillData.ProjectilePrefab = ResourceIO<GameObject>.LoadData(projectilePath);
             }
         }
     }

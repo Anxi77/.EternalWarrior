@@ -65,18 +65,14 @@ public static class ResourceIO<T>
     }
 
 #if UNITY_EDITOR
-    public static bool DeleteData(string key)
+    public static void DeleteData(string key)
     {
         string assetPath = Path.Combine(RESOURCES_PATH, key);
-        if (File.Exists(assetPath))
-        {
-            AssetDatabase.DeleteAsset(assetPath);
-            cache.Remove(key);
-            AssetDatabase.Refresh();
-            return true;
-        }
+
+        Logger.Log(typeof(ResourceIO<T>), $"Deleting data from path: {assetPath}");
+        AssetDatabase.DeleteAsset(assetPath);
         cache.Remove(key);
-        return true;
+        AssetDatabase.Refresh();
     }
 #endif
 
@@ -155,6 +151,7 @@ public static class ResourceIO<T>
 
         try
         {
+            Logger.Log(typeof(ResourceIO<T>), $"Saving prefab to path: {path}");
             if (PrefabUtility.GetPrefabAssetType(prefab) == PrefabAssetType.NotAPrefab)
             {
                 Logger.LogError(

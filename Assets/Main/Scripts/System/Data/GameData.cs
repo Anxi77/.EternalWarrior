@@ -612,8 +612,6 @@ public class SkillData : ICloneable
     public GameObject[] PrefabsByLevel;
 
     [Header("Current Stat")]
-    public BaseSkillStat currentBaseSkillStat;
-
     [SerializeReference]
     public ISkillStat currentSkillStat;
 

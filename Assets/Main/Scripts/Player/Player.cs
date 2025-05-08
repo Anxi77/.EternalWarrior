@@ -50,14 +50,6 @@ public class Player : MonoBehaviour
         get { return expList; }
     }
 
-    public float HpAmount
-    {
-        get => playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-    }
-    public float ExpAmount
-    {
-        get => (CurrentExp() / (GetExpForNextLevel() - expList[level - 1]));
-    }
     #endregion
 
     #region References

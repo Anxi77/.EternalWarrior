@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -32,19 +31,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
 
         yield return new WaitForSeconds(0.5f);
 
-        var data = JSONIO<PlayerData>.LoadData(SAVE_PATH, DEFAULT_SAVE_SLOT);
-        if (data != null)
-        {
-            currentPlayerStatData = data.stats;
-            currentInventoryData = data.inventory;
-            currentLevelData = data.levelData;
-        }
-        else
-        {
-            CreateDefaultFiles();
-        }
-
-        Logger.Log(typeof(PlayerDataManager), $"PlayerData: {CurrentPlayerData}");
+        LoadPlayerData();
 
         progress += 1f;
         yield return progress;
@@ -80,9 +67,20 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         JSONIO<PlayerData>.SaveData(SAVE_PATH, DEFAULT_SAVE_SLOT, data);
     }
 
-    public PlayerData LoadPlayerData()
+    public void LoadPlayerData()
     {
-        return JSONIO<PlayerData>.LoadData(SAVE_PATH, DEFAULT_SAVE_SLOT);
+        var data = JSONIO<PlayerData>.LoadData(SAVE_PATH, DEFAULT_SAVE_SLOT);
+
+        if (data != null)
+        {
+            currentLevelData = data.levelData;
+            currentPlayerStatData = data.stats;
+            currentInventoryData = data.inventory;
+        }
+        else
+        {
+            CreateDefaultFiles();
+        }
     }
 
     public void SaveInventoryData(InventoryData data)
@@ -116,17 +114,5 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
     public bool HasSaveData()
     {
         return File.Exists(DEFAULT_SAVE_SLOT);
-    }
-
-    public void SaveRuntimeData()
-    {
-        SavePlayerData(
-            new PlayerData
-            {
-                stats = currentPlayerStatData,
-                inventory = currentInventoryData,
-                levelData = currentLevelData,
-            }
-        );
     }
 }

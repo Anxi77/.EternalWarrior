@@ -1,0 +1,9 @@
+{
+  "ID": "EarthRift",
+  "Name": "New Projectile Skill",
+  "Description": "New Projectile skill description",
+  "Type": "Projectile",
+  "Element": "None",
+  "Tier": 0,
+  "Tags": []
+}

@@ -7,22 +7,9 @@ using Random = UnityEngine.Random;
 public class MonsterSystem : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
-
-    [Header("Spawn Settings")]
-    [Tooltip("스폰 최소/최대 수, Y : 최대")]
-    public Vector2Int minMaxCount;
-
-    [Tooltip("최소/최대 스폰 거리.\n X : 최소, Y : 최대")]
-    public Vector2 minMaxDist;
     public float spawnInterval;
 
-    [Header("Monster Settings")]
-    public MeleeMonster meleeMonsterPrefab;
-    public RangedMonster rangedMonsterPrefab;
-
-    [Header("Boss Settings")]
-    public BossMonster bossPrefab;
-    public Vector2 bossSpawnOffset = new Vector2(0, 5f);
+    private MonsterSO monsterSO;
 
     private Coroutine spawnCoroutine;
     private bool isSpawning = false;
@@ -41,9 +28,7 @@ public class MonsterSystem : MonoBehaviour, IInitializable
         }
         try
         {
-            meleeMonsterPrefab = Resources.Load<MeleeMonster>("Prefabs/Units/MeleeMonster");
-            rangedMonsterPrefab = Resources.Load<RangedMonster>("Prefabs/Units/RangedMonster");
-            bossPrefab = Resources.Load<BossMonster>("Prefabs/Units/BossMonster");
+            monsterSO = Resources.Load<MonsterSO>("SO/MonsterSO");
             IsInitialized = true;
         }
         catch (Exception e)
@@ -80,15 +65,16 @@ public class MonsterSystem : MonoBehaviour, IInitializable
 
     private IEnumerator SpawnCoroutine()
     {
+        yield return new WaitForSeconds(0.5f);
         while (true)
         {
             yield return new WaitForSeconds(spawnInterval);
-            int enemyCount = Random.Range(minMaxCount.x, minMaxCount.y);
-            SpawnEnemies(enemyCount);
+            int enemyCount = Random.Range(monsterSO.minMaxCount.x, monsterSO.minMaxCount.y);
+            SpawnMonsters(enemyCount);
         }
     }
 
-    private void SpawnEnemies(int count)
+    private void SpawnMonsters(int count)
     {
         for (int i = 0; i < count; i++)
         {
@@ -97,19 +83,21 @@ public class MonsterSystem : MonoBehaviour, IInitializable
 
             if (Random.value < 0.5f)
             {
-                PoolManager.Instance.Spawn<MeleeMonster>(
-                    meleeMonsterPrefab.gameObject,
+                Monster monster = PoolManager.Instance.Spawn<MeleeMonster>(
+                    monsterSO.MonsterData[MonsterType.Bat].gameObject,
                     spawnPos,
                     Quaternion.identity
                 );
+                monster.Initialize();
             }
             else
             {
-                PoolManager.Instance.Spawn<RangedMonster>(
-                    rangedMonsterPrefab.gameObject,
+                Monster monster = PoolManager.Instance.Spawn<RangedMonster>(
+                    monsterSO.MonsterData[MonsterType.Wasp].gameObject,
                     spawnPos,
                     Quaternion.identity
                 );
+                monster.Initialize();
             }
         }
     }
@@ -122,7 +110,8 @@ public class MonsterSystem : MonoBehaviour, IInitializable
         {
             Vector2 ranPos = Random.insideUnitCircle;
             Vector2 spawnPos =
-                (ranPos * (minMaxDist.y - minMaxDist.x)) + (ranPos.normalized * minMaxDist.x);
+                (ranPos * (monsterSO.minMaxDist.y - monsterSO.minMaxDist.x))
+                + (ranPos.normalized * monsterSO.minMaxDist.x);
             Vector2 finalPos = playerPos + spawnPos;
 
             Node node = GameManager.Instance.PathFindingSystem.GetNodeFromWorldPosition(finalPos);
@@ -138,7 +127,7 @@ public class MonsterSystem : MonoBehaviour, IInitializable
     private Vector2 FindNearestWalkablePosition(Vector2 centerPos)
     {
         float searchRadius = 1f;
-        float maxSearchRadius = minMaxDist.y;
+        float maxSearchRadius = monsterSO.minMaxDist.y;
         float radiusIncrement = 1f;
 
         while (searchRadius <= maxSearchRadius)
@@ -175,13 +164,16 @@ public class MonsterSystem : MonoBehaviour, IInitializable
         ClearCurrentEnemies();
 
         Vector3 playerPos = GameManager.Instance.PlayerSystem.Player.transform.position;
-        Vector3 spawnPos = playerPos + new Vector3(bossSpawnOffset.x, bossSpawnOffset.y, 0);
+        Vector3 spawnPos =
+            playerPos + new Vector3(monsterSO.bossSpawnOffset.x, monsterSO.bossSpawnOffset.y, 0);
 
         BossMonster boss = PoolManager.Instance.Spawn<BossMonster>(
-            bossPrefab.gameObject,
+            monsterSO.MonsterData[MonsterType.Boss].gameObject,
             spawnPos,
             Quaternion.identity
         );
+
+        boss.Initialize();
 
         isBossDefeated = false;
     }

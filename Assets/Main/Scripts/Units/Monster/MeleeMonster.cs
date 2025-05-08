@@ -18,7 +18,7 @@ public class MeleeMonster : Monster
 
     private Animator animator;
 
-    protected override void Initialize()
+    public override void Initialize()
     {
         base.Initialize();
         attackRange = 2f;

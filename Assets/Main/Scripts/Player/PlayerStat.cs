@@ -25,7 +25,7 @@ public class PlayerStat : MonoBehaviour
         currentStats[StatType.CurrentHp] = maxHp;
     }
 
-    public StatData CreateSaveData()
+    public StatData GetSaveData()
     {
         var saveData = new StatData();
 

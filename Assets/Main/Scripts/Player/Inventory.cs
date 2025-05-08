@@ -108,7 +108,7 @@ public class Inventory : MonoBehaviour
         return equipmentSlots;
     }
 
-    public InventoryData GetInventoryData()
+    public InventoryData GetSaveData()
     {
         return new InventoryData { slots = new List<InventorySlot>(inventorySlots), gold = gold };
     }
@@ -234,7 +234,7 @@ public class Inventory : MonoBehaviour
 
     public void SaveInventoryState()
     {
-        PlayerDataManager.Instance.SaveInventoryData(GetInventoryData());
+        PlayerDataManager.Instance.SaveInventoryData(GetSaveData());
     }
 
     public void ClearInventory()

@@ -77,7 +77,7 @@ public class Monster : MonoBehaviour
 
     #region Unity Lifecycle
 
-    protected virtual void Initialize()
+    public virtual void Initialize()
     {
         maxHp = hp;
         originalMoveSpeed = moveSpeed;
