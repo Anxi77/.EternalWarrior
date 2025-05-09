@@ -39,7 +39,7 @@ public class InventoryPanel : Panel
     private ItemSlot slotPrefab;
 
     private Inventory inventory;
-    private PlayerStat playerStat;
+    private StatSystem playerStat;
     private List<ItemSlot> slotUIs = new();
 
     [SerializeField]
@@ -58,7 +58,7 @@ public class InventoryPanel : Panel
 
     #region Initialization
 
-    public void SetupInventory(Inventory inventory, PlayerStat playerStat)
+    public void SetupInventory(Inventory inventory, StatSystem playerStat)
     {
         itemTooltip = Instantiate(itemTooltipPrefab, transform);
         this.inventory = inventory;

@@ -384,10 +384,10 @@ public static class ItemDataEditorUtility
                 }
             },
             {
-                MonsterType.Boss,
+                MonsterType.Ogre,
                 new DropTableData
                 {
-                    enemyType = MonsterType.Boss,
+                    enemyType = MonsterType.Ogre,
                     guaranteedDropRate = 1f,
                     maxDrops = 5,
                     dropEntries = new List<DropTableEntry>(),

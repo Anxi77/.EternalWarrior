@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6053380c9b839704983437ea6c78d4a3, type: 3}
+  m_Name: MonsterSetting
+  m_EditorClassIdentifier: 
+  spawnInterval: 500
+  minMaxCount: {x: 1, y: 5}
+  spawnOffset: {x: 5, y: 5}
+  bossSpawnOffset: {x: 0, y: 5}
+  dropRadiusRange: {x: 0.1, y: 1}
+  expParticleRange: {x: 1, y: 3}
+  expParticlePrefab: {fileID: 5334211976707995158, guid: 8156f81e49faef04a8c59f5abb3f3cd6, type: 3}
+  monsters:
+  - type: 1
+    monsterPrefab: {fileID: 3103506741099934397, guid: 14374e79d5b1d184a95153371ebcf78f, type: 3}
+    elementType: 0
+    Stats:
+    - statType: 1
+      value: 50
+    - statType: 3
+      value: 5
+    - statType: 4
+      value: 1
+    - statType: 5
+      value: 7
+    - statType: 6
+      value: 1
+    - statType: 7
+      value: 5
+    - statType: 17
+      value: 0.9
+    - statType: 18
+      value: 0.9
+    - statType: 16
+      value: 100
+    - statType: 2
+      value: 50
+  - type: 2
+    monsterPrefab: {fileID: 6082493033591708299, guid: b161b23a84ad9c24b86e8a4de173cd26, type: 3}
+    elementType: 0
+    Stats:
+    - statType: 1
+      value: 50
+    - statType: 3
+      value: 5
+    - statType: 4
+      value: 1
+    - statType: 5
+      value: 7
+    - statType: 6
+      value: 1
+    - statType: 7
+      value: 5
+    - statType: 17
+      value: 0.9
+    - statType: 18
+      value: 0.9
+    - statType: 16
+      value: 100
+    - statType: 2
+      value: 50
+  - type: 3
+    monsterPrefab: {fileID: 7907268387318460582, guid: c39d3a40543aebf4c9e18c78055edb68, type: 3}
+    elementType: 0
+    Stats:
+    - statType: 1
+      value: 50
+    - statType: 3
+      value: 5
+    - statType: 4
+      value: 1
+    - statType: 5
+      value: 7
+    - statType: 6
+      value: 1
+    - statType: 7
+      value: 5
+    - statType: 17
+      value: 0.9
+    - statType: 18
+      value: 0.9
+    - statType: 16
+      value: 5
+    - statType: 2
+      value: 50

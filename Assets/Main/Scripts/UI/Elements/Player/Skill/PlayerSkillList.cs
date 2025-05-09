@@ -30,6 +30,7 @@ public class PlayerSkillList : MonoBehaviour
             foreach (Skill skill in sortedSkills)
             {
                 SkillData skillData = skill.GetSkillData();
+                Logger.Log(GetType(), $"Skill: {skill.name}, SkillData: {skillData}");
                 if (skillData != null)
                 {
                     PlayerSkillIcon icon = Instantiate(skillIconPrefab, transform);

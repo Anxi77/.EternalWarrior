@@ -165,6 +165,7 @@ MonoBehaviour:
   skillList: {fileID: 7598224176128147755}
   hpBar: {fileID: 8366832598442724318}
   expBar: {fileID: 6130100409575480236}
+  levelText: {fileID: 7695768101946501566}
 --- !u!225 &1806893359570935793
 CanvasGroup:
   m_ObjectHideFlags: 0

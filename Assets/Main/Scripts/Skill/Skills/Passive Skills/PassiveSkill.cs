@@ -94,7 +94,7 @@ public class PassiveSkill : Skill
         if (skillData == null)
             return;
 
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStat>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<StatSystem>();
         if (playerStat != null)
         {
             float currentHpRatio =
@@ -172,7 +172,7 @@ public class PassiveSkill : Skill
 
     protected void ApplyPermanentEffect(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStat>();
+        var playerStat = player.GetComponent<StatSystem>();
         if (playerStat == null)
             return;
 
@@ -182,7 +182,7 @@ public class PassiveSkill : Skill
 
     protected IEnumerator ApplyTemporaryEffects(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStat>();
+        var playerStat = player.GetComponent<StatSystem>();
         if (playerStat == null)
             yield break;
 
@@ -278,7 +278,7 @@ public class PassiveSkill : Skill
         if (player == null)
             return;
 
-        PlayerStat playerStat = player.GetComponent<PlayerStat>();
+        StatSystem playerStat = player.GetComponent<StatSystem>();
         foreach (var modifier in statModifiers)
         {
             playerStat.RemoveModifier(modifier);
@@ -305,7 +305,7 @@ public class PassiveSkill : Skill
             return;
         }
 
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<PlayerStat>();
+        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<StatSystem>();
         float currentHpRatio = 1f;
         if (playerStat != null)
         {
@@ -350,7 +350,7 @@ public class PassiveSkill : Skill
     }
 
     protected void ApplyStatModifier(
-        PlayerStat playerStat,
+        StatSystem playerStat,
         StatType statType,
         float percentageIncrease
     )
@@ -360,7 +360,7 @@ public class PassiveSkill : Skill
 
         float currentStat = playerStat.GetStat(statType);
         float increase = currentStat * (percentageIncrease / 100f);
-        StatModifier modifier = new StatModifier(statType, this, IncreaseType.Flat, increase);
+        StatModifier modifier = new StatModifier(statType, this, CalcType.Flat, increase);
         playerStat.AddModifier(modifier);
         statModifiers.Add(modifier);
         Logger.Log(
@@ -375,7 +375,7 @@ public class PassiveSkill : Skill
         {
             StopAllCoroutines();
             Player player = GameManager.Instance.PlayerSystem.Player;
-            var playerStat = player.GetComponent<PlayerStat>();
+            var playerStat = player.GetComponent<StatSystem>();
 
             foreach (var modifier in statModifiers)
             {

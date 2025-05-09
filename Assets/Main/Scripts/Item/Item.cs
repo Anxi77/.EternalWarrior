@@ -14,7 +14,7 @@ public abstract class Item
 
     public virtual void OnEquip(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStat>();
+        var playerStat = player.GetComponent<StatSystem>();
         foreach (var stat in itemData.Stats)
         {
             playerStat.AddModifier(stat);
@@ -23,7 +23,7 @@ public abstract class Item
 
     public virtual void OnUnequip(Player player)
     {
-        var playerStat = player.GetComponent<PlayerStat>();
+        var playerStat = player.GetComponent<StatSystem>();
         foreach (var stat in itemData.Stats)
         {
             playerStat.RemoveModifier(stat);

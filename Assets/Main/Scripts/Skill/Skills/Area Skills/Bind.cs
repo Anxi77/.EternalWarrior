@@ -29,12 +29,8 @@ public class Bind : AreaSkills
 
         while (true)
         {
-            yield return new WaitForSeconds(TickRate);
-
             if (playerTransform == null)
                 continue;
-
-            List<Monster> affectedEnemies = new List<Monster>();
 
             if (GameManager.Instance.Monsters != null)
             {
@@ -48,8 +44,7 @@ public class Bind : AreaSkills
                         );
                         if (distanceToPlayer <= Radius)
                         {
-                            affectedEnemies.Add(enemy);
-                            enemy.moveSpeed = 0;
+                            BindMonster(enemy, Duration);
 
                             Vector3 effectPosition = enemy.transform.position;
 
@@ -83,28 +78,6 @@ public class Bind : AreaSkills
                 }
             }
 
-            float elapsedTime = 0f;
-            while (elapsedTime < Duration)
-            {
-                foreach (Monster enemy in affectedEnemies)
-                {
-                    if (enemy != null)
-                    {
-                        enemy.TakeDamage(Damage);
-                    }
-                }
-                yield return new WaitForSeconds(TickRate);
-                elapsedTime += TickRate;
-            }
-
-            foreach (Monster enemy in affectedEnemies)
-            {
-                if (enemy != null)
-                {
-                    enemy.moveSpeed = enemy.originalMoveSpeed;
-                }
-            }
-
             foreach (BindEffect effect in spawnedBindEffects)
             {
                 if (effect != null)
@@ -114,11 +87,19 @@ public class Bind : AreaSkills
             }
             spawnedBindEffects.Clear();
 
+            yield return new WaitForSeconds(TickRate);
+
             if (!IsPersistent)
             {
                 break;
             }
         }
+    }
+
+    private void BindMonster(Monster monster, float duration)
+    {
+        monster.ApplyStun(1, duration);
+        monster.ApplyDotDamage(Damage, 0.2f, duration);
     }
 
     private void OnDrawGizmos()

@@ -1,9 +1,9 @@
 {
   "ID": "EarthRift",
-  "Name": "New Projectile Skill",
-  "Description": "New Projectile skill description",
+  "Name": "Earth Rift",
+  "Description": "Shatters",
   "Type": "Projectile",
-  "Element": "None",
+  "Element": "Earth",
   "Tier": 0,
   "Tags": []
 }

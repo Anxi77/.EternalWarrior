@@ -1,87 +1,41 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using Michsky.UI.Heat;
 using UnityEngine;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class Monster : MonoBehaviour
 {
-    #region Variables
-    #region Stats
-    public float maxHp;
-    public float hp = 10f;
-    public float damage = 5f;
-    public float moveSpeed = 3f;
-    public float mobEXP = 10f;
-    public float damageInterval;
-    public float originalMoveSpeed;
-
-    public float hpAmount
-    {
-        get { return hp / maxHp; }
-    }
-
-    public float preDamageTime = 0;
-    public float attackRange = 1.2f;
-    public float preferredDistance = 1.0f;
-
-    public ElementType elementType = ElementType.None;
-
-    [Header("Defense Stats")]
-    public float baseDefense = 5f;
-    public float currentDefense;
-    public float maxDefenseReduction = 0.9f;
-    public float defenseDebuffAmount = 0f;
-    public float moveSpeedDebuffAmount = 0f;
-    public bool isStunned = false;
-
-    [Header("Drop Settings")]
-    [SerializeField]
-    public ExpParticle expParticlePrefab;
-
-    [SerializeField]
-    public int minExpParticles = 3;
-
-    [SerializeField]
-    public int maxExpParticles = 6;
-
-    [SerializeField]
-    public float dropRadiusMin = 0.5f;
-
-    [SerializeField]
-    public float dropRadiusMax = 1.5f;
-
-    [SerializeField]
-    public MonsterType monsterType;
-    #endregion
-
-    #region References
-    public Transform target;
-    public Image hpBar;
+    protected MonsterData monsterData;
+    protected MonsterSetting monsterSetting;
+    private Transform target;
+    public Transform Target => target;
+    public ProgressBar hpBar;
     public Rigidbody2D rb;
     public ParticleSystem attackParticle;
-    public bool isInit = false;
     public Collider2D enemyCollider;
     public PathFinder pathFinder;
+    public StatSystem stat;
+    protected float lastAttackTime;
+    public float preferredDistance = 1.0f;
+    public bool isStunned = false;
     public bool isAttacking = false;
-    #endregion
+    public bool isInit = false;
 
-    #region Coroutines
     protected Coroutine slowEffectCoroutine;
     protected Coroutine stunCoroutine;
     protected Coroutine dotDamageCoroutine;
     protected Coroutine defenseDebuffCoroutine;
-    #endregion
 
     private bool isQuitting = false;
-    #endregion
 
     #region Unity Lifecycle
 
-    public virtual void Initialize()
+    public virtual void Initialize(MonsterData monsterData, MonsterSetting monsterSetting)
     {
-        maxHp = hp;
-        originalMoveSpeed = moveSpeed;
-        currentDefense = baseDefense;
+        this.monsterData = monsterData;
+        this.monsterSetting = monsterSetting;
+        stat.Initialize(monsterData.statData);
         enemyCollider = GetComponent<Collider2D>();
         InitializeComponents();
         if (GameManager.Instance?.PlayerSystem?.Player != null)
@@ -97,6 +51,9 @@ public class Monster : MonoBehaviour
         {
             GameManager.Instance.Monsters.Add(this);
         }
+
+        hpBar.maxValue = stat.GetStat(StatType.MaxHp);
+        hpBar.SetValue(stat.GetStat(StatType.CurrentHp));
     }
 
     protected virtual void Update()
@@ -105,9 +62,9 @@ public class Monster : MonoBehaviour
         {
             UpdateVisuals();
 
-            float distanceToPlayer = Vector2.Distance(transform.position, target.position);
+            float distanceToPlayer = Vector2.Distance(transform.position, Target.position);
 
-            if (distanceToPlayer <= attackRange)
+            if (distanceToPlayer <= stat.GetStat(StatType.AttackRange))
             {
                 Attack();
             }
@@ -151,12 +108,8 @@ public class Monster : MonoBehaviour
             StopCoroutine(defenseDebuffCoroutine);
             defenseDebuffCoroutine = null;
         }
-
-        moveSpeedDebuffAmount = 0f;
-        defenseDebuffAmount = 0f;
+        stat.RemoveAllModifiers();
         isStunned = false;
-        moveSpeed = originalMoveSpeed;
-        currentDefense = baseDefense;
 
         if (
             Application.isPlaying
@@ -187,12 +140,14 @@ public class Monster : MonoBehaviour
         if (!gameObject.activeInHierarchy)
             return;
 
-        float damageReduction = currentDefense / (currentDefense + 100f);
-        float finalDamage = damage * (1f - damageReduction) * (1f + defenseDebuffAmount);
+        var defense = stat.GetStat(StatType.Defense);
 
-        hp -= finalDamage;
+        float damageReduction = defense / (defense + 100f);
+        float finalDamage = damage * (1f - damageReduction);
 
-        if (hp <= 0)
+        stat.SetCurrentHp(stat.GetStat(StatType.CurrentHp) - finalDamage);
+
+        if (stat.GetStat(StatType.CurrentHp) <= 0)
         {
             if (dotDamageCoroutine != null)
             {
@@ -205,16 +160,21 @@ public class Monster : MonoBehaviour
 
     public virtual void Die()
     {
-        if (expParticlePrefab != null)
+        if (monsterSetting.expParticlePrefab != null)
         {
-            int expParticleCount = Random.Range(minExpParticles, maxExpParticles + 1);
-            float expPerParticle = mobEXP / expParticleCount;
+            int expParticleCount = Random.Range(
+                monsterSetting.expParticleRange.x,
+                monsterSetting.expParticleRange.y + 1
+            );
+
+            var dropExp = stat.GetStat(StatType.DropExp);
+            float expPerParticle = dropExp / expParticleCount;
 
             for (int i = 0; i < expParticleCount; i++)
             {
                 Vector3 spawnPosition = transform.position;
                 ExpParticle expParticle = PoolManager.Instance.Spawn<ExpParticle>(
-                    expParticlePrefab.gameObject,
+                    monsterSetting.expParticlePrefab.gameObject,
                     spawnPosition,
                     Quaternion.identity
                 );
@@ -238,17 +198,20 @@ public class Monster : MonoBehaviour
     protected virtual void DropItems()
     {
         float playerLuck = GameManager
-            .Instance.PlayerSystem.Player.GetComponent<PlayerStat>()
+            .Instance.PlayerSystem.Player.GetComponent<StatSystem>()
             .GetStat(StatType.Luck);
 
         Vector2 dropPosition = CalculateDropPosition();
-        GameManager.Instance.ItemSystem.DropItem(dropPosition, monsterType, 1f + playerLuck);
+        GameManager.Instance.ItemSystem.DropItem(dropPosition, monsterData.type, 1f + playerLuck);
     }
 
     protected virtual Vector2 CalculateDropPosition()
     {
         float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float radius = Random.Range(dropRadiusMin, dropRadiusMax);
+        float radius = Random.Range(
+            monsterSetting.dropRadiusRange.x,
+            monsterSetting.dropRadiusRange.y
+        );
 
         Vector2 offset = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
 
@@ -257,11 +220,13 @@ public class Monster : MonoBehaviour
 
     protected virtual void Attack()
     {
-        if (Time.time >= preDamageTime + damageInterval)
+        var attackSpeed = stat.GetStat(StatType.AttackSpeed);
+        var damageInterval = 1f / attackSpeed;
+        if (Time.time >= lastAttackTime + damageInterval)
         {
-            float distanceToTarget = Vector2.Distance(transform.position, target.position);
+            float distanceToTarget = Vector2.Distance(transform.position, Target.position);
 
-            if (distanceToTarget <= attackRange)
+            if (distanceToTarget <= stat.GetStat(StatType.AttackRange))
             {
                 isAttacking = true;
                 if (this is RangedMonster || this is BossMonster)
@@ -272,6 +237,7 @@ public class Monster : MonoBehaviour
                 {
                     PerformMeleeAttack();
                 }
+                lastAttackTime = Time.time;
             }
             else
             {
@@ -299,45 +265,35 @@ public class Monster : MonoBehaviour
 
     public virtual IEnumerator DefenseDebuffCoroutine(float amount, float duration)
     {
-        float actualReduction = Mathf.Min(amount, maxDefenseReduction - defenseDebuffAmount);
+        float actualReduction = Mathf.Min(amount, stat.GetStat(StatType.MaxDefenseReduction));
+        actualReduction = -actualReduction;
 
-        defenseDebuffAmount += actualReduction;
-        currentDefense = baseDefense * (1f - defenseDebuffAmount);
-
-        yield return new WaitForSeconds(duration);
+        var defenseDebuff = new StatModifier(
+            StatType.Defense,
+            this,
+            CalcType.Flat,
+            actualReduction
+        );
 
         if (this != null && gameObject.activeInHierarchy)
         {
-            defenseDebuffAmount = Mathf.Max(defenseDebuffAmount - actualReduction, 0f);
-            currentDefense = baseDefense * (1f - defenseDebuffAmount);
+            stat.AddModifier(defenseDebuff);
         }
+
+        yield return new WaitForSeconds(duration);
+
         defenseDebuffCoroutine = null;
-    }
 
-    public virtual void ModifyBaseDefense(float amount)
-    {
-        baseDefense = Mathf.Max(0, baseDefense + amount);
-        UpdateCurrentDefense();
-    }
-
-    public virtual void SetBaseDefense(float newDefense)
-    {
-        baseDefense = Mathf.Max(0, newDefense);
-        UpdateCurrentDefense();
-    }
-
-    public virtual void UpdateCurrentDefense()
-    {
-        currentDefense = baseDefense * (1f - defenseDebuffAmount);
+        if (this != null && gameObject.activeInHierarchy)
+        {
+            stat.RemoveModifier(defenseDebuff);
+        }
     }
 
     public virtual void ApplySlowEffect(float amount, float duration)
     {
         if (!gameObject.activeInHierarchy)
             return;
-
-        moveSpeedDebuffAmount = Mathf.Min(moveSpeedDebuffAmount + amount, 0.9f);
-        UpdateMoveSpeed();
 
         if (slowEffectCoroutine != null)
         {
@@ -349,19 +305,38 @@ public class Monster : MonoBehaviour
 
     protected virtual IEnumerator SlowEffectCoroutine(float amount, float duration)
     {
+        float movespeedReduction;
+
+        var moveSpeed = stat.GetStat(StatType.MoveSpeed);
+        if (moveSpeed - amount > 0)
+        {
+            movespeedReduction = -amount;
+        }
+        else
+        {
+            movespeedReduction = -moveSpeed;
+        }
+
+        var moveSpeedDebuff = new StatModifier(
+            StatType.MoveSpeed,
+            this,
+            CalcType.Flat,
+            movespeedReduction
+        );
+
+        if (this != null && gameObject.activeInHierarchy)
+        {
+            stat.AddModifier(moveSpeedDebuff);
+        }
+
         yield return new WaitForSeconds(duration);
 
         if (this != null && gameObject.activeInHierarchy)
         {
-            moveSpeedDebuffAmount = Mathf.Max(moveSpeedDebuffAmount - amount, 0f);
-            UpdateMoveSpeed();
+            stat.RemoveModifier(moveSpeedDebuff);
         }
-        slowEffectCoroutine = null;
-    }
 
-    public virtual void UpdateMoveSpeed()
-    {
-        moveSpeed = originalMoveSpeed * (1f - moveSpeedDebuffAmount);
+        slowEffectCoroutine = null;
     }
 
     public virtual void ApplyDotDamage(float damagePerTick, float tickInterval, float duration)
@@ -387,7 +362,11 @@ public class Monster : MonoBehaviour
     {
         float endTime = Time.time + duration;
 
-        while (Time.time < endTime && hp > 0 && gameObject.activeInHierarchy)
+        while (
+            Time.time < endTime
+            && stat.GetStat(StatType.CurrentHp) > 0
+            && gameObject.activeInHierarchy
+        )
         {
             if (this != null && gameObject.activeInHierarchy)
             {
@@ -415,15 +394,15 @@ public class Monster : MonoBehaviour
     protected virtual IEnumerator StunCoroutine(float duration)
     {
         isStunned = true;
-        float originalSpeed = moveSpeed;
-        moveSpeed = 0;
+        var moveSpeed = stat.GetStat(StatType.MoveSpeed);
+        var moveSpeedDebuff = new StatModifier(StatType.MoveSpeed, this, CalcType.Flat, -moveSpeed);
 
         yield return new WaitForSeconds(duration);
 
         if (this != null && gameObject.activeInHierarchy)
         {
             isStunned = false;
-            moveSpeed = originalSpeed * (1f - moveSpeedDebuffAmount);
+            stat.RemoveModifier(moveSpeedDebuff);
         }
         stunCoroutine = null;
     }
@@ -432,7 +411,7 @@ public class Monster : MonoBehaviour
     #region Collision
     public virtual void Contact()
     {
-        var particle = Instantiate(attackParticle, target.position, Quaternion.identity);
+        var particle = Instantiate(attackParticle, Target.position, Quaternion.identity);
         particle.Play();
         Destroy(particle.gameObject, 0.3f);
         Attack();
@@ -444,7 +423,7 @@ public class Monster : MonoBehaviour
     {
         if (hpBar != null)
         {
-            hpBar.fillAmount = hpAmount;
+            hpBar.SetValue(stat.GetStat(StatType.CurrentHp));
         }
     }
 
@@ -466,7 +445,7 @@ public class Monster : MonoBehaviour
 
     public virtual void UpdateSpriteDirection()
     {
-        if (target != null)
+        if (Target != null)
         {
             float currentXPosition = transform.position.x;
             if (currentXPosition != pathFinder.previousXPosition)

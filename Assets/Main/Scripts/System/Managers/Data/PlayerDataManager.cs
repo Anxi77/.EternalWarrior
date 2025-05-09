@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class PlayerDataManager : Singleton<PlayerDataManager>
 {
+    public PlayerSetting defaultSetting;
     private const string SAVE_FOLDER = "PlayerData";
     private string SAVE_PATH => Path.Combine(Application.persistentDataPath, SAVE_FOLDER);
     private const string DEFAULT_SAVE_SLOT = "DefaultSave";
@@ -27,6 +28,8 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
         yield return progress;
         yield return new WaitForSeconds(0.5f);
 
+        defaultSetting = Resources.Load<PlayerSetting>("SO/PlayerSetting");
+
         LoadingManager.Instance.SetLoadingText("Loading Player Data...");
 
         yield return new WaitForSeconds(0.5f);
@@ -40,6 +43,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
     public void CreateDefaultFiles()
     {
         currentPlayerStatData = new StatData();
+        currentPlayerStatData.CreatePlayerDefaultStat(defaultSetting.GetDefaultStat());
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
         JSONIO<PlayerData>.SaveData(
@@ -57,6 +61,7 @@ public class PlayerDataManager : Singleton<PlayerDataManager>
     public void ClearAllRuntimeData()
     {
         currentPlayerStatData = new StatData();
+        currentPlayerStatData.CreatePlayerDefaultStat(defaultSetting.GetDefaultStat());
         currentInventoryData = new InventoryData();
         currentLevelData = new LevelData { level = 1, exp = 0f };
         JSONIO<PlayerData>.DeleteData(SAVE_PATH, DEFAULT_SAVE_SLOT);

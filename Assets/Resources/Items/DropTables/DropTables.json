@@ -13,7 +13,7 @@
       "maxDrops": 3
     },
     {
-      "enemyType": "Boss",
+      "enemyType": "Ogre",
       "dropEntries": [],
       "guaranteedDropRate": 1.0,
       "maxDrops": 5

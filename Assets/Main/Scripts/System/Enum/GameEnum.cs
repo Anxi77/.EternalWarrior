@@ -99,6 +99,7 @@ public enum ItemRarity
 [Serializable]
 public enum StatType
 {
+    #region Player
     None,
     MaxHp,
     CurrentHp,
@@ -115,10 +116,18 @@ public enum StatType
     Luck,
     DodgeChance,
     LifeSteal,
+    #endregion
+
+    #region Monster
+
+    DropExp,
+    MaxDefenseReduction,
+    MaxMoveSpeedReduction,
+    #endregion
 }
 
 [Serializable]
-public enum IncreaseType
+public enum CalcType
 {
     Flat,
     Multiply,
@@ -158,7 +167,7 @@ public enum MonsterType
     None,
     Wasp,
     Bat,
-    Boss,
+    Ogre,
 }
 #endregion
 
@@ -166,10 +175,10 @@ public enum MonsterType
 public enum ElementType
 {
     None = 0,
-    Dark, // Reduces target's defense
-    Water, // Slows target's movement
-    Fire, // Deals damage over time
-    Earth, // Can stun targets
+    Dark,
+    Water,
+    Fire,
+    Earth,
 }
 
 [Serializable]

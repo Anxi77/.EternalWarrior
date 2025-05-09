@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public abstract class Panel : MonoBehaviour
@@ -9,8 +10,8 @@ public abstract class Panel : MonoBehaviour
 
     public virtual void Open()
     {
-        gameObject.SetActive(true);
         isOpen = true;
+        gameObject.SetActive(true);
         if (animator != null)
         {
             animator.SetBool("isOpen", isOpen);

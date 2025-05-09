@@ -22,32 +22,49 @@ public class LevelData
 }
 
 [Serializable]
+public class DefaultPlayerStat
+{
+    public float MaxHp = 100f;
+    public float Damage = 5f;
+    public float Defense = 2f;
+    public float MoveSpeed = 5f;
+    public float AttackSpeed = 1f;
+    public float AttackRange = 2f;
+    public float ExpCollectionRadius = 3f;
+    public float HpRegenRate = 1f;
+    public float AttackRadius = 1f;
+    public float CriticalChance = 10f;
+    public float CriticalDamage = 2f;
+    public float DodgeChance = 10f;
+    public float Luck = 5f;
+    public float LifeSteal = 5f;
+}
+
+[Serializable]
 public class StatData
 {
     public Dictionary<StatType, float> baseStats = new();
 
-    public StatData()
+    public void CreatePlayerDefaultStat(Dictionary<StatType, float> defaultStat)
     {
-        InitializeDefaultStats();
+        foreach (var stat in defaultStat)
+        {
+            baseStats[stat.Key] = stat.Value;
+        }
     }
 
-    private void InitializeDefaultStats()
+    public void CreateMonsterDefaultStat()
     {
-        baseStats[StatType.MaxHp] = 100f;
-        baseStats[StatType.CurrentHp] = baseStats[StatType.MaxHp];
+        baseStats[StatType.MaxHp] = 50f;
         baseStats[StatType.Damage] = 5f;
-        baseStats[StatType.Defense] = 2f;
-        baseStats[StatType.MoveSpeed] = 5f;
+        baseStats[StatType.Defense] = 1f;
+        baseStats[StatType.MoveSpeed] = 7f;
         baseStats[StatType.AttackSpeed] = 1f;
-        baseStats[StatType.AttackRange] = 2f;
-        baseStats[StatType.ExpCollectionRadius] = 3f;
-        baseStats[StatType.HpRegenRate] = 1f;
-        baseStats[StatType.AttackRadius] = 1f;
-        baseStats[StatType.CriticalChance] = 10f;
-        baseStats[StatType.CriticalDamage] = 2f;
-        baseStats[StatType.DodgeChance] = 10f;
-        baseStats[StatType.Luck] = 5f;
-        baseStats[StatType.LifeSteal] = 5f;
+        baseStats[StatType.AttackRange] = 5f;
+        baseStats[StatType.MaxDefenseReduction] = 0.9f;
+        baseStats[StatType.MaxMoveSpeedReduction] = 0.9f;
+        baseStats[StatType.DropExp] = 5f;
+        baseStats[StatType.CurrentHp] = baseStats[StatType.MaxHp];
     }
 }
 
@@ -56,7 +73,7 @@ public class StatModifier
 {
     private StatType type;
     private object source;
-    private IncreaseType increaseType;
+    private CalcType increaseType;
     private float value;
 
     [JsonIgnore]
@@ -72,7 +89,7 @@ public class StatModifier
     }
 
     [JsonIgnore]
-    public IncreaseType IncreaseType
+    public CalcType IncreaseType
     {
         get => increaseType;
     }
@@ -83,7 +100,7 @@ public class StatModifier
         get => value;
     }
 
-    public StatModifier(StatType type, object source, IncreaseType increaseType, float value)
+    public StatModifier(StatType type, object source, CalcType increaseType, float value)
     {
         this.type = type;
         this.source = source;
@@ -118,7 +135,7 @@ public class StatModifier
 
     public override string ToString()
     {
-        return $"[{Source}] {Type} {(IncreaseType == IncreaseType.Flat ? "+" : "x")} {Value}";
+        return $"[{Source}] {Type} {(IncreaseType == CalcType.Flat ? "+" : "x")} {Value}";
     }
 }
 
@@ -328,7 +345,7 @@ public class ItemStatRange
     public float minValue;
     public float maxValue;
     public float weight = 1f;
-    public IncreaseType increaseType = IncreaseType.Flat;
+    public CalcType increaseType = CalcType.Flat;
 }
 
 [Serializable]
@@ -719,7 +736,6 @@ public class SkillData : ICloneable
         }
     }
 
-    //ICloneable
     public object Clone()
     {
         return new SkillData

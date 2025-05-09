@@ -36,8 +36,6 @@ public class StageStateHandler : BaseStateHandler
             GameManager.Instance.PathFindingSystem.InitializeWithNewCamera();
         }
 
-        Game.StartLevelCheck();
-
         GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
 
         UIManager.Instance.OpenPanel(PanelType.StageTime);

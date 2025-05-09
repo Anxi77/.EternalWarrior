@@ -19,7 +19,12 @@ public class PlayerInfoPanel : Panel
     [SerializeField]
     private ProgressBar expBar;
 
+    [SerializeField]
+    private TextMeshProUGUI levelText;
+
     private Player player;
+
+    private bool isFirstSkillListUpdate = true;
 
     public override void Open()
     {
@@ -33,6 +38,8 @@ public class PlayerInfoPanel : Panel
         player.OnHpChanged -= UpdateHealthUI;
         player.OnExpChanged -= UpdateExpUI;
         player = null;
+        isFirstSkillListUpdate = true;
+        skillList.gameObject.SetActive(false);
     }
 
     public void Initialize()
@@ -41,6 +48,8 @@ public class PlayerInfoPanel : Panel
         expBar.SetValue(0);
         hpBar.maxValue = 1;
         expBar.maxValue = 1;
+        levelText.text = "1";
+        skillList.gameObject.SetActive(false);
     }
 
     public void InitializePlayerUI(Player player)
@@ -56,6 +65,7 @@ public class PlayerInfoPanel : Panel
         float currentHp = player.playerStat.GetStat(StatType.CurrentHp);
         hpBar.maxValue = maxHp;
         hpBar.SetValue(currentHp);
+        levelText.text = player.level.ToString();
         player.OnHpChanged += UpdateHealthUI;
         player.OnExpChanged += UpdateExpUI;
     }
@@ -69,7 +79,7 @@ public class PlayerInfoPanel : Panel
     private void UpdateExpUI(float currentExp, float requiredExp)
     {
         expBar.maxValue = requiredExp;
-        if (player.level >= player._expList.Count)
+        if (player.level >= player.ExpList.Count)
         {
             expBar.SetValue(requiredExp);
         }
@@ -77,5 +87,24 @@ public class PlayerInfoPanel : Panel
         {
             expBar.SetValue(currentExp);
         }
+        if (player.level >= player.ExpList.Count)
+        {
+            levelText.text = "MAX";
+        }
+        else
+        {
+            levelText.text = player.level.ToString();
+        }
+    }
+
+    public void UpdateSkillList()
+    {
+        if (isFirstSkillListUpdate)
+        {
+            skillList.gameObject.SetActive(true);
+            isFirstSkillListUpdate = false;
+            return;
+        }
+        skillList.UpdateSkillList();
     }
 }

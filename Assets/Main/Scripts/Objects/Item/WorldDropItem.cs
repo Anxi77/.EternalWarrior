@@ -46,7 +46,7 @@ public class WorldDropItem : MonoBehaviour
         if (player != null)
         {
             float pickupRange = player
-                .GetComponent<PlayerStat>()
+                .GetComponent<StatSystem>()
                 .GetStat(StatType.ExpCollectionRadius);
             float distance = Vector2.Distance(transform.position, player.transform.position);
 

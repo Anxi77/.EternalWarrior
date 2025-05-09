@@ -5,7 +5,6 @@ public abstract class Skill : MonoBehaviour
 {
     [SerializeField]
     public SkillData skillData;
-    public MonoBehaviour Owner { get; private set; }
     protected bool isInitialized = false;
     public int currentLevel = 1;
 

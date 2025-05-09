@@ -3304,8 +3304,8 @@ GameObject:
   - component: {fileID: 5889026643730879320}
   - component: {fileID: 42699813751691458}
   - component: {fileID: 2245796136419410433}
-  - component: {fileID: 5190937730646579351}
   - component: {fileID: 3774336585398965991}
+  - component: {fileID: 4982504807227283546}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -3406,7 +3406,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   level: 1
   exp: 0
-  playerStat: {fileID: 5190937730646579351}
+  playerStat: {fileID: 4982504807227283546}
   rb: {fileID: 7616614373834893190}
   animationController: {fileID: 379136191245678922}
   skills: []
@@ -3428,18 +3428,6 @@ MonoBehaviour:
   equipmentSlots: []
   player: {fileID: 42699813751691458}
   gold: 0
---- !u!114 &5190937730646579351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6233449611455486354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &3774336585398965991
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3453,6 +3441,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerInput: {fileID: -944628639613478452, guid: 91b32934fdc4f8a44bf25431706d5de5, type: 3}
+--- !u!114 &4982504807227283546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6233449611455486354}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6282790426565883773
 GameObject:
   m_ObjectHideFlags: 0

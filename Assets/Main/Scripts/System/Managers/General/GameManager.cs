@@ -31,8 +31,6 @@ public class GameManager : Singleton<GameManager>
     public MonsterSystem MonsterSystem => monsterSystem;
     public List<Monster> Monsters => monsters;
 
-    private int lastPlayerLevel = 1;
-    private Coroutine levelCheckCoroutine;
     private GameState currentState = GameState.Initialize;
     private Dictionary<GameState, IGameState> stateHandlers;
     private bool isStateTransitioning = false;
@@ -250,59 +248,6 @@ public class GameManager : Singleton<GameManager>
         StopAllCoroutines();
 
         base.OnDestroy();
-    }
-
-    public void StartLevelCheck()
-    {
-        if (levelCheckCoroutine != null)
-        {
-            StopCoroutine(levelCheckCoroutine);
-            levelCheckCoroutine = null;
-        }
-
-        if (PlayerSystem.Player != null && PlayerSystem.Player.playerStatus != Player.Status.Dead)
-        {
-            levelCheckCoroutine = StartCoroutine(CheckLevelUp());
-        }
-    }
-
-    private IEnumerator CheckLevelUp()
-    {
-        if (PlayerSystem.Player == null)
-        {
-            Logger.LogError(typeof(GameManager), "Player reference is null in GameManager");
-            yield break;
-        }
-
-        lastPlayerLevel = PlayerSystem.Player.level;
-
-        while (true)
-        {
-            if (
-                PlayerSystem.Player == null
-                || PlayerSystem.Player.playerStatus == Player.Status.Dead
-            )
-            {
-                levelCheckCoroutine = null;
-                yield break;
-            }
-
-            if (PlayerSystem.Player.level > lastPlayerLevel)
-            {
-                lastPlayerLevel = PlayerSystem.Player.level;
-                OnPlayerLevelUp();
-            }
-
-            yield return new WaitForSeconds(0.1f);
-        }
-    }
-
-    private void OnPlayerLevelUp()
-    {
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.OpenPanel(PanelType.Skill);
-        }
     }
 
     public void SpawnPortal(Vector3 position, SceneType destinationType, Action<SceneType> onEnter)

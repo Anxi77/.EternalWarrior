@@ -28,9 +28,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
     private Dictionary<SkillID, SkillData> skillDatabase = new();
     public List<SkillList> skillList = new();
 
-    private Dictionary<string, Sprite> iconCache = new();
-    private Dictionary<string, GameObject> prefabCache = new();
-
     private bool isInitialized = false;
     public bool IsInitialized => isInitialized;
 
@@ -169,92 +166,87 @@ public class SkillDataManager : Singleton<SkillDataManager>
     private void LoadSkillResources(SkillID skillId, SkillData skillData)
     {
         string iconName = $"{skillId}_Icon";
-        if (iconCache.TryGetValue(iconName, out var icon))
+        var iconPath = $"{ICON_PATH}/{skillId}/{iconName}";
+        Logger.Log(typeof(SkillDataManager), $"IconPath: {iconPath}");
+        skillData.Icon = Resources.Load<Sprite>(iconPath);
+        if (skillData.Icon == null)
         {
-            var iconPath = $"{ICON_PATH}/{skillId}/{iconName}";
-            skillData.Icon = ResourceIO<Sprite>.LoadData(iconPath);
+            Logger.LogError(
+                typeof(SkillDataManager),
+                $"Failed to load icon for skill {skillId}: {iconPath}"
+            );
         }
 
         string prefabName = $"{skillId}_Prefab";
-        if (prefabCache.TryGetValue(prefabName, out var prefab))
+        var prefabPath = $"{PREFAB_PATH}/{skillId}/{prefabName}";
+        Logger.Log(typeof(SkillDataManager), $"PrefabPath: {prefabPath}");
+        skillData.BasePrefab = Resources.Load<GameObject>(prefabPath);
+        if (skillData.BasePrefab == null)
         {
-            var prefabPath = $"{PREFAB_PATH}/{skillId}/{prefabName}";
-            skillData.BasePrefab = ResourceIO<GameObject>.LoadData(prefabPath);
+            Logger.LogError(
+                typeof(SkillDataManager),
+                $"Failed to load prefab for skill {skillId}: {prefabPath}"
+            );
         }
 
         if (skillData.Type == SkillType.Projectile)
         {
             string projectileName = $"{skillId}_Projectile";
-            if (prefabCache.TryGetValue(projectileName, out var projectile))
+            var projectilePath = $"{PREFAB_PATH}/{skillId}/{projectileName}";
+            Logger.Log(typeof(SkillDataManager), $"ProjectilePath: {projectilePath}");
+            skillData.ProjectilePrefab = Resources.Load<GameObject>(projectilePath);
+            if (skillData.ProjectilePrefab == null)
             {
-                var projectilePath = $"{PREFAB_PATH}/{skillId}/{projectileName}";
-                skillData.ProjectilePrefab = ResourceIO<GameObject>.LoadData(projectilePath);
+                Logger.LogError(
+                    typeof(SkillDataManager),
+                    $"Failed to load projectile prefab for skill {skillId}: {projectilePath}"
+                );
             }
         }
     }
 
     private void LoadLevelPrefabs(SkillID skillId, SkillData skillData)
     {
-        try
+        int maxLevel = 1;
+        var stat = skillData.GetStatsForLevel(1);
+
+        if (stat == null)
         {
-            int maxLevel = 1;
-            var stat = skillData.GetStatsForLevel(1);
-
-            if (stat == null)
-            {
-                Logger.LogWarning(
-                    typeof(SkillDataManager),
-                    $"Skill {skillId} has null stats. skillData.Name: {skillData.Name}, Type: {skillData.Type}\n"
-                        + $"skillData.ID: {skillData.ID}, skillData.Name: {skillData.Name}, skillData.Type: {skillData.Type}, skillData.Description: {skillData.Description}"
-                );
-                return;
-            }
-
-            if (stat.baseStat == null)
-            {
-                return;
-            }
-
-            if (stat.baseStat.maxSkillLevel <= 0)
-            {
-                Logger.LogWarning(
-                    typeof(SkillDataManager),
-                    $"[SkillDataManager] Skill {skillId} has invalid maxSkillLevel: {stat.baseStat.maxSkillLevel}"
-                );
-            }
-
-            if (stat?.baseStat != null)
-            {
-                maxLevel = stat.baseStat.maxSkillLevel;
-            }
-
-            skillData.PrefabsByLevel = new GameObject[maxLevel];
-
-            for (int i = 0; i < maxLevel; i++)
-            {
-                int level = i + 1;
-                string prefabName = $"{skillId}_Level_{level}";
-
-                if (prefabCache.TryGetValue(prefabName, out var prefab))
-                {
-                    skillData.PrefabsByLevel[i] = prefab;
-                }
-                else if (i == 0)
-                {
-                    skillData.PrefabsByLevel[i] = skillData.BasePrefab;
-                }
-                else
-                {
-                    skillData.PrefabsByLevel[i] = skillData.PrefabsByLevel[i - 1];
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(
+            Logger.LogWarning(
                 typeof(SkillDataManager),
-                $"Error loading level prefabs for skill {skillId}: {e.Message}"
+                $"Skill {skillId} has null stats. skillData.Name: {skillData.Name}, Type: {skillData.Type}\n"
+                    + $"skillData.ID: {skillData.ID}, skillData.Name: {skillData.Name}, skillData.Type: {skillData.Type}, skillData.Description: {skillData.Description}"
             );
+            return;
+        }
+
+        if (stat.baseStat == null)
+        {
+            return;
+        }
+
+        if (stat.baseStat.maxSkillLevel <= 0)
+        {
+            Logger.LogWarning(
+                typeof(SkillDataManager),
+                $"[SkillDataManager] Skill {skillId} has invalid maxSkillLevel: {stat.baseStat.maxSkillLevel}"
+            );
+        }
+
+        if (stat?.baseStat != null)
+        {
+            maxLevel = stat.baseStat.maxSkillLevel;
+        }
+
+        skillData.PrefabsByLevel = new GameObject[maxLevel];
+
+        for (int i = 0; i < maxLevel; i++)
+        {
+            int level = i + 1;
+            string prefabName = $"{skillId}_Level_{level}";
+            var prefabPath = $"{PREFAB_PATH}/{skillId}/{prefabName}";
+
+            skillData.PrefabsByLevel[i] = Resources.Load<GameObject>(prefabPath);
         }
     }
     #endregion

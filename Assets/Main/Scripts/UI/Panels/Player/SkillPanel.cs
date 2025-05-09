@@ -34,24 +34,20 @@ public class SkillPanel : Panel
     [Header("Settings")]
     private const int SKILL_CHOICES = 3;
 
-    private void OnEnable() => Time.timeScale = 0f;
-
-    private void OnDisable() => Time.timeScale = 1f;
-
     public override void Open()
     {
+        Initialize();
         base.Open();
     }
 
     public override void Close(bool objActive = true)
     {
+        ClearButtons();
         base.Close(objActive);
-        ClaerButtons();
     }
 
     public void Initialize()
     {
-        ClaerButtons();
         gameObject.SetActive(true);
 
         var playerSkills = GameManager.Instance.PlayerSystem.Player.skills;
@@ -98,7 +94,9 @@ public class SkillPanel : Panel
     {
         var existingSkill = playerSkills.Find(s => s.skillData.ID == skillData.ID);
         var button = Instantiate(buttonPrefab, buttonParent);
-        var upgradeInfo = GetUpgradeInfo(existingSkill, skillData);
+        var upgradeInfo = GetUpgradeInfo(existingSkill);
+
+        skillButtons.Add(button);
 
         button.SetSkillSelectButton(
             skillData,
@@ -113,10 +111,7 @@ public class SkillPanel : Panel
         return new Action(() => OnSkillButtonClicked(skillData, existingSkill));
     }
 
-    private (string levelText, ISkillStat currentStats) GetUpgradeInfo(
-        Skill existingSkill,
-        SkillData skillData
-    )
+    private (string levelText, ISkillStat currentStats) GetUpgradeInfo(Skill existingSkill)
     {
         if (existingSkill != null)
         {
@@ -147,17 +142,12 @@ public class SkillPanel : Panel
             }
         }
 
-        Close();
+        Close(false);
     }
 
-    private void ShowNoSkillsAvailable()
+    private void ClearButtons()
     {
-        ClaerButtons();
-        Debug.Log("No skills available");
-    }
-
-    private void ClaerButtons()
-    {
+        Logger.Log(GetType(), "ClearButtons");
         foreach (var button in skillButtons)
         {
             Destroy(button.gameObject);

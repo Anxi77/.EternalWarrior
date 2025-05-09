@@ -441,7 +441,7 @@ public class ItemEditorWindow : EditorWindow
                         changed = true;
                     }
 
-                    IncreaseType newIncreaseType = (IncreaseType)
+                    CalcType newIncreaseType = (CalcType)
                         EditorGUILayout.EnumPopup("Increase Type", statRange.increaseType);
                     if (newIncreaseType != statRange.increaseType)
                     {
