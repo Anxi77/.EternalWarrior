@@ -38,12 +38,14 @@ public class SkillPanel : Panel
     {
         Initialize();
         base.Open();
+        Time.timeScale = 0;
     }
 
     public override void Close(bool objActive = true)
     {
         ClearButtons();
         base.Close(objActive);
+        Time.timeScale = 1;
     }
 
     public void Initialize()

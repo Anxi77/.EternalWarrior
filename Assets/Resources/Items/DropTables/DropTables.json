@@ -2,8 +2,16 @@
   "dropTables": [
     {
       "enemyType": "Wasp",
-      "dropEntries": [],
-      "guaranteedDropRate": 0.1,
+      "dropEntries": [
+        {
+          "itemId": "799e307a-9e8f-4911-8814-ca50b087dd21",
+          "dropRate": 1.0,
+          "rarity": "Legendary",
+          "minAmount": 1,
+          "maxAmount": 1
+        }
+      ],
+      "guaranteedDropRate": 1.0,
       "maxDrops": 2
     },
     {

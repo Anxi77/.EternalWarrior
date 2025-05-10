@@ -132,32 +132,12 @@ public class SkillSystem : MonoBehaviour, IInitializable
                     $"Current level: {existingSkill.currentLevel}, Attempting upgrade to level: {nextLevel}"
                 );
 
-                GameObject levelPrefab = SkillDataManager.Instance.GetLevelPrefab(
-                    skillData.ID,
-                    nextLevel
-                );
-
-                if (levelPrefab != null)
+                if (UpdateSkillStats(existingSkill, nextLevel, out _))
                 {
                     Logger.Log(
                         typeof(SkillSystem),
-                        $"Found level {nextLevel} prefab, replacing skill"
+                        $"Successfully upgraded skill to level {nextLevel}"
                     );
-                    ReplaceSkillWithNewPrefab(existingSkill, levelPrefab, skillData, nextLevel);
-                }
-                else
-                {
-                    Logger.Log(
-                        typeof(SkillSystem),
-                        $"No level {nextLevel} prefab found, updating stats"
-                    );
-                    if (UpdateSkillStats(existingSkill, nextLevel, out _))
-                    {
-                        Logger.Log(
-                            typeof(SkillSystem),
-                            $"Successfully upgraded skill to level {nextLevel}"
-                        );
-                    }
                 }
             }
             else

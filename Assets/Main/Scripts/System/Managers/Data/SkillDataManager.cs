@@ -207,7 +207,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
 
     private void LoadLevelPrefabs(SkillID skillId, SkillData skillData)
     {
-        int maxLevel = 1;
         var stat = skillData.GetStatsForLevel(1);
 
         if (stat == null)
@@ -231,22 +230,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
                 typeof(SkillDataManager),
                 $"[SkillDataManager] Skill {skillId} has invalid maxSkillLevel: {stat.baseStat.maxSkillLevel}"
             );
-        }
-
-        if (stat?.baseStat != null)
-        {
-            maxLevel = stat.baseStat.maxSkillLevel;
-        }
-
-        skillData.PrefabsByLevel = new GameObject[maxLevel];
-
-        for (int i = 0; i < maxLevel; i++)
-        {
-            int level = i + 1;
-            string prefabName = $"{skillId}_Level_{level}";
-            var prefabPath = $"{PREFAB_PATH}/{skillId}/{prefabName}";
-
-            skillData.PrefabsByLevel[i] = Resources.Load<GameObject>(prefabPath);
         }
     }
     #endregion
@@ -279,20 +262,6 @@ public class SkillDataManager : Singleton<SkillDataManager>
         if (skillDatabase.TryGetValue(id, out var skillData))
         {
             return skillData.GetStatsForLevel(level);
-        }
-        return null;
-    }
-
-    public GameObject GetLevelPrefab(SkillID skillId, int level)
-    {
-        if (
-            skillDatabase.TryGetValue(skillId, out var skillData)
-            && skillData.PrefabsByLevel != null
-            && level > 0
-            && level <= skillData.PrefabsByLevel.Length
-        )
-        {
-            return skillData.PrefabsByLevel[level - 1];
         }
         return null;
     }

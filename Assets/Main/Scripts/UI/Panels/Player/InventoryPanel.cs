@@ -60,7 +60,6 @@ public class InventoryPanel : Panel
 
     public void SetupInventory(Inventory inventory, StatSystem playerStat)
     {
-        itemTooltip = Instantiate(itemTooltipPrefab, transform);
         this.inventory = inventory;
         this.playerStat = playerStat;
         if (inventory == null)
@@ -68,7 +67,10 @@ public class InventoryPanel : Panel
             Logger.LogError(typeof(InventoryPanel), "Inventory component not found on player!");
             return;
         }
-
+        if (!IsInitialized)
+        {
+            itemTooltip = Instantiate(itemTooltipPrefab, transform);
+        }
         InitializeUI();
         IsInitialized = true;
     }
@@ -131,11 +133,20 @@ public class InventoryPanel : Panel
     private void InitializeInventorySlots()
     {
         var slots = inventory.GetStorageSlots();
+        int i = 0;
         foreach (var slot in slots)
         {
-            var slotUI = Instantiate(slotPrefab, slotsParent);
-            slotUI.Initialize(inventory, slot, itemTooltip, this);
-            slotUIs.Add(slotUI);
+            if (!IsInitialized)
+            {
+                var slotUI = Instantiate(slotPrefab, slotsParent);
+                slotUIs.Add(slotUI);
+                slotUI.Initialize(inventory, slot, itemTooltip, this);
+            }
+            else
+            {
+                slotUIs[i].Initialize(inventory, slot, itemTooltip, this);
+                i++;
+            }
         }
     }
 

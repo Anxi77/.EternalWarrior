@@ -78,22 +78,6 @@ public class SkillEditorWindow : EditorWindow
                     );
                 }
             }
-
-            var prefabs = Resources.LoadAll<GameObject>($"{SKILL_PREFAB_PATH}/{skill.ID}/");
-
-            if (prefabs.Length > 0)
-            {
-                skill.PrefabsByLevel = new GameObject[prefabs.Length - 1];
-                int cnt = 0;
-                foreach (var prefab in prefabs)
-                {
-                    if (prefab.name.Contains("Level_"))
-                    {
-                        skill.PrefabsByLevel[cnt] = prefab;
-                        cnt++;
-                    }
-                }
-            }
         }
     }
 
@@ -374,17 +358,6 @@ public class SkillEditorWindow : EditorWindow
                         levelStat.maxSkillLevel = newMaxLevel;
                     }
 
-                    if (
-                        CurrentSkill.PrefabsByLevel == null
-                        || CurrentSkill.PrefabsByLevel.Length != newMaxLevel
-                    )
-                    {
-                        var prefabs = CurrentSkill.PrefabsByLevel;
-
-                        Array.Resize(ref prefabs, newMaxLevel);
-                        CurrentSkill.PrefabsByLevel = prefabs;
-                    }
-
                     if (!statDatabase.ContainsKey(CurrentSkill.ID))
                     {
                         statDatabase[CurrentSkill.ID] = new Dictionary<int, SkillStatData>();
@@ -507,48 +480,6 @@ public class SkillEditorWindow : EditorWindow
                     wasModified = true;
                 }
             }
-
-            EditorGUILayout.Space(5);
-            EditorGUILayout.LabelField("Level Prefabs", EditorStyles.boldLabel);
-
-            var stats = statDatabase.GetValueOrDefault(CurrentSkill.ID);
-            if (stats != null && stats.Any())
-            {
-                var maxLevel = stats.Values.First().maxSkillLevel;
-                if (
-                    CurrentSkill.PrefabsByLevel == null
-                    || CurrentSkill.PrefabsByLevel.Length != maxLevel
-                )
-                {
-                    var prefabs = CurrentSkill.PrefabsByLevel;
-                    Array.Resize(ref prefabs, maxLevel);
-                    CurrentSkill.PrefabsByLevel = prefabs;
-                    wasModified = true;
-                }
-
-                if (CurrentSkill.PrefabsByLevel != null)
-                {
-                    EditorGUI.indentLevel++;
-                    for (int i = 0; i < CurrentSkill.PrefabsByLevel.Length; i++)
-                    {
-                        GameObject oldLevelPrefab = CurrentSkill.PrefabsByLevel[i];
-                        GameObject newLevelPrefab = (GameObject)
-                            EditorGUILayout.ObjectField(
-                                $"Level {i + 1}",
-                                oldLevelPrefab,
-                                typeof(GameObject),
-                                false
-                            );
-
-                        if (newLevelPrefab != oldLevelPrefab && newLevelPrefab != null)
-                        {
-                            CurrentSkill.PrefabsByLevel[i] = newLevelPrefab;
-                            wasModified = true;
-                        }
-                    }
-                    EditorGUI.indentLevel--;
-                }
-            }
         }
         EditorGUILayout.EndVertical();
 
@@ -558,17 +489,6 @@ public class SkillEditorWindow : EditorWindow
             var currentIcon = CurrentSkill.Icon;
             var currentBasePrefab = CurrentSkill.BasePrefab;
             var currentProjectilePrefab = CurrentSkill.ProjectilePrefab;
-            GameObject[] currentPrefabsByLevel = null;
-
-            if (CurrentSkill.PrefabsByLevel != null)
-            {
-                currentPrefabsByLevel = new GameObject[CurrentSkill.PrefabsByLevel.Length];
-                Array.Copy(
-                    CurrentSkill.PrefabsByLevel,
-                    currentPrefabsByLevel,
-                    CurrentSkill.PrefabsByLevel.Length
-                );
-            }
 
             EditorApplication.delayCall += () =>
             {
@@ -580,19 +500,6 @@ public class SkillEditorWindow : EditorWindow
                     skill.Icon = currentIcon;
                     skill.BasePrefab = currentBasePrefab;
                     skill.ProjectilePrefab = currentProjectilePrefab;
-
-                    if (
-                        currentPrefabsByLevel != null
-                        && skill.PrefabsByLevel != null
-                        && currentPrefabsByLevel.Length == skill.PrefabsByLevel.Length
-                    )
-                    {
-                        Array.Copy(
-                            currentPrefabsByLevel,
-                            skill.PrefabsByLevel,
-                            currentPrefabsByLevel.Length
-                        );
-                    }
                 }
 
                 Repaint();
@@ -1121,20 +1028,6 @@ public class SkillEditorWindow : EditorWindow
                 skill.ProjectilePrefab = ResourceIO<GameObject>.LoadData(
                     $"{SKILL_PREFAB_PATH}/{currentId}/{currentId}_Projectile"
                 );
-            }
-
-            var stats = statDatabase.GetValueOrDefault(currentId);
-            if (stats != null && stats.Any())
-            {
-                int maxLevel = stats.Values.First().maxSkillLevel;
-                skill.PrefabsByLevel = new GameObject[maxLevel];
-
-                for (int i = 0; i < maxLevel; i++)
-                {
-                    skill.PrefabsByLevel[i] = ResourceIO<GameObject>.LoadData(
-                        $"{SKILL_PREFAB_PATH}/{currentId}/{currentId}_Level_{i + 1}"
-                    );
-                }
             }
         }
 

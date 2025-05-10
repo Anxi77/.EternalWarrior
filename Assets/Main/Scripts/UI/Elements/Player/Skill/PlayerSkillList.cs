@@ -8,6 +8,9 @@ public class PlayerSkillList : MonoBehaviour
     public PlayerSkillIcon skillIconPrefab;
     private List<PlayerSkillIcon> currentIcons = new List<PlayerSkillIcon>();
 
+    [SerializeField]
+    private RectTransform layoutGroup;
+
     public void UpdateSkillList()
     {
         ClearCurrentIcons();
@@ -30,10 +33,10 @@ public class PlayerSkillList : MonoBehaviour
             foreach (Skill skill in sortedSkills)
             {
                 SkillData skillData = skill.GetSkillData();
-                Logger.Log(GetType(), $"Skill: {skill.name}, SkillData: {skillData}");
+                Logger.Log(GetType(), $"Skill: {skill.name}, SkillData: {skillData.Icon}");
                 if (skillData != null)
                 {
-                    PlayerSkillIcon icon = Instantiate(skillIconPrefab, transform);
+                    PlayerSkillIcon icon = Instantiate(skillIconPrefab, layoutGroup);
                     icon.SetSkillIcon(skillData.Icon, skill);
                     currentIcons.Add(icon);
                 }

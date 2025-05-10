@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6053380c9b839704983437ea6c78d4a3, type: 3}
   m_Name: MonsterSetting
   m_EditorClassIdentifier: 
-  spawnInterval: 500
-  minMaxCount: {x: 1, y: 5}
+  spawnInterval: 5
+  minMaxCount: {x: 1, y: 1}
   spawnOffset: {x: 5, y: 5}
   bossSpawnOffset: {x: 0, y: 5}
   dropRadiusRange: {x: 0.1, y: 1}
@@ -31,7 +31,7 @@ MonoBehaviour:
     - statType: 4
       value: 1
     - statType: 5
-      value: 7
+      value: 4.5
     - statType: 6
       value: 1
     - statType: 7
@@ -55,11 +55,11 @@ MonoBehaviour:
     - statType: 4
       value: 1
     - statType: 5
-      value: 7
+      value: 4.5
     - statType: 6
       value: 1
     - statType: 7
-      value: 5
+      value: 1
     - statType: 17
       value: 0.9
     - statType: 18
@@ -83,7 +83,7 @@ MonoBehaviour:
     - statType: 6
       value: 1
     - statType: 7
-      value: 5
+      value: 1
     - statType: 17
       value: 0.9
     - statType: 18

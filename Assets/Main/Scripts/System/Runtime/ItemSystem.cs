@@ -7,8 +7,6 @@ using Random = UnityEngine.Random;
 
 public class ItemSystem : MonoBehaviour
 {
-    [SerializeField]
-    private WorldDropItem worldDropItemPrefab;
     private ItemGenerator itemGenerator;
 
     public void Initialize()
@@ -18,30 +16,21 @@ public class ItemSystem : MonoBehaviour
         itemGenerator.transform.SetParent(this.transform);
     }
 
-    public void DropItem(Vector3 position, MonsterType monsterType, float luckMultiplier = 1f)
+    public void DropItem(MonsterType monsterType, float luckMultiplier = 1f)
     {
-        if (worldDropItemPrefab == null)
-            return;
-
         var items = GetDropsForEnemy(monsterType, luckMultiplier);
+
+        var playerInfoPanel = UIManager.Instance.GetPanel(PanelType.PlayerInfo) as PlayerInfoPanel;
 
         foreach (var item in items)
         {
-            var worldDropItem = PoolManager.Instance.Spawn<WorldDropItem>(
-                worldDropItemPrefab.gameObject,
-                position,
-                Quaternion.identity
-            );
-            if (worldDropItem != null)
-            {
-                worldDropItem.Initialize(item);
+            var player = GameManager.Instance.PlayerSystem.Player;
+            if (player == null)
+                return;
 
-                if (worldDropItem.TryGetComponent<Rigidbody2D>(out var rb))
-                {
-                    Vector2 smallRandomOffset = Random.insideUnitCircle * 0.3f;
-                    rb.AddForce(smallRandomOffset, ForceMode2D.Impulse);
-                }
-            }
+            player.inventory.AddItem(item);
+
+            playerInfoPanel.ShowItemUI(item.GetItemData().Name);
         }
     }
 

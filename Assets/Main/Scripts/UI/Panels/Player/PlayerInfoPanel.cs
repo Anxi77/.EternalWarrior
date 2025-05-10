@@ -1,9 +1,7 @@
-using System;
 using System.Collections;
 using Michsky.UI.Heat;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerInfoPanel : Panel
 {
@@ -22,6 +20,12 @@ public class PlayerInfoPanel : Panel
     [SerializeField]
     private TextMeshProUGUI levelText;
 
+    [SerializeField]
+    private Animator itemAnimator;
+
+    [SerializeField]
+    private TextMeshProUGUI itemText;
+
     private Player player;
 
     private bool isFirstSkillListUpdate = true;
@@ -35,11 +39,22 @@ public class PlayerInfoPanel : Panel
     public override void Close(bool objActive = true)
     {
         base.Close(objActive);
-        player.OnHpChanged -= UpdateHealthUI;
-        player.OnExpChanged -= UpdateExpUI;
-        player = null;
+        if (player != null)
+        {
+            player.OnHpChanged -= UpdateHealthUI;
+            player.OnExpChanged -= UpdateExpUI;
+            player.OnLevelUp -= OnLevelUp;
+            player = null;
+        }
         isFirstSkillListUpdate = true;
         skillList.gameObject.SetActive(false);
+    }
+
+    public void OnLevelUp()
+    {
+        expBar.SetValue(0);
+        levelText.text = player.level.ToString();
+        UpdateSkillList();
     }
 
     public void Initialize()
@@ -50,6 +65,19 @@ public class PlayerInfoPanel : Panel
         expBar.maxValue = 1;
         levelText.text = "1";
         skillList.gameObject.SetActive(false);
+    }
+
+    public void ShowItemUI(string itemName)
+    {
+        StartCoroutine(ItemUIRoutine(itemName));
+    }
+
+    public IEnumerator ItemUIRoutine(string itemName)
+    {
+        itemText.text = $"Item Earned {itemName}";
+        itemAnimator.SetBool("subOpen", true);
+        yield return new WaitForSeconds(1f);
+        itemAnimator.SetBool("subOpen", false);
     }
 
     public void InitializePlayerUI(Player player)
@@ -68,6 +96,7 @@ public class PlayerInfoPanel : Panel
         levelText.text = player.level.ToString();
         player.OnHpChanged += UpdateHealthUI;
         player.OnExpChanged += UpdateExpUI;
+        player.OnLevelUp += OnLevelUp;
     }
 
     private void UpdateHealthUI(float currentHp, float maxHp)
@@ -102,9 +131,12 @@ public class PlayerInfoPanel : Panel
         if (isFirstSkillListUpdate)
         {
             skillList.gameObject.SetActive(true);
+            skillList.UpdateSkillList();
             isFirstSkillListUpdate = false;
-            return;
         }
-        skillList.UpdateSkillList();
+        else
+        {
+            skillList.UpdateSkillList();
+        }
     }
 }

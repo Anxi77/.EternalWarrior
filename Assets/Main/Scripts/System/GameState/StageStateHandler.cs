@@ -1,11 +1,14 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class StageStateHandler : BaseStateHandler
 {
     private const float STAGE_DURATION = 600f;
     private bool isBossPhase = false;
     private bool isInitialized = false;
+    private Tilemap obstacleTilemap;
+    private Tilemap terrainTilemap;
 
     public override void OnEnter()
     {
@@ -15,6 +18,8 @@ public class StageStateHandler : BaseStateHandler
             () =>
             {
                 Game.PlayerSystem.SpawnPlayer(Vector3.zero);
+                obstacleTilemap = GameObject.FindWithTag("Obstacle").GetComponent<Tilemap>();
+                terrainTilemap = GameObject.FindWithTag("Terrain").GetComponent<Tilemap>();
                 InitializeStage();
                 isInitialized = true;
             }
@@ -33,7 +38,7 @@ public class StageStateHandler : BaseStateHandler
         if (GameManager.Instance.PathFindingSystem != null)
         {
             GameManager.Instance.PathFindingSystem.gameObject.SetActive(true);
-            GameManager.Instance.PathFindingSystem.InitializeWithNewCamera();
+            GameManager.Instance.PathFindingSystem.InitializeGrid(terrainTilemap, obstacleTilemap);
         }
 
         GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
@@ -52,6 +57,8 @@ public class StageStateHandler : BaseStateHandler
     public override void OnExit()
     {
         isInitialized = false;
+
+        GameManager.Instance.PathFindingSystem.ResetRuntimeData();
 
         base.OnExit();
 

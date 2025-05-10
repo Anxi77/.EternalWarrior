@@ -53,15 +53,48 @@ MonoBehaviour:
     Tier: 0
     Tags: []
     BasePrefab: {fileID: 0}
-    levelDataList: []
+    levelDataList:
+    - level: 1
+      baseSkillStat:
+        damage: 10
+        skillLevel: 1
+        maxSkillLevel: 5
+        element: 0
+        elementalPower: 1
+      skillStat:
+        rid: 2693736654459371816
     Icon: {fileID: 0}
     ProjectilePrefab: {fileID: 0}
     PrefabsByLevel: []
     currentSkillStat:
-      rid: -2
+      rid: 2693736654459371817
   currentLevel: 1
   references:
     version: 2
     RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
+    - rid: 2693736654459371816
+      type: {class: ProjectileSkillStat, ns: , asm: Assembly-CSharp}
+      data:
+        projectileSpeed: 25
+        projectileScale: 1
+        shotInterval: 0.5
+        pierceCount: 1
+        attackRange: 6
+        homingRange: 3.5
+        isHoming: 0
+        explosionRad: 0
+        projectileCount: 1
+        innerInterval: 0.1
+    - rid: 2693736654459371817
+      type: {class: ProjectileSkillStat, ns: , asm: Assembly-CSharp}
+      data:
+        projectileSpeed: 25
+        projectileScale: 1
+        shotInterval: 0.5
+        pierceCount: 1
+        attackRange: 6
+        homingRange: 3.5
+        isHoming: 0
+        explosionRad: 0
+        projectileCount: 1
+        innerInterval: 0.1

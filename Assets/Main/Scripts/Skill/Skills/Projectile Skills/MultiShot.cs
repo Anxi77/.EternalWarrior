@@ -16,8 +16,17 @@ public class MultiShot : ProjectileSkills
 
             if (proj != null)
             {
-                InitializeProjectile(proj);
-                proj.SetDirection(fireDir);
+                proj.Initialize(
+                    Damage,
+                    ProjectileSpeed,
+                    IsHoming,
+                    ProjectileScale,
+                    PierceCount,
+                    AttackRange,
+                    skillData.Element,
+                    ElementalPower,
+                    FindNearestEnemy()?.transform
+                );
             }
         }
     }

@@ -625,9 +625,6 @@ public class SkillData : ICloneable
     [JsonIgnore]
     public GameObject ProjectilePrefab;
 
-    [JsonIgnore]
-    public GameObject[] PrefabsByLevel;
-
     [Header("Current Stat")]
     [SerializeReference]
     public ISkillStat currentSkillStat;
@@ -644,7 +641,6 @@ public class SkillData : ICloneable
         Tier = 0;
         Tags = new string[0];
         levelDataList = new List<SkillLevelData>();
-        PrefabsByLevel = new GameObject[0];
 
         InitializeSkillStat();
     }

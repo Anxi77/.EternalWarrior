@@ -64,6 +64,7 @@ public class Player : MonoBehaviour
 
     public Action<float, float> OnHpChanged;
     public Action<float, float> OnExpChanged;
+    public Action OnLevelUp;
     #endregion
 
     #endregion
@@ -194,18 +195,11 @@ public class Player : MonoBehaviour
     public float CurrentExp()
     {
         if (level >= expList.Count)
-        {
             return 0;
-        }
 
-        if (level == 1)
-        {
-            return exp;
-        }
-        else
-        {
-            return exp - expList[level - 2];
-        }
+        float baseExp = (level == 1) ? 0 : expList[level - 2];
+        float nextLevelExp = expList[level - 1];
+        return Mathf.Clamp(exp - baseExp, 0, nextLevelExp - baseExp);
     }
 
     public float GetExpForNextLevel()
@@ -256,6 +250,8 @@ public class Player : MonoBehaviour
             {
                 yield return new WaitForSeconds(0.5f);
             }
+
+            OnLevelUp?.Invoke();
         }
     }
 

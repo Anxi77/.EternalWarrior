@@ -65,24 +65,6 @@ public static class SkillDataEditorUtility
                         );
                     }
 
-                    var prefabs = Resources.LoadAll<GameObject>(
-                        $"{SKILL_PREFAB_PATH}/{skillData.ID}/"
-                    );
-
-                    if (prefabs.Length > 0)
-                    {
-                        skillData.PrefabsByLevel = new GameObject[prefabs.Length - 1];
-                        int cnt = 0;
-                        foreach (var prefab in prefabs)
-                        {
-                            if (prefab.name.Contains("Level_"))
-                            {
-                                skillData.PrefabsByLevel[cnt] = prefab;
-                                cnt++;
-                            }
-                        }
-                    }
-
                     skillDatabase[skillId] = skillData;
                 }
             }
@@ -258,20 +240,6 @@ public static class SkillDataEditorUtility
                 $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Projectile",
                 skillData.ProjectilePrefab
             );
-        }
-
-        if (skillData.PrefabsByLevel != null)
-        {
-            for (int i = 0; i < skillData.PrefabsByLevel.Length; i++)
-            {
-                if (skillData.PrefabsByLevel[i] != null)
-                {
-                    ResourceIO<GameObject>.SaveData(
-                        $"{SKILL_PREFAB_PATH}/{skillData.ID}/{skillData.ID}_Level_{i + 1}",
-                        skillData.PrefabsByLevel[i]
-                    );
-                }
-            }
         }
     }
 

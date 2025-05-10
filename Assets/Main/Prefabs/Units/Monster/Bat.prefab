@@ -911,10 +911,10 @@ GameObject:
   m_Component:
   - component: {fileID: 2131508657441000588}
   - component: {fileID: 8855867922605310813}
-  - component: {fileID: 3501579080474600876}
   - component: {fileID: 6082493033591708299}
   - component: {fileID: 8696799390761053064}
   - component: {fileID: 9154441760372293871}
+  - component: {fileID: 7614981723075967952}
   m_Layer: 7
   m_Name: Bat
   m_TagString: Enemy
@@ -947,11 +947,11 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4584078883595134475}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 10
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
@@ -966,8 +966,58 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!70 &3501579080474600876
-CapsuleCollider2D:
+--- !u!114 &6082493033591708299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4584078883595134475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 28d57c54bc8195541ae351217156d4ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  monsterAnimator: {fileID: 7364839141162583823}
+  hpBar: {fileID: 7516863017718196702}
+  rb: {fileID: 8855867922605310813}
+  attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
+  enemyCollider: {fileID: 0}
+  pathFinder: {fileID: 8696799390761053064}
+  stat: {fileID: 9154441760372293871}
+  preferredDistance: 1
+  isStunned: 0
+  isInit: 0
+  animator: {fileID: 1044478411171301784}
+  attackPrepareTime: 0.2
+--- !u!114 &8696799390761053064
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4584078883595134475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 8855867922605310813}
+  monster: {fileID: 6082493033591708299}
+--- !u!114 &9154441760372293871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4584078883595134475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!61 &7614981723075967952
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -999,61 +1049,18 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1.02, y: 2.04}
-  m_Direction: 0
---- !u!114 &6082493033591708299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4584078883595134475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 28d57c54bc8195541ae351217156d4ba, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hpBar: {fileID: 7516863017718196702}
-  rb: {fileID: 8855867922605310813}
-  attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
-  enemyCollider: {fileID: 3501579080474600876}
-  pathFinder: {fileID: 8696799390761053064}
-  stat: {fileID: 9154441760372293871}
-  preferredDistance: 1
-  isStunned: 0
-  isAttacking: 0
-  isInit: 0
-  attackAnimationDuration: 0.5
-  attackPrepareTime: 0.2
-  attackRadius: 1.5
-  attackLayer:
-    serializedVersion: 2
-    m_Bits: 512
---- !u!114 &8696799390761053064
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4584078883595134475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monster: {fileID: 6082493033591708299}
---- !u!114 &9154441760372293871
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4584078883595134475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!1 &5115220416997737373
 GameObject:
   m_ObjectHideFlags: 0
@@ -1323,11 +1330,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8689513029566764908}
-  - component: {fileID: 4901173198282888165}
   - component: {fileID: 2942112257976915459}
   - component: {fileID: 6724712396859769919}
   - component: {fileID: 3782302653320827387}
   - component: {fileID: 1044478411171301784}
+  - component: {fileID: 7364839141162583823}
   m_Layer: 0
   m_Name: Bat
   m_TagString: Untagged
@@ -1352,27 +1359,6 @@ Transform:
   - {fileID: 3529114863138302254}
   m_Father: {fileID: 2131508657441000588}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4901173198282888165
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8331716865508567020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62b9a7e211ea2074c83a96a2ab1e590f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Head: {fileID: 7630534597514133158}
-  Jaw: {fileID: 0}
-  HeadSprites:
-  - {fileID: -1828946549344447192, guid: f7e40d54dc8314745a4a48b65e4ee9d5, type: 3}
-  - {fileID: -7252215782646672311, guid: f7e40d54dc8314745a4a48b65e4ee9d5, type: 3}
-  - {fileID: -1381065623766834176, guid: f7e40d54dc8314745a4a48b65e4ee9d5, type: 3}
-  JawSprites: []
-  Animator: {fileID: 1044478411171301784}
-  Variations: 0
 --- !u!114 &2942112257976915459
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1443,6 +1429,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &7364839141162583823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8331716865508567020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f551bad1b9ca1e4b9a960e491660107, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Head: {fileID: 7630534597514133158}
+  Jaw: {fileID: 0}
+  HeadSprites: []
+  JawSprites: []
+  Animator: {fileID: 1044478411171301784}
+  Variations: 0
 --- !u!1 &8523561245119307579
 GameObject:
   m_ObjectHideFlags: 0

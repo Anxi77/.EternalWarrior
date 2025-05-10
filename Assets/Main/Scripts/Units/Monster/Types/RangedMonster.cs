@@ -6,31 +6,19 @@ public class RangedMonster : Monster
     [SerializeField]
     public EnemyProjectile projectilePrefab;
 
-    [SerializeField]
-    private float attackAnimationDuration = 0.5f;
-
-    private Animator animator;
-
     public override void Initialize(MonsterData monsterData, MonsterSetting monsterSetting)
     {
         base.Initialize(monsterData, monsterSetting);
-
-        animator = GetComponentInChildren<Animator>();
     }
 
     protected override void PerformRangedAttack()
     {
-        if (!isAttacking)
-        {
-            StartCoroutine(RangedAttackCoroutine());
-        }
+        StartCoroutine(RangedAttackCoroutine());
     }
 
     private IEnumerator RangedAttackCoroutine()
     {
-        isAttacking = true;
-
-        animator?.SetTrigger("Attack");
+        monsterAnimator.Attack();
 
         Vector2 direction = ((Vector2)Target.position - (Vector2)transform.position).normalized;
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
@@ -43,21 +31,23 @@ public class RangedMonster : Monster
 
         if (projectile != null)
         {
-            projectile.damage = stat.GetStat(StatType.Damage);
-            projectile.moveSpeed = 10f;
-            projectile.maxTravelDistance = stat.GetStat(StatType.AttackRange);
+            projectile.Initialize(
+                stat.GetStat(StatType.Damage),
+                10f,
+                false,
+                1f,
+                1,
+                stat.GetStat(StatType.AttackRange),
+                ElementType.None,
+                0f,
+                Target
+            );
             projectile.SetDirection(direction);
             projectile.gameObject.tag = "EnemyProjectile";
-
-            if (attackParticle != null)
-            {
-                var particle = Instantiate(attackParticle, transform.position, Quaternion.identity);
-                particle.Play();
-                Destroy(particle.gameObject, 0.3f);
-            }
         }
 
-        yield return new WaitForSeconds(attackAnimationDuration);
-        isAttacking = false;
+        var clips = animator.GetCurrentAnimatorClipInfo(0);
+
+        yield return new WaitUntil(() => !isAttacking());
     }
 }

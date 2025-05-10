@@ -12,7 +12,17 @@ public class ExplodingShot : ProjectileSkills
 
         if (proj != null)
         {
-            InitializeProjectile(proj);
+            proj.Initialize(
+                Damage,
+                ProjectileSpeed,
+                IsHoming,
+                ProjectileScale,
+                PierceCount,
+                AttackRange,
+                skillData.Element,
+                ElementalPower,
+                FindNearestEnemy()?.transform
+            );
             proj.SetDirection(fireDir);
             proj.transform.localScale = Vector3.one * ProjectileScale;
         }

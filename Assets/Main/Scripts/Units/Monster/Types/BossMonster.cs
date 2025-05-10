@@ -23,6 +23,33 @@ public class BossMonster : Monster
         }
     }
 
+    protected override void PerformMeleeAttack()
+    {
+        StartCoroutine(MeleeAttackCoroutine());
+    }
+
+    private IEnumerator MeleeAttackCoroutine()
+    {
+        monsterAnimator.Attack();
+        yield return new WaitForSeconds(attackPrepareTime);
+
+        Logger.Log(typeof(BossMonster), "Melee Attack");
+
+        if (attackParticle != null)
+        {
+            var particle = Instantiate(
+                attackParticle,
+                Target.transform.position,
+                Quaternion.identity
+            );
+            particle.Play();
+            Destroy(particle.gameObject, 0.3f);
+        }
+        Target.GetComponent<Player>()?.TakeDamage(stat.GetStat(StatType.Damage));
+
+        yield return new WaitUntil(() => !isAttacking());
+    }
+
     private void EnterEnragedState()
     {
         isEnraged = true;

@@ -4,12 +4,11 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - HealthPack
   - Enemy
   - Obstacle
   - Projectile
   - EnemyProjectile
-  - Wall
+  - Terrain
   layers:
   - Default
   - TransparentFX
@@ -44,6 +43,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Projectiles
+    uniqueID: 1635404947
+    locked: 0
   - name: Terrain
     uniqueID: 1662075723
     locked: 0
@@ -52,9 +54,6 @@ TagManager:
     locked: 0
   - name: Indicator
     uniqueID: 2043536669
-    locked: 0
-  - name: Projectiles
-    uniqueID: 1635404947
     locked: 0
   - name: Default
     uniqueID: 0

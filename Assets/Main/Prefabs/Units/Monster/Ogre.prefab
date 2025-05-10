@@ -992,13 +992,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2113040805787993031}
-  - component: {fileID: 582023391313608764}
   - component: {fileID: 6330483584120564800}
   - component: {fileID: 1256211608933261692}
   - component: {fileID: 9026554236825427972}
   - component: {fileID: 675716606640327549}
+  - component: {fileID: 9140190915802925414}
   m_Layer: 0
-  m_Name: Boss
+  m_Name: Ogre
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1021,27 +1021,6 @@ Transform:
   - {fileID: 5280110481878620289}
   m_Father: {fileID: 3938037366016157776}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &582023391313608764
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5518195053909896306}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 62b9a7e211ea2074c83a96a2ab1e590f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Head: {fileID: 9014799555329367909}
-  Jaw: {fileID: 0}
-  HeadSprites:
-  - {fileID: -1828946549344447192, guid: 9ad7a1c90da6b8646804c8ee3e3d93eb, type: 3}
-  - {fileID: -7252215782646672311, guid: 9ad7a1c90da6b8646804c8ee3e3d93eb, type: 3}
-  - {fileID: -1381065623766834176, guid: 9ad7a1c90da6b8646804c8ee3e3d93eb, type: 3}
-  JawSprites: []
-  Animator: {fileID: 675716606640327549}
-  Variations: 0
 --- !u!114 &6330483584120564800
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1114,6 +1093,24 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &9140190915802925414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5518195053909896306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f551bad1b9ca1e4b9a960e491660107, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Head: {fileID: 9014799555329367909}
+  Jaw: {fileID: 0}
+  HeadSprites: []
+  JawSprites: []
+  Animator: {fileID: 675716606640327549}
+  Variations: 0
 --- !u!1 &6372061182802901958
 GameObject:
   m_ObjectHideFlags: 0
@@ -1226,10 +1223,10 @@ GameObject:
   m_Component:
   - component: {fileID: 3938037366016157776}
   - component: {fileID: 6646066816288017704}
-  - component: {fileID: 1855184208777118330}
   - component: {fileID: 7907268387318460582}
   - component: {fileID: 5123850569998293177}
   - component: {fileID: 4451832089192009069}
+  - component: {fileID: 8989297787947888969}
   m_Layer: 0
   m_Name: Ogre
   m_TagString: Untagged
@@ -1262,11 +1259,11 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6900994674424838723}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 10
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
@@ -1281,8 +1278,61 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!58 &1855184208777118330
-CircleCollider2D:
+--- !u!114 &7907268387318460582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900994674424838723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9867b55becf9b0a4c9fce822a8ac84a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  monsterAnimator: {fileID: 9140190915802925414}
+  hpBar: {fileID: 3642842830424323082}
+  rb: {fileID: 6646066816288017704}
+  attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
+  enemyCollider: {fileID: 0}
+  pathFinder: {fileID: 4451832089192009069}
+  stat: {fileID: 5123850569998293177}
+  preferredDistance: 1
+  isStunned: 0
+  isInit: 0
+  animator: {fileID: 675716606640327549}
+  attackPrepareTime: 0.2
+  enrageThreshold: 0.3
+  enrageDamageMultiplier: 1.5
+  enrageSpeedMultiplier: 1.3
+--- !u!114 &5123850569998293177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900994674424838723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4451832089192009069
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6900994674424838723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 6646066816288017704}
+  monster: {fileID: 7907268387318460582}
+--- !u!61 &8989297787947888969
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1313,59 +1363,19 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 1.8}
+  m_Offset: {x: -0.25, y: 1.5}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
   serializedVersion: 2
-  m_Radius: 2.09
---- !u!114 &7907268387318460582
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6900994674424838723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9867b55becf9b0a4c9fce822a8ac84a1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hpBar: {fileID: 3642842830424323082}
-  rb: {fileID: 6646066816288017704}
-  attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
-  enemyCollider: {fileID: 1855184208777118330}
-  pathFinder: {fileID: 4451832089192009069}
-  stat: {fileID: 5123850569998293177}
-  preferredDistance: 1
-  isStunned: 0
-  isAttacking: 0
-  isInit: 0
-  enrageThreshold: 0.3
-  enrageDamageMultiplier: 1.5
-  enrageSpeedMultiplier: 1.3
---- !u!114 &5123850569998293177
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6900994674424838723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &4451832089192009069
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6900994674424838723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  monster: {fileID: 7907268387318460582}
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!1 &7023054091192759442
 GameObject:
   m_ObjectHideFlags: 0

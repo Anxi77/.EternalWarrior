@@ -68,7 +68,6 @@ public class GravityProjectileSkill : ProjectileSkills
         {
             InitializeProjectile(proj);
             SetProjectileDirection(proj);
-            Logger.Log(typeof(GravityProjectileSkill), "Gravity projectile fired");
         }
     }
 
@@ -79,7 +78,7 @@ public class GravityProjectileSkill : ProjectileSkills
             Monster target = FindNearestEnemy();
             if (target != null)
             {
-                proj.SetTarget(target);
+                proj.SetTarget(target.transform);
                 proj.SetHoming(true);
                 Vector2 dirToTarget = (
                     target.transform.position - proj.transform.position
@@ -115,10 +114,8 @@ public class GravityProjectileSkill : ProjectileSkills
         return nearestEnemy;
     }
 
-    protected override void InitializeProjectile(Projectile proj)
+    private void InitializeProjectile(Projectile proj)
     {
-        base.InitializeProjectile(proj);
-
         if (proj is GravityProjectile gravityProj)
         {
             gravityProj.SetSizeParameters(_startSize, _endSize, _growthDuration);

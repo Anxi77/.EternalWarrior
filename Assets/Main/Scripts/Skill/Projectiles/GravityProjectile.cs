@@ -53,12 +53,6 @@ public class GravityProjectile : Projectile
         circleCollider = GetComponent<CircleCollider2D>();
     }
 
-    public override void OnSpawnFromPool()
-    {
-        base.OnSpawnFromPool();
-        ResetProjectile();
-    }
-
     protected override void Update()
     {
         if (!hasReachedDestination)
@@ -78,11 +72,9 @@ public class GravityProjectile : Projectile
 
     private void MoveAndCheckTarget()
     {
-        if (isHoming && targetEnemy != null && targetEnemy.gameObject.activeSelf)
+        if (isHoming && target != null && target.gameObject.activeSelf)
         {
-            Vector2 directionToTarget = (
-                targetEnemy.transform.position - transform.position
-            ).normalized;
+            Vector2 directionToTarget = (target.transform.position - transform.position).normalized;
             projectileDirection = Vector3.Lerp(
                 projectileDirection,
                 directionToTarget,
@@ -91,7 +83,7 @@ public class GravityProjectile : Projectile
 
             float distanceToTarget = Vector2.Distance(
                 transform.position,
-                targetEnemy.transform.position
+                target.transform.position
             );
             if (distanceToTarget <= 0.5f)
             {
@@ -272,9 +264,9 @@ public class GravityProjectile : Projectile
         projectileSpeed = speed;
     }
 
-    public void SetTarget(Monster enemy)
+    public void SetTarget(Transform enemy)
     {
-        targetEnemy = enemy;
+        target = enemy;
     }
 
     public void SetHoming(bool homing)

@@ -171,23 +171,19 @@ public abstract class ProjectileSkills : Skill
 
             if (proj != null)
             {
-                InitializeProjectile(proj);
+                proj.Initialize(
+                    Damage,
+                    ProjectileSpeed,
+                    IsHoming,
+                    ProjectileScale,
+                    PierceCount,
+                    AttackRange,
+                    skillData.Element,
+                    ElementalPower,
+                    FindNearestEnemy()?.transform
+                );
             }
         }
-    }
-
-    protected virtual void InitializeProjectile(Projectile proj)
-    {
-        proj.damage = Damage;
-        proj.moveSpeed = ProjectileSpeed;
-        proj.isHoming = IsHoming;
-        proj.transform.localScale *= ProjectileScale;
-        proj.pierceCount = PierceCount;
-        proj.maxTravelDistance = AttackRange;
-        proj.elementType = skillData.Element;
-        proj.elementalPower = ElementalPower;
-
-        proj.SetInitialTarget(FindNearestEnemy());
     }
 
     #region Enemy Searching Methods

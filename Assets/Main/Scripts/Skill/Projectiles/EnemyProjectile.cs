@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class EnemyProjectile : Projectile
 {
-    protected Transform playerTarget;
-
     protected override void Awake()
     {
         base.Awake();
@@ -11,11 +9,7 @@ public class EnemyProjectile : Projectile
         Physics2D.IgnoreLayerCollision(gameObject.layer, LayerMask.NameToLayer("Player"), false);
     }
 
-    public override void OnSpawnFromPool()
-    {
-        base.OnSpawnFromPool();
-        playerTarget = GameManager.Instance.PlayerSystem.Player.transform;
-    }
+    public override void OnSpawnFromPool() { }
 
     protected override void OnTriggerEnter2D(Collider2D other)
     {
@@ -57,9 +51,9 @@ public class EnemyProjectile : Projectile
 
     protected override void Homing()
     {
-        if (playerTarget != null)
+        if (target != null)
         {
-            Vector2 direction = (playerTarget.position - transform.position).normalized;
+            Vector2 direction = (target.position - transform.position).normalized;
             transform.up = direction;
             transform.Translate(direction * moveSpeed * Time.deltaTime, Space.World);
         }
@@ -72,7 +66,7 @@ public class EnemyProjectile : Projectile
     public override void ResetProjectile()
     {
         base.ResetProjectile();
-        playerTarget = null;
+        target = null;
     }
 
     public override void Move()

@@ -2,10 +2,13 @@
 using System.Collections;
 using Michsky.UI.Heat;
 using UnityEngine;
+using MonsterAnimator = Assets.FantasyMonsters.Common.Scripts.Monster;
 using Random = UnityEngine.Random;
 
 public class Monster : MonoBehaviour
 {
+    [SerializeField]
+    protected MonsterAnimator monsterAnimator;
     protected MonsterData monsterData;
     protected MonsterSetting monsterSetting;
     private Transform target;
@@ -19,8 +22,11 @@ public class Monster : MonoBehaviour
     protected float lastAttackTime;
     public float preferredDistance = 1.0f;
     public bool isStunned = false;
-    public bool isAttacking = false;
     public bool isInit = false;
+    public Animator animator;
+
+    [SerializeField]
+    protected float attackPrepareTime = 0.2f;
 
     protected Coroutine slowEffectCoroutine;
     protected Coroutine stunCoroutine;
@@ -56,6 +62,12 @@ public class Monster : MonoBehaviour
         hpBar.SetValue(stat.GetStat(StatType.CurrentHp));
     }
 
+    public bool isAttacking()
+    {
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+        return stateInfo.IsName("Attack");
+    }
+
     protected virtual void Update()
     {
         if (isInit)
@@ -68,16 +80,12 @@ public class Monster : MonoBehaviour
             {
                 Attack();
             }
-            else
-            {
-                isAttacking = false;
-            }
         }
     }
 
     private void FixedUpdate()
     {
-        if (isInit && !isAttacking)
+        if (isInit && !isAttacking())
         {
             pathFinder.Move();
         }
@@ -201,21 +209,7 @@ public class Monster : MonoBehaviour
             .Instance.PlayerSystem.Player.GetComponent<StatSystem>()
             .GetStat(StatType.Luck);
 
-        Vector2 dropPosition = CalculateDropPosition();
-        GameManager.Instance.ItemSystem.DropItem(dropPosition, monsterData.type, 1f + playerLuck);
-    }
-
-    protected virtual Vector2 CalculateDropPosition()
-    {
-        float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float radius = Random.Range(
-            monsterSetting.dropRadiusRange.x,
-            monsterSetting.dropRadiusRange.y
-        );
-
-        Vector2 offset = new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
-
-        return (Vector2)transform.position + offset;
+        GameManager.Instance.ItemSystem.DropItem(monsterData.type, 1f + playerLuck);
     }
 
     protected virtual void Attack()
@@ -228,20 +222,20 @@ public class Monster : MonoBehaviour
 
             if (distanceToTarget <= stat.GetStat(StatType.AttackRange))
             {
-                isAttacking = true;
-                if (this is RangedMonster || this is BossMonster)
+                switch (monsterData.type)
                 {
-                    PerformRangedAttack();
-                }
-                else
-                {
-                    PerformMeleeAttack();
+                    case MonsterType.Ogre:
+                    case MonsterType.Bat:
+                        PerformMeleeAttack();
+                        break;
+                    case MonsterType.Wasp:
+                        PerformRangedAttack();
+                        break;
+                    default:
+                        PerformMeleeAttack();
+                        break;
                 }
                 lastAttackTime = Time.time;
-            }
-            else
-            {
-                isAttacking = false;
             }
         }
     }
@@ -447,14 +441,9 @@ public class Monster : MonoBehaviour
     {
         if (Target != null)
         {
-            float currentXPosition = transform.position.x;
-            if (currentXPosition != pathFinder.previousXPosition)
-            {
-                Vector3 scale = transform.localScale;
-                scale.x = (currentXPosition - pathFinder.previousXPosition) > 0 ? -1 : 1;
-                transform.localScale = scale;
-                pathFinder.previousXPosition = currentXPosition;
-            }
+            Vector3 scale = transform.localScale;
+            scale.x = (Target.position.x > transform.position.x) ? -1 : 1;
+            transform.localScale = scale;
         }
     }
     #endregion

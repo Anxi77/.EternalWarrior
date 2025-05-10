@@ -28,7 +28,6 @@ public class Projectile : MonoBehaviour, IPoolable
     protected float _maxTravelDistance = 10f;
     public ParticleSystem impactParticle;
 
-    // Properties
     public float damage
     {
         get => _damage;
@@ -65,11 +64,10 @@ public class Projectile : MonoBehaviour, IPoolable
         set => _elementType = value;
     }
 
-    // Runtime variables
     public Vector2 initialPosition;
     public Vector2 direction;
     protected bool hasReachedMaxDistance = false;
-    public Monster targetEnemy;
+    public Transform target;
     protected CircleCollider2D coll;
     protected List<Collider2D> contactedColls = new();
     protected ParticleSystem projectileRender;
@@ -82,8 +80,39 @@ public class Projectile : MonoBehaviour, IPoolable
         Physics2D.IgnoreLayerCollision(gameObject.layer, enemyLayer, false);
     }
 
-    public virtual void OnSpawnFromPool()
+    private void OnEnable()
     {
+        foreach (Transform child in transform)
+        {
+            child.gameObject.SetActive(true);
+        }
+    }
+
+    public virtual void OnSpawnFromPool() { }
+
+    public void Initialize(
+        float damage,
+        float moveSpeed,
+        bool isHoming,
+        float projectileScale,
+        int pierceCount,
+        float maxTravelDistance,
+        ElementType elementType,
+        float elementalPower,
+        Transform target
+    )
+    {
+        this.damage = damage;
+        this.moveSpeed = moveSpeed;
+        this.isHoming = isHoming;
+        transform.localScale *= projectileScale;
+        this.pierceCount = pierceCount;
+        this.maxTravelDistance = maxTravelDistance;
+        this.elementType = elementType;
+        this.elementalPower = elementalPower;
+
+        SetInitialTarget(target);
+
         if (isHoming)
         {
             FindTarget();
@@ -158,7 +187,7 @@ public class Projectile : MonoBehaviour, IPoolable
                 if (distance < targetDistance)
                 {
                     targetDistance = distance;
-                    targetEnemy = enemy;
+                    target = enemy.transform;
                 }
             }
         }
@@ -166,9 +195,9 @@ public class Projectile : MonoBehaviour, IPoolable
 
     protected virtual void Homing()
     {
-        if (targetEnemy != null && targetEnemy.gameObject.activeSelf)
+        if (target != null && target.gameObject.activeSelf)
         {
-            Vector2 direction = (targetEnemy.transform.position - transform.position).normalized;
+            Vector2 direction = (target.transform.position - transform.position).normalized;
             transform.up = direction;
             transform.Translate(direction * moveSpeed * Time.deltaTime, Space.World);
         }
@@ -179,9 +208,9 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
-    public virtual void SetInitialTarget(Monster enemy)
+    public virtual void SetInitialTarget(Transform target)
     {
-        targetEnemy = enemy;
+        this.target = target;
     }
 
     public virtual void SetDirection(Vector2 newDirection)
@@ -239,24 +268,16 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
-    private IEnumerator ReturnParticleToPool(ParticleSystem particle, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (particle != null)
-        {
-            PoolManager.Instance.Despawn(particle);
-        }
-    }
-
     public virtual void ResetProjectile()
     {
         contactedColls.Clear();
+        transform.position = Vector3.zero;
         hasReachedMaxDistance = false;
         _pierceCount = 1;
         _damage = 10f;
         _moveSpeed = 10f;
         _isHoming = false;
-        targetEnemy = null;
+        target = null;
         _elementType = ElementType.None;
         _elementalPower = 1f;
     }

@@ -3,47 +3,27 @@ using UnityEngine;
 
 public class MeleeMonster : Monster
 {
-    [Header("Melee Attack Settings")]
-    [SerializeField]
-    private float attackAnimationDuration = 0.5f;
-
-    [SerializeField]
-    private float attackPrepareTime = 0.2f;
-
-    [SerializeField]
-    private float attackRadius = 1.5f;
-
-    [SerializeField]
-    private LayerMask attackLayer;
-
-    private Animator animator;
-
     public override void Initialize(MonsterData monsterData, MonsterSetting monsterSetting)
     {
         base.Initialize(monsterData, monsterSetting);
         preferredDistance = 1.5f;
-        animator = GetComponentInChildren<Animator>();
     }
 
     protected override void PerformMeleeAttack()
     {
-        if (!isAttacking)
-        {
-            StartCoroutine(MeleeAttackCoroutine());
-        }
+        StartCoroutine(MeleeAttackCoroutine());
     }
 
     private IEnumerator MeleeAttackCoroutine()
     {
-        isAttacking = true;
-
-        animator?.SetTrigger("Attack");
+        monsterAnimator.Attack();
         yield return new WaitForSeconds(attackPrepareTime);
+
+        Logger.Log(typeof(MeleeMonster), "Melee Attack");
 
         Collider2D[] hits = Physics2D.OverlapCircleAll(
             transform.position,
-            attackRadius,
-            attackLayer
+            stat.GetStat(StatType.AttackRange)
         );
         foreach (var hit in hits)
         {
@@ -63,12 +43,6 @@ public class MeleeMonster : Monster
             }
         }
 
-        yield return new WaitForSeconds(attackAnimationDuration - attackPrepareTime);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRadius);
+        yield return new WaitUntil(() => !isAttacking());
     }
 }
