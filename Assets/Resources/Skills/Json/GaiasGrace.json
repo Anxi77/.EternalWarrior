@@ -1,0 +1,9 @@
+{
+  "ID": "GaiasGrace",
+  "Name": "Grace Of Gaia",
+  "Description": "New Passive skill description",
+  "Type": "Passive",
+  "Element": "Earth",
+  "Tier": 0,
+  "Tags": []
+}

@@ -39,7 +39,7 @@ public class PathFinder : MonoBehaviour
         {
             if (currentPath == null || currentPath.Count == 0)
             {
-                currentPath = GameManager.Instance.PathFindingSystem.FindPath(
+                currentPath = GameManager.Instance.PathFindingSystem.GetPath(
                     transform.position,
                     monster.Target.position
                 );

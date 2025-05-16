@@ -1,0 +1,9 @@
+{
+  "ID": "TidalEssence",
+  "Name": "Tidal Essence",
+  "Description": "Tides Grace",
+  "Type": "Passive",
+  "Element": "Water",
+  "Tier": 0,
+  "Tags": []
+}

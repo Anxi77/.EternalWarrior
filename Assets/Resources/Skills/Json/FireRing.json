@@ -1,0 +1,9 @@
+{
+  "ID": "FireRing",
+  "Name": "Fire Ring",
+  "Description": "Fire Rotates",
+  "Type": "Area",
+  "Element": "Fire",
+  "Tier": 0,
+  "Tags": []
+}

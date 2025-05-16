@@ -1,0 +1,9 @@
+{
+  "ID": "AbyssalExpansion",
+  "Name": "Abyssal Expansion",
+  "Description": "Expands Abyss",
+  "Type": "Passive",
+  "Element": "Dark",
+  "Tier": 0,
+  "Tags": []
+}

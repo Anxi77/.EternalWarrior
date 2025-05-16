@@ -6,6 +6,7 @@ using UnityEngine.Tilemaps;
 public class PathFindingSystem : MonoBehaviour, IInitializable
 {
     public Tilemap obstacleTilemap;
+    public Tilemap terrainTilemap;
     public bool IsInitialized { get; private set; }
 
     #region Constants
@@ -20,6 +21,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
     private HashSet<Node> closedSet;
     private Queue<PathFindingInstance> instancePool = new();
     public float nodeSize = 1f;
+
     #endregion
 
     private class PathFindingInstance
@@ -27,6 +29,35 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         public List<Node> openSet = new List<Node>(1000);
         public HashSet<Node> closedSet = new HashSet<Node>();
         public List<Vector2> path = new List<Vector2>(MAX_PATH_LENGTH);
+    }
+
+    private void Start()
+    {
+        Test();
+    }
+
+    public void Test()
+    {
+        InitializePools();
+
+        nodeSize = terrainTilemap.cellSize.x;
+        activeNodes.Clear();
+
+        var bounds = terrainTilemap.cellBounds;
+        for (int x = bounds.xMin; x < bounds.xMax; x++)
+        {
+            for (int y = bounds.yMin; y < bounds.yMax; y++)
+            {
+                Vector3Int cellPosition = new Vector3Int(x, y, 0);
+                Vector2 worldPosition =
+                    terrainTilemap.CellToWorld(cellPosition)
+                    + (Vector3)terrainTilemap.cellSize / 2f;
+                bool isWalkable = !obstacleTilemap.HasTile(cellPosition);
+                activeNodes[new Vector2Int(x, y)] = new Node(isWalkable, worldPosition, x, y);
+            }
+        }
+
+        IsInitialized = true;
     }
 
     private void InitializePools()
@@ -71,6 +102,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
 
     public void InitializeGrid(Tilemap terrainTilemap, Tilemap obstacleTilemap)
     {
+        this.terrainTilemap = terrainTilemap;
         this.obstacleTilemap = obstacleTilemap;
         nodeSize = terrainTilemap.cellSize.x;
         activeNodes.Clear();
@@ -104,9 +136,9 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return node;
     }
 
-    private List<Node> GetNeighbours(Node node)
+    public List<Node> GetNeighbours(Node node)
     {
-        var neighbours = new List<Node>(4);
+        var neighbours = new List<Node>(8);
         int[,] directions = new int[,]
         {
             { 1, 0 },
@@ -127,12 +159,12 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return neighbours;
     }
 
-    public List<Vector2> FindPath(Vector2 startPos, Vector2 targetPos)
+    public List<Vector2> GetPath(Vector2 startPos, Vector2 targetPos, bool recordSearch = false)
     {
         var pathFindingInstance = GetPathFindingInstance();
         try
         {
-            var path = ExecutePathfinding(startPos, targetPos, pathFindingInstance);
+            var path = FindPath(startPos, targetPos, pathFindingInstance, recordSearch);
             if (path != null && path.Count > 2)
             {
                 path = OptimizePath(path);
@@ -145,10 +177,11 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         }
     }
 
-    private List<Vector2> ExecutePathfinding(
+    private List<Vector2> FindPath(
         Vector2 startPos,
         Vector2 targetPos,
-        PathFindingInstance instance
+        PathFindingInstance instance,
+        bool recordSearch = false
     )
     {
         openSet = instance.openSet;
@@ -157,7 +190,9 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         {
             return directPath;
         }
-        return PerformAStarPathfinding(startPos, targetPos);
+        var result = FindPath(startPos, targetPos);
+
+        return result;
     }
 
     private bool TryGetDirectPath(Vector2 startPos, Vector2 targetPos, out List<Vector2> directPath)
@@ -175,18 +210,6 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return false;
     }
 
-    private List<Vector2> PerformAStarPathfinding(Vector2 startPos, Vector2 targetPos)
-    {
-        Node startNode = GetNodeFromWorldPosition(startPos);
-        Node targetNode = GetNodeFromWorldPosition(targetPos);
-        if (!ValidateNodes(ref startNode, ref targetNode))
-        {
-            return null;
-        }
-        InitializePathfindingNodes(startNode, targetNode);
-        return ExecuteAStarAlgorithm(startNode, targetNode, startPos, targetPos);
-    }
-
     private bool ValidateNodes(ref Node startNode, ref Node targetNode)
     {
         if (!startNode.walkable || !targetNode.walkable)
@@ -198,23 +221,74 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return true;
     }
 
-    private void InitializePathfindingNodes(Node startNode, Node targetNode)
+    /// <summary>
+    /// 시작/목표 노드의 유효성을 검증하고, 노드 및 자료구조를 초기화한 뒤 경로를 탐색합니다.
+    /// </summary>
+    /// <param name="startPos">경로 탐색의 시작 위치(월드 좌표)</param>
+    /// <param name="targetPos">경로 탐색의 목표 위치(월드 좌표)</param>
+    /// <returns>시작점에서 목표점까지의 경로(좌표 리스트), 경로가 없으면 null</returns>
+    private List<Vector2> FindPath(Vector2 startPos, Vector2 targetPos)
     {
+        // 시작 노드와 목표 노드를 월드좌표에서 노드로 변환
+        Node startNode = GetNodeFromWorldPosition(startPos);
+        Node targetNode = GetNodeFromWorldPosition(targetPos);
+        // 두 노드가 이동 가능한지 검증
+        if (!ValidateNodes(ref startNode, ref targetNode))
+        {
+            // 유효하지 않으면 경로 탐색 중단
+            return null;
+        }
+        // 모든 노드의 비용 초기화 및 시작 노드 세팅
+        InitializePathfindingNodes(startNode, targetNode);
+        return SearchPath(startNode, targetNode, startPos, targetPos);
+    }
+
+    /// <summary>
+    /// 모든 노드의 경로 비용 및 이전 노드 정보를 초기화하고, 시작 노드의 g/h/f 비용을 세팅합니다.
+    /// </summary>
+    /// <param name="startNode">경로 탐색의 시작 노드</param>
+    /// <param name="targetNode">경로 탐색의 목표 노드</param>
+    public void InitializePathfindingNodes(Node startNode, Node targetNode)
+    {
+        // 모든 노드의 비용 및 이전 노드 정보 초기화
         foreach (var node in activeNodes.Values)
         {
             node.gCost = float.MaxValue;
+            // fCost(g+h) 재계산
             node.CalculateFCost();
             node.previousNode = null;
         }
+        // 시작 노드의 비용 세팅
         if (startNode != null)
         {
+            // 시작 노드는 비용 0
             startNode.gCost = 0;
+            // 휴리스틱(목표까지 예상 비용) 계산
             startNode.hCost = CalculateDistance(startNode, targetNode);
+            // fCost 재계산
             startNode.CalculateFCost();
         }
     }
 
-    private List<Vector2> ExecuteAStarAlgorithm(
+    /// <summary>
+    /// 두 노드 간의 맨해튼 거리(대각선 가중치 포함)를 계산합니다.
+    /// </summary>
+    /// <param name="a">시작 노드</param>
+    /// <param name="b">목표 노드</param>
+    /// <returns>두 노드 간의 거리(비용)</returns>
+    private float CalculateDistance(Node a, Node b)
+    {
+        float dx = Mathf.Abs(a.gridX - b.gridX); // x축 거리
+        float dy = Mathf.Abs(a.gridY - b.gridY); // y축 거리
+        // 맨해튼 거리 + 대각선 이동 가중치
+        return dx + dy;
+    }
+
+    /// <summary>
+    /// f값이 가장 낮은 노드를 반복적으로 선택하며, 목표에 도달할 때까지 이웃 노드를 탐색하고 비용을 갱신합니다.
+    /// </summary>
+    /// <returns>시작점에서 목표점까지의 경로(좌표 리스트), 경로가 없으면 start~target 직선 반환</returns>
+    private List<Vector2> SearchPath(
         Node startNode,
         Node targetNode,
         Vector2 startPos,
@@ -247,12 +321,11 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
                     closedSet.Add(neighbour);
                     continue;
                 }
-                float tentativeGCost =
-                    currentNode.gCost + CalculateDistance(currentNode, neighbour);
-                if (tentativeGCost < neighbour.gCost)
+                float tempGCost = currentNode.gCost + 1f;
+                if (tempGCost < neighbour.gCost)
                 {
                     neighbour.previousNode = currentNode;
-                    neighbour.gCost = tentativeGCost;
+                    neighbour.gCost = tempGCost;
                     neighbour.hCost = CalculateDistance(neighbour, targetNode);
                     neighbour.CalculateFCost();
                     if (!openSet.Contains(neighbour))
@@ -265,24 +338,35 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return new List<Vector2> { startPos, targetPos };
     }
 
+    /// <summary>
+    /// 경로 상의 불필요한 노드를 제거하여 경로를 단순화(최적화)합니다.
+    /// </summary>
+    /// <returns>최적화된 경로(좌표 리스트)</returns>
     private List<Vector2> OptimizePath(List<Vector2> path)
     {
         if (path.Count <= 2)
             return path;
+        // 최적화된 경로 리스트에 시작점 추가
         var optimizedPath = new List<Vector2>(50) { path[0] };
         int i = 0;
+        // 경로를 따라 불필요한 노드(직선상 장애물 없는 구간) 제거
         while (i < path.Count - 2)
         {
             i = FindFurthestVisibleNode(path, i, optimizedPath);
         }
+        // 마지막 노드가 누락되지 않도록 추가
         if (i != path.Count - 1)
         {
             optimizedPath.Add(path[path.Count - 1]);
         }
-        path.Clear();
+        path.Clear(); // 기존 경로 비움
         return optimizedPath;
     }
 
+    /// <summary>
+    /// 현재 위치에서 장애물 없이 직선으로 도달 가능한 가장 먼 노드의 인덱스를 반환하고, 그 노드를 최적화 경로에 추가합니다.
+    /// </summary>
+    /// <returns>가장 멀리 도달 가능한 노드의 인덱스</returns>
     private int FindFurthestVisibleNode(
         List<Vector2> path,
         int currentIndex,
@@ -291,6 +375,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
     {
         Vector2 current = path[currentIndex];
         int furthestVisible = currentIndex + 1;
+        // 현재 위치에서 직선으로 도달 가능한 가장 먼 노드 찾기
         for (int j = currentIndex + 2; j < path.Count; j++)
         {
             if (IsNodeVisible(current, path[j]))
@@ -300,21 +385,20 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
             else
                 break;
         }
-        optimizedPath.Add(path[furthestVisible]);
+        optimizedPath.Add(path[furthestVisible]); // 최적화 경로에 추가
         return furthestVisible;
     }
 
-    private bool IsNodeVisible(Vector2 from, Vector2 to)
+    /// <summary>
+    /// 두 지점 사이에 장애물이 없는지(Linecast) 확인하여, 직선 이동이 가능한지 판정합니다.
+    /// </summary>
+    /// <returns>장애물 없이 이동 가능하면 true, 아니면 false</returns>
+    public bool IsNodeVisible(Vector2 from, Vector2 to)
     {
+        // 두 지점 사이에 장애물이 있는지 확인
         bool hasObstacle = Physics2D.Linecast(from, to, LayerMask.GetMask("Obstacle"));
+        // 장애물이 없고, 경로 폭도 충분히 확보되면 true
         return !hasObstacle && CheckPathClearance(from, to);
-    }
-
-    private float CalculateDistance(Node a, Node b)
-    {
-        float dx = Mathf.Abs(a.gridX - b.gridX);
-        float dy = Mathf.Abs(a.gridY - b.gridY);
-        return (dx + dy) + (1.4f - 2) * Mathf.Min(dx, dy);
     }
 
     private Node GetLowestFCostNode(List<Node> nodeList)
@@ -322,7 +406,13 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         Node lowestFCostNode = nodeList[0];
         for (int i = 1; i < nodeList.Count; i++)
         {
-            if (nodeList[i].fCost < lowestFCostNode.fCost)
+            if (
+                nodeList[i].fCost < lowestFCostNode.fCost
+                || (
+                    Mathf.Approximately(nodeList[i].fCost, lowestFCostNode.fCost)
+                    && nodeList[i].hCost < lowestFCostNode.hCost
+                )
+            )
             {
                 lowestFCostNode = nodeList[i];
             }
@@ -340,10 +430,6 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
             path.Add(currentNode.worldPosition);
             currentNode = currentNode.previousNode;
             pathLength++;
-        }
-        if (pathLength >= MAX_PATH_LENGTH)
-        {
-            path = path.GetRange(0, MAX_PATH_LENGTH);
         }
         path.Reverse();
         return path;
@@ -376,7 +462,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return null;
     }
 
-    private bool CheckPathClearance(Vector2 start, Vector2 end)
+    public bool CheckPathClearance(Vector2 start, Vector2 end)
     {
         Vector2 direction = (end - start).normalized;
         Vector2 perpendicular = Vector2.Perpendicular(direction) * (nodeSize * 0.3f);
@@ -417,8 +503,9 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         foreach (var node in activeNodes.Values)
         {
             Gizmos.color = node.walkable ? new Color(1, 1, 1, 0.1f) : new Color(1, 0, 0, 0.2f);
-            Gizmos.DrawCube(node.worldPosition, Vector3.one * nodeSize * 1f);
+            Gizmos.DrawCube(node.worldPosition, Vector3.one * nodeSize * 0.8f);
         }
+
         if (GameManager.Instance?.Monsters == null)
             return;
         foreach (var monster in GameManager.Instance.Monsters)
@@ -429,18 +516,15 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
             )
             {
                 var path = monster.pathFinder.currentPath;
-                Gizmos.color = new Color(1, 0, 1, 1f);
-                Gizmos.DrawLine(monster.transform.position, path[0]);
+                // 최종 경로: 초록색
+                Gizmos.color = new Color(0, 1, 0, 1f);
                 for (int i = 0; i < path.Count - 1; i++)
                 {
-                    Gizmos.color = new Color(0, 0, 1, 1f);
                     Gizmos.DrawLine(path[i], path[i + 1]);
-                    Gizmos.color = new Color(1, 1, 0, 1f);
                     Gizmos.DrawWireSphere(path[i], nodeSize * 0.3f);
                 }
                 if (path.Count > 0)
                 {
-                    Gizmos.color = new Color(0, 1, 0, 1f);
                     Gizmos.DrawWireSphere(path[path.Count - 1], nodeSize * 0.4f);
                 }
             }

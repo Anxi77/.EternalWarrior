@@ -1,0 +1,9 @@
+{
+  "ID": "FrostHunt",
+  "Name": "Frost Hunt",
+  "Description": "Frost Hunts",
+  "Type": "Projectile",
+  "Element": "Water",
+  "Tier": 0,
+  "Tags": []
+}

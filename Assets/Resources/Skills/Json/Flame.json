@@ -1,0 +1,9 @@
+{
+  "ID": "Flame",
+  "Name": "Flame",
+  "Description": "Shoots Flame",
+  "Type": "Projectile",
+  "Element": "Fire",
+  "Tier": 0,
+  "Tags": []
+}

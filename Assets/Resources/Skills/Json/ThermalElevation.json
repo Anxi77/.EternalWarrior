@@ -1,0 +1,9 @@
+{
+  "ID": "ThermalElevation",
+  "Name": "Thermal Elevation",
+  "Description": "Fire Elevates",
+  "Type": "Passive",
+  "Element": "Fire",
+  "Tier": 0,
+  "Tags": []
+}

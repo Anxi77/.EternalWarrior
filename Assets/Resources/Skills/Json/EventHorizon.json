@@ -1,0 +1,9 @@
+{
+  "ID": "EventHorizon",
+  "Name": "Event Horizon",
+  "Description": "Black Hole",
+  "Type": "Projectile",
+  "Element": "Dark",
+  "Tier": 0,
+  "Tags": []
+}
