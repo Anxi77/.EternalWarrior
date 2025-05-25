@@ -24,6 +24,27 @@
         "Passive"
       ],
       "applicableElements": []
+    },
+    {
+      "effectId": "b1d06b40-2205-4abd-95a1-b435a4fc4a4c",
+      "effectName": "Effect",
+      "description": "it is effect",
+      "subEffectRanges": [
+        {
+          "effectType": "DamageBonus",
+          "minValue": 0.0,
+          "maxValue": 29.0,
+          "isEnabled": true
+        }
+      ],
+      "weight": 1.0,
+      "applicableSkills": [
+        "Projectile"
+      ],
+      "applicableElements": [
+        "Dark",
+        "Water"
+      ]
     }
   ]
 }

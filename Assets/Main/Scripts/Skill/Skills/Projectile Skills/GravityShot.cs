@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class GravityProjectileSkill : ProjectileSkills
+public class GravityShot : ProjectileSkills
 {
     [Header("Gravity Projectile Settings")]
     [SerializeField]
@@ -19,9 +19,6 @@ public class GravityProjectileSkill : ProjectileSkills
     private float _growthDuration = 2f;
 
     [SerializeField]
-    private GravityProjectile gravityProjectilePrefab;
-
-    [SerializeField]
     private KeyCode homingTriggerKey = KeyCode.LeftShift;
 
     public override void Initialize()
@@ -30,31 +27,18 @@ public class GravityProjectileSkill : ProjectileSkills
         currentFireMode = FireMode.Auto;
     }
 
-    protected override void Update()
-    {
-        if (!isInitialized || !canFire)
-            return;
-
-        CalcDirection();
-
-        if (Input.GetKeyDown(homingTriggerKey))
-        {
-            UpdateHomingState(!IsHoming);
-        }
-
-        UpdateFiring();
-    }
-
     protected override void Fire()
     {
         if (!isInitialized || skillData?.ProjectilePrefab == null)
         {
             Logger.LogWarning(
-                typeof(GravityProjectileSkill),
+                typeof(GravityShot),
                 "Cannot fire: not initialized or missing projectile"
             );
             return;
         }
+
+        Logger.Log(typeof(GravityShot), "Firing");
 
         Vector3 spawnPosition = transform.position + transform.up * 0.5f;
 
@@ -161,7 +145,7 @@ public class GravityProjectileSkill : ProjectileSkills
     public override void UpdateHomingState(bool activate)
     {
         _isHoming = activate;
-        currentFireMode = activate ? FireMode.AutoHoming : FireMode.Auto;
+        currentFireMode = activate ? FireMode.Multiple : FireMode.Auto;
 
         if (!activate)
         {

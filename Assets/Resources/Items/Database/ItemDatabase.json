@@ -43,6 +43,36 @@
         "minEffectCount": 1,
         "maxEffectCount": 3
       }
+    },
+    {
+      "ID": "4bd947e2-4197-41bd-b0f9-b17b7baa3756",
+      "Name": "Sword",
+      "Description": "It is Sword",
+      "MaxStack": 1,
+      "Type": "Weapon",
+      "Rarity": "Rare",
+      "Element": "None",
+      "AccessoryType": "None",
+      "StatRanges": {
+        "possibleStats": [
+          {
+            "statType": "Damage",
+            "minValue": 0.0,
+            "maxValue": 29.0,
+            "weight": 1.0,
+            "increaseType": "Multiply"
+          }
+        ],
+        "minStatCount": 1,
+        "maxStatCount": 4
+      },
+      "EffectRanges": {
+        "effectIDs": [
+          "b1d06b40-2205-4abd-95a1-b435a4fc4a4c"
+        ],
+        "minEffectCount": 1,
+        "maxEffectCount": 3
+      }
     }
   ]
 }

@@ -6,9 +6,11 @@ public class StageTimer : MonoBehaviour, IInitializable
 {
     public bool IsInitialized { get; private set; }
 
-    private float stageTimer;
+    private float elapsedTime;
     private float stageDuration;
     private bool isTimerRunning;
+
+    public float StageDuration => stageDuration;
 
     public void Initialize()
     {
@@ -35,12 +37,12 @@ public class StageTimer : MonoBehaviour, IInitializable
     private IEnumerator StageTimerRoutine(float duration)
     {
         stageDuration = duration;
-        stageTimer = 0f;
+        elapsedTime = 0f;
         isTimerRunning = true;
 
         while (isTimerRunning)
         {
-            stageTimer += Time.deltaTime;
+            elapsedTime += Time.deltaTime;
             yield return null;
         }
     }
@@ -57,28 +59,28 @@ public class StageTimer : MonoBehaviour, IInitializable
 
     public void ResetTimer()
     {
-        stageTimer = 0f;
+        elapsedTime = 0f;
         stageDuration = 0f;
         isTimerRunning = false;
     }
 
     public bool IsStageTimeUp()
     {
-        return stageTimer >= stageDuration;
+        return elapsedTime >= stageDuration;
     }
 
     public float GetElapsedTime()
     {
-        return stageTimer;
+        return elapsedTime;
     }
 
     public float GetRemainingTime()
     {
-        return Mathf.Max(0f, stageDuration - stageTimer);
+        return Mathf.Max(0f, stageDuration - elapsedTime);
     }
 
     public float GetTimeProgress()
     {
-        return stageDuration > 0f ? stageTimer / stageDuration : 0f;
+        return stageDuration > 0f ? elapsedTime / stageDuration : 0f;
     }
 }

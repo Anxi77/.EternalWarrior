@@ -9797,7 +9797,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1635404947
-  m_SortingLayer: -1
+  m_SortingLayer: -4
   m_SortingOrder: 0
   m_RenderMode: 4
   m_MeshDistribution: 0
@@ -14803,7 +14803,7 @@ MonoBehaviour:
   impactParticle: {fileID: 1570490977758113565, guid: e2acde1fd9e05b44aa48ceceb52aad21, type: 3}
   initialPosition: {x: 0, y: 0}
   direction: {x: 0, y: 0}
-  targetEnemy: {fileID: 0}
+  target: {fileID: 0}
   _explosionRadius: 2
 --- !u!58 &4563583421547249055
 CircleCollider2D:

@@ -47,6 +47,7 @@ public abstract class ProjectileSkills : Skill
         if (statData != null)
         {
             skillData.SetStatsForLevel(currentLevel, statData);
+            UpdateInspectorValues(statData);
         }
         else
         {
@@ -111,11 +112,18 @@ public abstract class ProjectileSkills : Skill
                 break;
 
             case FireMode.Auto:
-            case FireMode.AutoHoming:
                 fireTimer += Time.deltaTime;
                 if (fireTimer >= ShotInterval)
                 {
-                    if (currentFireMode == FireMode.AutoHoming)
+                    Fire();
+                    fireTimer = 0f;
+                }
+                break;
+            case FireMode.Multiple:
+                fireTimer += Time.deltaTime;
+                if (fireTimer >= ShotInterval)
+                {
+                    if (currentFireMode == FireMode.Multiple)
                     {
                         if (AreEnemiesInRange())
                         {
@@ -230,7 +238,7 @@ public abstract class ProjectileSkills : Skill
     public virtual void UpdateHomingState(bool activate)
     {
         _isHoming = activate;
-        currentFireMode = activate ? FireMode.AutoHoming : FireMode.Auto;
+        currentFireMode = activate ? FireMode.Multiple : FireMode.Auto;
 
         if (!activate)
         {

@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 
 public class StageStateHandler : BaseStateHandler
 {
-    private const float STAGE_DURATION = 600f;
+    private const float STAGE_DURATION = 30f;
     private bool isBossPhase = false;
     private bool isInitialized = false;
     private Tilemap obstacleTilemap;
@@ -44,7 +44,6 @@ public class StageStateHandler : BaseStateHandler
         GameManager.Instance.StageTimer.StartStageTimer(STAGE_DURATION);
 
         UIManager.Instance.OpenPanel(PanelType.StageTime);
-        isInitialized = true;
 
         StartSpawn();
     }
@@ -89,7 +88,6 @@ public class StageStateHandler : BaseStateHandler
     private void StartBossPhase()
     {
         isBossPhase = true;
-        UIManager.Instance.OpenPanel(PanelType.BossWarning);
         GameManager.Instance.MonsterSystem.SpawnStageBoss();
     }
 
@@ -100,6 +98,12 @@ public class StageStateHandler : BaseStateHandler
 
     private void OnTownPortalEnter(SceneType sceneType)
     {
-        Game.ChangeState(GameState.Town);
+        LoadingManager.Instance.LoadScene(
+            SceneType.Main_Town,
+            () =>
+            {
+                Game.ChangeState(GameState.Town);
+            }
+        );
     }
 }

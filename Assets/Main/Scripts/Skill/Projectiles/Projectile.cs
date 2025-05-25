@@ -88,7 +88,13 @@ public class Projectile : MonoBehaviour, IPoolable
         }
     }
 
-    public virtual void OnSpawnFromPool() { }
+    public virtual void OnSpawnFromPool()
+    {
+        foreach (Transform child in transform)
+        {
+            child.gameObject.SetActive(true);
+        }
+    }
 
     public void Initialize(
         float damage,
@@ -224,7 +230,7 @@ public class Projectile : MonoBehaviour, IPoolable
         if (!hasReachedMaxDistance)
         {
             float distanceTraveled = Vector2.Distance(transform.position, initialPosition);
-            if (distanceTraveled >= maxTravelDistance)
+            if (distanceTraveled >= 3f)
             {
                 hasReachedMaxDistance = true;
                 PoolManager.Instance.Despawn(this);

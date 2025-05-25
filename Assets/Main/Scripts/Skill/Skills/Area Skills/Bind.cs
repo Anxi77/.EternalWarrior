@@ -5,14 +5,15 @@ using UnityEngine;
 public class Bind : AreaSkills
 {
     public GameObject bindPrefab;
-    private List<BindEffect> spawnedBindEffects = new List<BindEffect>();
-    private Transform playerTransform;
+    private Player player;
+
+    private Dictionary<Monster, BindEffect> boundMonsters = new Dictionary<Monster, BindEffect>();
 
     public override void Initialize()
     {
         base.Initialize();
-        playerTransform = GameManager.Instance.PlayerSystem.Player.transform;
-        if (playerTransform == null)
+        player = GameManager.Instance.PlayerSystem.Player;
+        if (player == null)
         {
             Logger.LogError(typeof(Bind), "Player not found for Bind skill!");
         }
@@ -29,70 +30,66 @@ public class Bind : AreaSkills
 
         while (true)
         {
-            if (playerTransform == null)
-                continue;
-
-            if (GameManager.Instance.Monsters != null)
+            if (player == null)
             {
-                foreach (Monster enemy in GameManager.Instance.Monsters)
+                yield return null;
+                continue;
+            }
+
+            foreach (Monster enemy in GameManager.Instance.Monsters)
+            {
+                if (enemy == null)
+                    continue;
+
+                float distance = Vector2.Distance(
+                    player.transform.position,
+                    enemy.transform.position
+                );
+
+                if (distance <= Radius)
                 {
-                    if (enemy != null)
+                    if (!boundMonsters.ContainsKey(enemy))
                     {
-                        float distanceToPlayer = Vector2.Distance(
-                            playerTransform.position,
-                            enemy.transform.position
+                        BindMonster(enemy, Duration);
+
+                        BindEffect bindEffect = PoolManager.Instance.Spawn<BindEffect>(
+                            bindPrefab,
+                            enemy.transform.position,
+                            Quaternion.identity
                         );
-                        if (distanceToPlayer <= Radius)
+                        if (bindEffect != null)
                         {
-                            BindMonster(enemy, Duration);
+                            bindEffect.transform.SetParent(enemy.transform);
+                            bindEffect.transform.localPosition = Vector3.zero;
+                            bindEffect.transform.localRotation = Quaternion.identity;
+                            boundMonsters[enemy] = bindEffect;
 
-                            Vector3 effectPosition = enemy.transform.position;
-
-                            BindEffect bindEffect = PoolManager.Instance.Spawn<BindEffect>(
-                                bindPrefab,
-                                effectPosition,
-                                Quaternion.identity
+                            Logger.Log(
+                                typeof(Bind),
+                                $"Bind effect spawned at {enemy.transform.position}, parent: {enemy.name}"
                             );
-
-                            if (bindEffect != null)
-                            {
-                                bindEffect.gameObject.SetActive(false);
-                                bindEffect.transform.SetParent(enemy.transform);
-                                bindEffect.transform.localPosition = Vector3.zero;
-                                bindEffect.transform.localRotation = Quaternion.identity;
-                                bindEffect.gameObject.SetActive(true);
-
-                                spawnedBindEffects.Add(bindEffect);
-
-                                Logger.Log(
-                                    typeof(Bind),
-                                    $"Bind effect spawned at {effectPosition}, parent: {enemy.name}"
-                                );
-                            }
-                            else
-                            {
-                                Logger.LogError(typeof(Bind), "Failed to spawn BindEffect!");
-                            }
+                        }
+                        else
+                        {
+                            Logger.LogError(typeof(Bind), "Failed to spawn BindEffect!");
                         }
                     }
                 }
             }
 
-            foreach (BindEffect effect in spawnedBindEffects)
+            var toRemove = new List<Monster>();
+            foreach (var pair in boundMonsters)
             {
-                if (effect != null)
+                if (!GameManager.Instance.Monsters.Contains(pair.Key) || pair.Key == null)
                 {
-                    PoolManager.Instance.Despawn(effect);
+                    PoolManager.Instance.Despawn(pair.Value);
+                    toRemove.Add(pair.Key);
                 }
             }
-            spawnedBindEffects.Clear();
+            foreach (var m in toRemove)
+                boundMonsters.Remove(m);
 
             yield return new WaitForSeconds(TickRate);
-
-            if (!IsPersistent)
-            {
-                break;
-            }
         }
     }
 
@@ -104,10 +101,10 @@ public class Bind : AreaSkills
 
     private void OnDrawGizmos()
     {
-        if (playerTransform != null)
+        if (player != null)
         {
             Gizmos.color = new Color(1, 0, 0, 0.2f);
-            Gizmos.DrawWireSphere(playerTransform.position, Radius);
+            Gizmos.DrawWireSphere(player.transform.position, Radius);
         }
     }
 }

@@ -31,35 +31,6 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         public List<Vector2> path = new List<Vector2>(MAX_PATH_LENGTH);
     }
 
-    private void Start()
-    {
-        Test();
-    }
-
-    public void Test()
-    {
-        InitializePools();
-
-        nodeSize = terrainTilemap.cellSize.x;
-        activeNodes.Clear();
-
-        var bounds = terrainTilemap.cellBounds;
-        for (int x = bounds.xMin; x < bounds.xMax; x++)
-        {
-            for (int y = bounds.yMin; y < bounds.yMax; y++)
-            {
-                Vector3Int cellPosition = new Vector3Int(x, y, 0);
-                Vector2 worldPosition =
-                    terrainTilemap.CellToWorld(cellPosition)
-                    + (Vector3)terrainTilemap.cellSize / 2f;
-                bool isWalkable = !obstacleTilemap.HasTile(cellPosition);
-                activeNodes[new Vector2Int(x, y)] = new Node(isWalkable, worldPosition, x, y);
-            }
-        }
-
-        IsInitialized = true;
-    }
-
     private void InitializePools()
     {
         for (int i = 0; i < INITIAL_POOL_SIZE; i++)
@@ -159,12 +130,12 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
         return neighbours;
     }
 
-    public List<Vector2> GetPath(Vector2 startPos, Vector2 targetPos, bool recordSearch = false)
+    public List<Vector2> GetPath(Vector2 startPos, Vector2 targetPos)
     {
         var pathFindingInstance = GetPathFindingInstance();
         try
         {
-            var path = FindPath(startPos, targetPos, pathFindingInstance, recordSearch);
+            var path = FindPath(startPos, targetPos, pathFindingInstance);
             if (path != null && path.Count > 2)
             {
                 path = OptimizePath(path);
@@ -180,8 +151,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
     private List<Vector2> FindPath(
         Vector2 startPos,
         Vector2 targetPos,
-        PathFindingInstance instance,
-        bool recordSearch = false
+        PathFindingInstance instance
     )
     {
         openSet = instance.openSet;
@@ -280,7 +250,7 @@ public class PathFindingSystem : MonoBehaviour, IInitializable
     {
         float dx = Mathf.Abs(a.gridX - b.gridX); // x축 거리
         float dy = Mathf.Abs(a.gridY - b.gridY); // y축 거리
-        // 맨해튼 거리 + 대각선 이동 가중치
+        // 맨해튼 거리
         return dx + dy;
     }
 

@@ -18,6 +18,7 @@ public class Monster : MonoBehaviour
     public ParticleSystem attackParticle;
     public Collider2D enemyCollider;
     public PathFinder pathFinder;
+    public MonsterAnimator MonsterAnimator => monsterAnimator;
     public StatSystem stat;
     protected float lastAttackTime;
     public float preferredDistance = 1.0f;
@@ -139,7 +140,7 @@ public class Monster : MonoBehaviour
 
     protected virtual void InitializeComponents()
     {
-        pathFinder.Initialize(this, rb);
+        pathFinder.Initialize(this);
     }
 
     #region Combat

@@ -178,7 +178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce95db0a56168764590e67d7c114b149, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  iconImage: {fileID: 853965611910073828}
+  iconImage: {fileID: 7749099447387390357}
   levelText: {fileID: 876984237389379054}
 --- !u!1 &3447930257675433937
 GameObject:

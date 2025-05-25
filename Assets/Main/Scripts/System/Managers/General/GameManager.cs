@@ -62,6 +62,7 @@ public class GameManager : Singleton<GameManager>
             () =>
             {
                 ChangeState(GameState.Title);
+                IsInitialized = true;
             }
         );
     }

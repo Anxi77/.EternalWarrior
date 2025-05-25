@@ -36,14 +36,10 @@ public class GravityProjectile : Projectile
     private CircleCollider2D circleCollider;
     private bool isShrinking = false;
     private float shrinkTimer = 0f;
-    private new float maxTravelDistance;
     private Vector3 startPosition;
     private bool hasReachedDestination = false;
     private Vector3 projectileDirection;
-    private float projectileSpeed = 10f;
-
-    [SerializeField]
-    private float homingStrength = 5f;
+    private float projectileSpeed = 5f;
 
     private bool hasStartedGrowth = false;
 
@@ -51,6 +47,11 @@ public class GravityProjectile : Projectile
     {
         base.Awake();
         circleCollider = GetComponent<CircleCollider2D>();
+    }
+
+    private void OnEnable()
+    {
+        startPosition = transform.position;
     }
 
     protected override void Update()
@@ -72,13 +73,22 @@ public class GravityProjectile : Projectile
 
     private void MoveAndCheckTarget()
     {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, currentSize);
+        foreach (Collider2D collider in colliders)
+        {
+            if (collider.TryGetComponent<Monster>(out Monster enemy))
+            {
+                hasReachedDestination = true;
+                break;
+            }
+        }
         if (isHoming && target != null && target.gameObject.activeSelf)
         {
             Vector2 directionToTarget = (target.transform.position - transform.position).normalized;
             projectileDirection = Vector3.Lerp(
                 projectileDirection,
                 directionToTarget,
-                Time.deltaTime * homingStrength
+                Time.deltaTime * 5f
             );
 
             float distanceToTarget = Vector2.Distance(
@@ -89,6 +99,14 @@ public class GravityProjectile : Projectile
             {
                 hasReachedDestination = true;
                 return;
+            }
+        }
+        else
+        {
+            float distanceTraveled = Vector2.Distance(transform.position, startPosition);
+            if (distanceTraveled >= maxTravelDistance)
+            {
+                hasReachedDestination = true;
             }
         }
 
@@ -107,14 +125,6 @@ public class GravityProjectile : Projectile
         UpdateGrowth();
         ApplyGravityEffect();
         ApplyDamageOverTime();
-    }
-
-    protected override void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.TryGetComponent<Monster>(out _))
-        {
-            hasReachedDestination = true;
-        }
     }
 
     private void UpdateGrowth()
@@ -238,7 +248,6 @@ public class GravityProjectile : Projectile
         isShrinking = false;
         currentSize = _startSize;
         UpdateSize(_startSize);
-        startPosition = transform.position;
         projectileDirection = Vector2.zero;
     }
 

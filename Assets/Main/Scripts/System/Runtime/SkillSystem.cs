@@ -158,7 +158,6 @@ public class SkillSystem : MonoBehaviour, IInitializable
                     if (tempObj.TryGetComponent<Skill>(out var skillComponent))
                     {
                         skillComponent.SetSkillData(skillData);
-                        skillComponent.Initialize();
 
                         tempObj.transform.SetParent(
                             GameManager.Instance.PlayerSystem.Player.transform
@@ -169,6 +168,7 @@ public class SkillSystem : MonoBehaviour, IInitializable
 
                         tempObj.SetActive(true);
                         GameManager.Instance.PlayerSystem.Player.skills.Add(skillComponent);
+                        skillComponent.Initialize();
                         Logger.Log(
                             typeof(SkillSystem),
                             $"Successfully added new skill: {skillData.Name} at position {tempObj.transform.localPosition}"

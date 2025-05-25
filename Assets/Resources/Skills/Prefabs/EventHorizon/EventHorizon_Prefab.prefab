@@ -65,6 +65,7 @@ MonoBehaviour:
   _endSize: 3
   _growthDuration: 2
   gravityProjectilePrefab: {fileID: 6509167024880638538, guid: 046f24ff77ef1f847b80e6bb334e9cd9, type: 3}
+  homingTriggerKey: 304
   references:
     version: 2
     RefIds:

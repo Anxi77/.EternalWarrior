@@ -1,8 +1,6 @@
-using System;
-using System.Collections;
-using Michsky.UI.Heat;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TestPanel : Panel
 {
@@ -10,16 +8,10 @@ public class TestPanel : Panel
 
     [Header("UI Elements")]
     [SerializeField]
-    private Dropdown skillDropdown;
+    private RectTransform skillParent;
 
     [SerializeField]
-    private ButtonManager addSkillButton;
-
-    [SerializeField]
-    private Dropdown itemDropdown;
-
-    [SerializeField]
-    private ButtonManager addItemButton;
+    private Button skillButtonPrefab;
 
     private bool isInitialized = false;
 
@@ -32,7 +24,6 @@ public class TestPanel : Panel
     public void Initialize()
     {
         InitializeDropdown();
-        SetupButton();
         isInitialized = true;
     }
 
@@ -42,14 +33,9 @@ public class TestPanel : Panel
 
         foreach (var skillData in skillDatas)
         {
-            skillDropdown.CreateNewItem($"{skillData.Name} ({skillData.Type})", true);
-        }
-
-        var items = ItemDataManager.Instance.GetAllData();
-
-        foreach (var itemData in items)
-        {
-            itemDropdown.CreateNewItem($"{itemData.Name} ({itemData.Type})", true);
+            var skillButton = Instantiate(skillButtonPrefab, skillParent);
+            skillButton.GetComponent<Button>().onClick.AddListener(() => AddSelectedSkill(skillData));
+            skillButton.GetComponentInChildren<TextMeshProUGUI>().text = skillData.Name;
         }
 
         Logger.Log(
@@ -58,13 +44,7 @@ public class TestPanel : Panel
         );
     }
 
-    private void SetupButton()
-    {
-        addSkillButton.onClick.AddListener(AddSelectedSkill);
-        addItemButton.onClick.AddListener(AddSelectedItem);
-    }
-
-    private void AddSelectedSkill()
+    private void AddSelectedSkill(SkillData skillData)
     {
         if (!isInitialized)
         {
@@ -78,37 +58,11 @@ public class TestPanel : Panel
             return;
         }
 
-        var skillDatas = SkillDataManager.Instance.GetAllData();
-        if (skillDropdown.selectedItemIndex < skillDatas.Count)
-        {
-            var selectedSkill = skillDatas[skillDropdown.selectedItemIndex];
-            GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(selectedSkill);
-            Logger.Log(
-                typeof(TestPanel),
-                $"SkillTester: Added/Upgraded skill: {selectedSkill.Name}"
-            );
-        }
-    }
+        GameManager.Instance.PlayerSystem.Player.AddOrUpgradeSkill(skillData);
 
-    private void AddSelectedItem()
-    {
-        var items = ItemDataManager.Instance.GetAllData();
-        if (itemDropdown.selectedItemIndex < items.Count)
-        {
-            var selectedItem = items[itemDropdown.selectedItemIndex];
-
-            var item = GameManager.Instance.ItemSystem.GetItem(selectedItem.ID);
-
-            GameManager.Instance.PlayerSystem.Player.inventory.AddItem(item);
-
-            Logger.Log(typeof(TestPanel), $"[Test] Added item: {selectedItem.Name}");
-        }
-    }
-
-    private void OnDisable()
-    {
-        addSkillButton.onClick.RemoveAllListeners();
-        addItemButton.onClick.RemoveAllListeners();
-        isInitialized = false;
+        Logger.Log(
+            typeof(TestPanel),
+            $"SkillTester: Added/Upgraded skill: {skillData.Name}"
+        );
     }
 }

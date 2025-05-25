@@ -371,7 +371,7 @@ public class PassiveSkill : Skill
 
     protected virtual void OnDestroy()
     {
-        if (GameManager.Instance.PlayerSystem.Player != null)
+        if (GameManager.Instance?.PlayerSystem?.Player != null)
         {
             StopAllCoroutines();
             Player player = GameManager.Instance.PlayerSystem.Player;

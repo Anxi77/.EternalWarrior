@@ -60,13 +60,6 @@ public class BossMonster : Monster
             enrageDamageMultiplier
         );
         stat.AddModifier(damagemodifier);
-        var moveSpeedModifier = new StatModifier(
-            StatType.MoveSpeed,
-            this,
-            CalcType.Multiply,
-            enrageSpeedMultiplier
-        );
-        stat.AddModifier(moveSpeedModifier);
 
         PlayEnrageEffect();
     }

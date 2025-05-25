@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DefaultPlayerStat:
     MaxHp: 2000
-    Damage: 1
+    Damage: 50
     Defense: 2
     MoveSpeed: 5
     AttackSpeed: 1

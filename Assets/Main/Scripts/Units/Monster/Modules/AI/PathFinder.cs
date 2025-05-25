@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Assets.FantasyMonsters.Common.Scripts;
 using UnityEngine;
 
 public class PathFinder : MonoBehaviour
@@ -7,15 +8,11 @@ public class PathFinder : MonoBehaviour
     protected float lastPathUpdateTime;
 
     [SerializeField]
-    private Rigidbody2D rb;
-
-    [SerializeField]
     private Monster monster;
 
-    public void Initialize(Monster monster, Rigidbody2D rb)
+    public void Initialize(Monster monster)
     {
         this.monster = monster;
-        this.rb = rb;
         currentPath = null;
         lastPathUpdateTime = 0f;
     }
@@ -45,19 +42,12 @@ public class PathFinder : MonoBehaviour
                 );
             }
             FollowPath();
+            monster.MonsterAnimator.SetState(MonsterState.Run);
         }
         else
         {
             currentPath = null;
         }
-    }
-
-    private bool HasObstacle()
-    {
-        float checkRadius = 1f;
-        int obstacleLayer = LayerMask.GetMask("Obstacle");
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, checkRadius, obstacleLayer);
-        return hit != null;
     }
 
     private void FollowPath()

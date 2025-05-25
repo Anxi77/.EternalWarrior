@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 7033359547930903026}
-  SkillParent: {fileID: 5452386086116679505}
+  skillParent: {fileID: 5452386086116679505}
   skillButtonPrefab: {fileID: 3796894198852077114, guid: 3b166901f93a38449936dbb3babb4d96, type: 3}
 --- !u!95 &7033359547930903026
 Animator:

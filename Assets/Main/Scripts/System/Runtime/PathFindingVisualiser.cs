@@ -39,7 +39,7 @@ public class PathfindingVisualizer : MonoBehaviour
     IEnumerator Start()
     {
         yield return new WaitUntil(() => pathFindingSystem.IsInitialized);
-        pathFindingSystem.GetPath(startPos, targetPos, true);
+        pathFindingSystem.GetPath(startPos, targetPos);
         currentStep = 0;
         isSearching = true;
         isPathDrawn = false;
