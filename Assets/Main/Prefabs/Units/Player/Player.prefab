@@ -1416,8 +1416,7 @@ GameObject:
   - component: {fileID: 3940259359589790905}
   - component: {fileID: 7232877391745312580}
   - component: {fileID: 6118771307960794126}
-  - component: {fileID: 165434191694404430}
-  - component: {fileID: 560246702848047007}
+  - component: {fileID: 3688548705696426003}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -1515,12 +1514,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16b37abff5f8f804c9ebe6e30d9537ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stat: {fileID: 3688548705696426003}
+  skills: []
+  isStunned: 0
   level: 1
   exp: 0
-  playerStat: {fileID: 0}
-  characterControl: {fileID: 8435831049125883825}
-  skills: []
---- !u!114 &165434191694404430
+  rb: {fileID: 0}
+  animationController: {fileID: 0}
+  inventory: {fileID: 0}
+  playerInput: {fileID: 0}
+--- !u!114 &3688548705696426003
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1529,22 +1532,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2396327424899577091}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47e43b3baadd5c441a319304b501cdb1, type: 3}
+  m_Script: {fileID: 11500000, guid: eb08e00eabbb67343ab0b6a158080b2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &560246702848047007
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2396327424899577091}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea00e24599c94f54eabe63be15eaaf12, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player: {fileID: 6118771307960794126}
+  enableDetailedLogs: 0
 --- !u!1 &2608543639926941008
 GameObject:
   m_ObjectHideFlags: 0
@@ -2515,7 +2506,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4888815199701795035}
   - component: {fileID: 8435831049125883825}
-  - component: {fileID: 7780233442764354532}
   m_Layer: 9
   m_Name: Renderer
   m_TagString: Untagged
@@ -5603,18 +5593,6 @@ MonoBehaviour:
   - {fileID: 7400000, guid: 4c70df3312bb83346a1bf065b30d3467, type: 2}
   - {fileID: 7400000, guid: 1ef525d53ae254f7d82ef364ced85490, type: 2}
   - {fileID: 7400000, guid: fabe4f140fdb9cb448bc941c7c93e8b6, type: 2}
---- !u!114 &7780233442764354532
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4223571213305298433}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d39b3c74284e9a9459fd3ee8799b21af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &4367338458366201482
 GameObject:
   m_ObjectHideFlags: 0

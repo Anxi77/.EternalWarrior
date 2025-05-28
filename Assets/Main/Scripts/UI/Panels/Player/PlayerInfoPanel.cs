@@ -89,8 +89,8 @@ public class PlayerInfoPanel : Panel
         }
 
         this.player = player;
-        float maxHp = player.playerStat.GetStat(StatType.MaxHp);
-        float currentHp = player.playerStat.GetStat(StatType.CurrentHp);
+        float maxHp = player.stat.GetStat(StatType.MaxHp);
+        float currentHp = player.stat.GetStat(StatType.CurrentHp);
         hpBar.maxValue = maxHp;
         hpBar.SetValue(currentHp);
         levelText.text = player.level.ToString();
@@ -99,7 +99,7 @@ public class PlayerInfoPanel : Panel
         player.OnLevelUp += OnLevelUp;
     }
 
-    private void UpdateHealthUI(float currentHp, float maxHp)
+    private void UpdateHealthUI(ScaledInt currentHp, ScaledInt maxHp)
     {
         hpBar.maxValue = maxHp;
         hpBar.SetValue(currentHp);

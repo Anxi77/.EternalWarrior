@@ -913,8 +913,8 @@ GameObject:
   - component: {fileID: 8855867922605310813}
   - component: {fileID: 6082493033591708299}
   - component: {fileID: 8696799390761053064}
-  - component: {fileID: 9154441760372293871}
   - component: {fileID: 7614981723075967952}
+  - component: {fileID: 349388565580076604}
   m_Layer: 7
   m_Name: Bat
   m_TagString: Enemy
@@ -978,15 +978,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28d57c54bc8195541ae351217156d4ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  stat: {fileID: 349388565580076604}
+  skills: []
+  isStunned: 0
   monsterAnimator: {fileID: 7364839141162583823}
   hpBar: {fileID: 7516863017718196702}
   rb: {fileID: 8855867922605310813}
   attackParticle: {fileID: 198724499637059262, guid: b0b484d1e19cd324cbe11a7349a75e67, type: 3}
   enemyCollider: {fileID: 0}
   pathFinder: {fileID: 8696799390761053064}
-  stat: {fileID: 9154441760372293871}
   preferredDistance: 1
-  isStunned: 0
   isInit: 0
   animator: {fileID: 1044478411171301784}
   attackPrepareTime: 0.2
@@ -1002,20 +1003,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b1300fb07ec79c4c8c37407ea4d0623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 8855867922605310813}
   monster: {fileID: 6082493033591708299}
---- !u!114 &9154441760372293871
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4584078883595134475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be051e644a9092a4ea69c8af5aafa99f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!61 &7614981723075967952
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1061,6 +1049,19 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &349388565580076604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4584078883595134475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb08e00eabbb67343ab0b6a158080b2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableDetailedLogs: 0
 --- !u!1 &5115220416997737373
 GameObject:
   m_ObjectHideFlags: 0

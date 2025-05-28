@@ -36,7 +36,7 @@ public class Inventory : MonoBehaviour
 
             if (inventoryPanel != null)
             {
-                inventoryPanel.SetupInventory(this, player.playerStat);
+                inventoryPanel.SetupInventory(this, player.stat);
             }
 
             IsInitialized = true;

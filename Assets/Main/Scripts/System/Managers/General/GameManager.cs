@@ -269,11 +269,6 @@ public class GameManager : Singleton<GameManager>
 
         Vector3 spawnPos = PlayerSystem.GetSpawnPosition(SceneType.Main_Town);
         PlayerSystem.SpawnPlayer(spawnPos);
-
-        if (PlayerSystem.Player != null)
-        {
-            PlayerSystem.Player.playerStatus = Player.Status.Alive;
-        }
     }
 
     #region Game State Management

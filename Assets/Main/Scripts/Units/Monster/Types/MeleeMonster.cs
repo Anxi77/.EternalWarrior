@@ -39,7 +39,7 @@ public class MeleeMonster : Monster
                     particle.Play();
                     Destroy(particle.gameObject, 0.3f);
                 }
-                hit.GetComponent<Player>()?.TakeDamage(stat.GetStat(StatType.Damage));
+                hit.GetComponent<Player>()?.TakeDamage(stat.GetStat(StatType.Damage), this);
             }
         }
 

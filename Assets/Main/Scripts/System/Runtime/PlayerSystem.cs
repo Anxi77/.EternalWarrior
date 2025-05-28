@@ -34,8 +34,6 @@ public class PlayerSystem : MonoBehaviour, IInitializable
             player.animationController.Initialize();
         }
 
-        player.playerStatus = Player.Status.Alive;
-
         player.StartCombatSystems();
     }
 

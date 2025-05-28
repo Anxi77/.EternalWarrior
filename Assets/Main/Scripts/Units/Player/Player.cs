@@ -2,28 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Player : MonoBehaviour
+public class Player : Unit
 {
     #region Members
-
-    #region Status
-    public enum Status
-    {
-        Alive = 1,
-        Dead,
-        Attacking,
-    }
-
-    private Status _playerStatus;
-    public Status playerStatus
-    {
-        get { return _playerStatus; }
-        set { _playerStatus = value; }
-    }
-    #endregion
 
     #region Level & Experience
     [Header("Level Related")]
@@ -55,16 +40,14 @@ public class Player : MonoBehaviour
     #region References
     private Vector2 moveInput;
     private Vector2 velocity;
-    public StatSystem playerStat;
     public Rigidbody2D rb;
     public SPUM_Prefabs animationController;
-    public List<Skill> skills;
+
     public Inventory inventory;
     public PlayerInput playerInput;
 
-    public Action<float, float> OnHpChanged;
-    public Action<float, float> OnExpChanged;
     public Action OnLevelUp;
+    public Action<float, float> OnExpChanged;
     #endregion
 
     #endregion
@@ -73,6 +56,7 @@ public class Player : MonoBehaviour
 
     public void Initialize(StatData saveData, InventoryData inventoryData)
     {
+        unitStatus = UnitStatus.Alive;
         gameObject.name = "Player";
         if (rb != null)
         {
@@ -80,7 +64,7 @@ public class Player : MonoBehaviour
             rb.constraints = RigidbodyConstraints2D.FreezeRotation;
         }
         animationController.Initialize();
-        playerStat.Initialize(saveData);
+        stat.Initialize(saveData);
         inventory.Initialize(this, inventoryData);
         playerInput.Initialize(this);
         StartCombatSystems();
@@ -94,18 +78,10 @@ public class Player : MonoBehaviour
 
     private void CleanupPlayer()
     {
-        StopAllCoroutines();
-
         if (autoAttackCoroutine != null)
         {
             StopCoroutine(autoAttackCoroutine);
             autoAttackCoroutine = null;
-        }
-
-        if (healthRegenCoroutine != null)
-        {
-            StopCoroutine(healthRegenCoroutine);
-            healthRegenCoroutine = null;
         }
 
         if (skills != null)
@@ -122,15 +98,15 @@ public class Player : MonoBehaviour
 
         playerInput.Cleanup();
 
-        playerStatus = Status.Dead;
+        unitStatus = UnitStatus.Dead;
         IsInitialized = false;
     }
 
     public void StartCombatSystems()
     {
-        if (playerStatus != Status.Dead)
+        if (unitStatus != UnitStatus.Dead)
         {
-            if (playerStat == null)
+            if (stat == null)
             {
                 Logger.LogError(typeof(Player), "PlayerStat is null!");
                 return;
@@ -156,8 +132,7 @@ public class Player : MonoBehaviour
     #region Move&Skills
     public void Move()
     {
-        float moveSpeed = playerStat.GetStat(StatType.MoveSpeed);
-        velocity = moveInput * moveSpeed;
+        velocity = moveInput * stat.GetStat(StatType.MoveSpeed).ToFloat();
 
         rb.MovePosition(rb.position + velocity * Time.fixedDeltaTime);
     }
@@ -238,7 +213,7 @@ public class Player : MonoBehaviour
     {
         while (level < expList.Count && exp >= expList[level - 1])
         {
-            LevelUpInternal();
+            level++;
 
             SkillPanel skillPanel = UIManager.Instance.OpenPanel(PanelType.Skill) as SkillPanel;
 
@@ -253,25 +228,6 @@ public class Player : MonoBehaviour
 
             OnLevelUp?.Invoke();
         }
-    }
-
-    private void LevelUpInternal()
-    {
-        level++;
-
-        float currentHpRatio =
-            playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-
-        playerStat.UpdateStatsForLevel(level);
-
-        float maxHp = playerStat.GetStat(StatType.MaxHp);
-
-        playerStat.SetCurrentHp(maxHp * currentHpRatio);
-
-        Logger.Log(
-            typeof(Player),
-            $"Level Up! Level: {level}, New MaxHP: {maxHp}, Current HP: {playerStat.GetStat(StatType.CurrentHp)}"
-        );
     }
 
     #endregion
@@ -300,36 +256,9 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void TakeHeal(float heal)
+    public override void Die()
     {
-        float currentHp = playerStat.GetStat(StatType.CurrentHp);
-        float maxHp = playerStat.GetStat(StatType.MaxHp);
-
-        currentHp = Mathf.Min(currentHp + heal, maxHp);
-        playerStat.SetCurrentHp(currentHp);
-        OnHpChanged?.Invoke(currentHp, maxHp);
-    }
-
-    public void TakeDamage(float damage)
-    {
-        float defense = playerStat.GetStat(StatType.Defense);
-        float actualDamage = Mathf.Max(1, damage - defense);
-        float currentHp = playerStat.GetStat(StatType.CurrentHp);
-        float maxHp = playerStat.GetStat(StatType.MaxHp);
-        currentHp -= actualDamage;
-        playerStat.SetCurrentHp(currentHp);
-
-        OnHpChanged?.Invoke(currentHp, maxHp);
-
-        if (currentHp <= 0)
-        {
-            Die();
-        }
-    }
-
-    public void Die()
-    {
-        playerStatus = Status.Dead;
+        unitStatus = UnitStatus.Dead;
         StopAllCoroutines();
 
         GameManager.Instance.ChangeState(GameState.GameOver);
@@ -341,10 +270,10 @@ public class Player : MonoBehaviour
     private Coroutine autoAttackCoroutine;
     private float attackAngle = 120f;
 
-    private IEnumerator PerformAttack(Monster targetEnemy)
+    private void Attack(Monster targetEnemy)
     {
         if (animationController == null)
-            yield break;
+            return;
 
         Vector2 directionToTarget = (
             targetEnemy.transform.position - transform.position
@@ -356,11 +285,11 @@ public class Player : MonoBehaviour
             1
         );
 
-        playerStatus = Status.Attacking;
+        unitStatus = UnitStatus.Attacking;
         animationController.PlayAnimation(PlayerState.ATTACK, 0);
 
-        float attackRange = playerStat.GetStat(StatType.AttackRange);
-        float damage = playerStat.GetStat(StatType.Damage);
+        float attackRange = stat.GetStat(StatType.AttackRange).ToFloat();
+        ScaledInt damage = stat.GetStat(StatType.Damage);
 
         var enemiesInRange = GameManager
             .Instance.Monsters.Where(enemy => enemy != null)
@@ -378,16 +307,12 @@ public class Player : MonoBehaviour
         {
             float random = Random.Range(0f, 100f);
 
-            if (random <= playerStat.GetStat(StatType.CriticalChance))
+            if (random <= stat.GetStat(StatType.CriticalChance))
             {
-                damage *= playerStat.GetStat(StatType.CriticalDamage);
+                damage *= stat.GetStat(StatType.CriticalDamage);
             }
 
-            enemy.TakeDamage(damage);
-            playerStat.SetCurrentHp(
-                playerStat.GetStat(StatType.CurrentHp)
-                    + playerStat.GetStat(StatType.LifeSteal) / 100 * damage
-            );
+            enemy.TakeDamage(damage, this);
         }
     }
 
@@ -402,61 +327,16 @@ public class Player : MonoBehaviour
     #endregion
 
     #region Passive Skill Effects
-    public void ActivateHoming(bool activate)
-    {
-        foreach (var skill in skills)
-        {
-            if (skill is ProjectileSkills ProjectileSkills)
-            {
-                ProjectileSkills.UpdateHomingState(activate);
-            }
-        }
-    }
 
     public void ResetPassiveEffects()
     {
         var passiveSkills = skills.Where(skill => skill is PassiveSkill).ToList();
         foreach (var skill in passiveSkills)
         {
-            var passiveSkill = skill as PassiveSkill;
-            foreach (var modifier in passiveSkill.statModifiers)
-            {
-                playerStat.RemoveModifier(modifier);
-            }
+            stat.RemoveStatFromSource(skill);
         }
     }
 
-    #endregion
-
-    #region Health Regeneration
-    private Coroutine healthRegenCoroutine;
-    private const float REGEN_TICK_RATE = 1f;
-
-    private void StartHealthRegeneration()
-    {
-        if (healthRegenCoroutine != null)
-            StopCoroutine(healthRegenCoroutine);
-
-        healthRegenCoroutine = StartCoroutine(HealthRegenCoroutine());
-    }
-
-    private IEnumerator HealthRegenCoroutine()
-    {
-        WaitForSeconds wait = new WaitForSeconds(REGEN_TICK_RATE);
-
-        while (true)
-        {
-            if (playerStat != null)
-            {
-                float regenAmount = playerStat.GetStat(StatType.HpRegenRate);
-                if (regenAmount > 0)
-                {
-                    TakeHeal(regenAmount);
-                }
-            }
-            yield return wait;
-        }
-    }
     #endregion
 
     #endregion
@@ -488,19 +368,14 @@ public class Player : MonoBehaviour
 
     private void StartAutoAttack()
     {
-        if (autoAttackCoroutine != null)
-        {
-            StopCoroutine(autoAttackCoroutine);
-            autoAttackCoroutine = null;
-        }
-        autoAttackCoroutine = StartCoroutine(AutoAttackCoroutine());
+        AutoAttack().Forget();
     }
 
-    private IEnumerator AutoAttackCoroutine()
+    private async UniTask AutoAttack()
     {
         while (true)
         {
-            if (playerStatus != Status.Dead)
+            if (UnitStatus != UnitStatus.Dead)
             {
                 Monster nearestEnemy = FindNearestEnemy();
                 if (nearestEnemy != null)
@@ -509,17 +384,17 @@ public class Player : MonoBehaviour
                         transform.position,
                         nearestEnemy.transform.position
                     );
-                    float attackRange = playerStat.GetStat(StatType.AttackRange);
+                    float attackRange = stat.GetStat(StatType.AttackRange);
 
                     if (distanceToEnemy <= attackRange)
                     {
-                        yield return StartCoroutine(PerformAttack(nearestEnemy));
+                        Attack(nearestEnemy);
                     }
                 }
             }
 
-            float attackDelay = 1f / playerStat.GetStat(StatType.AttackSpeed);
-            yield return new WaitForSeconds(attackDelay);
+            float attackDelay = 1f / stat.GetStat(StatType.AttackSpeed);
+            await UniTask.WaitForSeconds(attackDelay);
         }
     }
 }

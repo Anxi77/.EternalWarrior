@@ -1,6 +1,5 @@
 using System;
 using Cinemachine;
-using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class CameraSystem : MonoBehaviour, IInitializable

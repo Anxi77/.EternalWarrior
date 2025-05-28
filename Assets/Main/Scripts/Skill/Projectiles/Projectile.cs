@@ -245,8 +245,7 @@ public class Projectile : MonoBehaviour, IPoolable
             return;
         }
 
-        enemy.TakeDamage(damage);
-
+        enemy.TakeDamage(damage, this);
         if (impactParticle != null)
         {
             ParticleSystem particle = PoolManager.Instance.Spawn<ParticleSystem>(
@@ -265,7 +264,7 @@ public class Projectile : MonoBehaviour, IPoolable
 
         if (elementType != ElementType.None && elementalPower > 0)
         {
-            ElementalEffects.ApplyElementalEffect(elementType, elementalPower, other.gameObject);
+            ElementalEffects.ApplyElementalEffect(elementType, elementalPower, this, enemy);
         }
 
         if (isHoming || --pierceCount <= 0)

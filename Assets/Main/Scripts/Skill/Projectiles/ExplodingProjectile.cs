@@ -67,14 +67,15 @@ public class ExplodingProjectile : Projectile
             {
                 if (hitCollider.TryGetComponent<Monster>(out Monster enemy))
                 {
-                    enemy.TakeDamage(_damage);
+                    enemy.TakeDamage(_damage, this);
 
                     if (_elementType != ElementType.None && _elementalPower > 0)
                     {
                         ElementalEffects.ApplyElementalEffect(
                             _elementType,
                             _elementalPower,
-                            hitCollider.gameObject
+                            this,
+                            enemy
                         );
                     }
                 }

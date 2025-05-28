@@ -17,7 +17,7 @@ public abstract class Item
         var playerStat = player.GetComponent<StatSystem>();
         foreach (var stat in itemData.Stats)
         {
-            playerStat.AddModifier(stat);
+            playerStat.AddStat(stat.Type, stat.CalcType, stat.Value, this);
         }
     }
 
@@ -26,7 +26,7 @@ public abstract class Item
         var playerStat = player.GetComponent<StatSystem>();
         foreach (var stat in itemData.Stats)
         {
-            playerStat.RemoveModifier(stat);
+            playerStat.RemoveStat(stat.Type, stat.CalcType, stat.Value, this);
         }
     }
 }

@@ -99,23 +99,23 @@ public class ItemTooltip : MonoBehaviour
         atkIcon.SetActive(false);
         defIcon.SetActive(false);
 
-        StatModifier mainStat = null;
+        Stat mainStat = default;
         if (itemData.Type == ItemType.Weapon)
         {
             atkIcon.SetActive(true);
-            mainStat = itemData.Stats?.Find(s => s.Type == StatType.Damage);
+            mainStat = itemData.Stats.Find(s => s.Type == StatType.Damage);
         }
         else if (itemData.Type == ItemType.Armor)
         {
             defIcon.SetActive(true);
-            mainStat = itemData.Stats?.Find(s => s.Type == StatType.Defense);
+            mainStat = itemData.Stats.Find(s => s.Type == StatType.Defense);
         }
 
-        if (mainStat != null)
+        if (mainStat.Value > 0)
             mainStatValueText.text = FormatStat(mainStat, itemData.Type, true);
     }
 
-    private string FormatStat(StatModifier stat, ItemType itemType, bool isMainStat = false)
+    private string FormatStat(Stat stat, ItemType itemType, bool isMainStat = false)
     {
         var inventory = GameManager.Instance.PlayerSystem?.Player?.inventory;
         var equipped = inventory?.GetEquippedItem(itemType);

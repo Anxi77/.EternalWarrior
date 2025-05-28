@@ -43,79 +43,70 @@ public class DefaultPlayerStat
 [Serializable]
 public class StatData
 {
-    public Dictionary<StatType, float> baseStats = new();
+    public Dictionary<StatType, ScaledInt> baseStats = new();
 
     public void CreatePlayerDefaultStat(Dictionary<StatType, float> defaultStat)
     {
+        baseStats.Clear();
         foreach (var stat in defaultStat)
         {
-            baseStats[stat.Key] = stat.Value;
+            baseStats.Add(stat.Key, new ScaledInt((long)stat.Value));
         }
+        baseStats[StatType.CurrentHp] = new ScaledInt(baseStats[StatType.MaxHp].Value);
     }
 
     public void CreateMonsterDefaultStat()
     {
-        baseStats[StatType.MaxHp] = 50f;
-        baseStats[StatType.Damage] = 5f;
-        baseStats[StatType.Defense] = 1f;
-        baseStats[StatType.MoveSpeed] = 7f;
-        baseStats[StatType.AttackSpeed] = 1f;
-        baseStats[StatType.AttackRange] = 5f;
-        baseStats[StatType.MaxDefenseReduction] = 0.9f;
-        baseStats[StatType.MaxMoveSpeedReduction] = 0.9f;
-        baseStats[StatType.DropExp] = 5f;
-        baseStats[StatType.CurrentHp] = baseStats[StatType.MaxHp];
+        baseStats.Add(StatType.MaxHp, 50f);
+        baseStats.Add(StatType.Damage, 5f);
+        baseStats.Add(StatType.Defense, 1f);
+        baseStats.Add(StatType.MoveSpeed, 7f);
+        baseStats.Add(StatType.AttackSpeed, 1f);
+        baseStats.Add(StatType.AttackRange, 5f);
+        baseStats.Add(StatType.DropExp, 5f);
+        baseStats.Add(StatType.CurrentHp, baseStats[StatType.MaxHp]);
     }
 }
 
 [Serializable]
-public class StatModifier
+public struct Stat
 {
     private StatType type;
+    private CalcType calcType;
+    private ScaledInt value;
+
+    [JsonIgnore]
     private object source;
-    private CalcType increaseType;
-    private float value;
 
     [JsonIgnore]
-    public StatType Type
-    {
-        get => type;
-    }
+    public StatType Type => type;
 
     [JsonIgnore]
-    public object Source
-    {
-        get => source;
-    }
+    public object Source => source;
 
     [JsonIgnore]
-    public CalcType IncreaseType
-    {
-        get => increaseType;
-    }
+    public CalcType CalcType => calcType;
 
     [JsonIgnore]
-    public float Value
-    {
-        get => value;
-    }
+    public ScaledInt Value => value;
 
-    public StatModifier(StatType type, object source, CalcType increaseType, float value)
+    // 생성자들
+    public Stat(StatType type, object source, CalcType calcType, ScaledInt value)
     {
         this.type = type;
         this.source = source;
-        this.increaseType = increaseType;
+        this.calcType = calcType;
         this.value = value;
     }
 
     public override bool Equals(object obj)
     {
-        if (obj is StatModifier other)
+        if (obj is Stat other)
         {
             return Type == other.Type
-                && Source == other.Source
-                && IncreaseType == other.IncreaseType
-                && Math.Abs(Value - other.Value) < float.Epsilon;
+                && ReferenceEquals(Source, other.Source)
+                && CalcType == other.CalcType
+                && Value == other.Value;
         }
         return false;
     }
@@ -126,8 +117,8 @@ public class StatModifier
         {
             int hash = 17;
             hash = hash * 23 + Type.GetHashCode();
-            hash = hash * 23 + Source.GetHashCode();
-            hash = hash * 23 + IncreaseType.GetHashCode();
+            hash = hash * 23 + (Source?.GetHashCode() ?? 0);
+            hash = hash * 23 + CalcType.GetHashCode();
             hash = hash * 23 + Value.GetHashCode();
             return hash;
         }
@@ -135,7 +126,15 @@ public class StatModifier
 
     public override string ToString()
     {
-        return $"[{Source}] {Type} {(IncreaseType == CalcType.Flat ? "+" : "x")} {Value}";
+        var valueStr = value.ToString();
+        char calcTypeStr = calcType switch
+        {
+            CalcType.Plus => '+',
+            CalcType.Minus => '-',
+            CalcType.Percent => 'x',
+            _ => ' ',
+        };
+        return $"[{Source}] {Type} {calcTypeStr} {valueStr}";
     }
 }
 
@@ -261,7 +260,7 @@ public class ItemData
     }
 
     [JsonIgnore]
-    public List<StatModifier> Stats = new();
+    public List<Stat> Stats = new();
 
     [JsonIgnore]
     public List<ItemEffect> Effects = new();
@@ -273,22 +272,25 @@ public class ItemData
     public int amount = 1;
 
     #region Stats Management
-    public void AddStat(StatModifier stat)
+    public void AddStat(Stat stat)
     {
-        if (stat == null)
+        // 구조체는 null이 될 수 없으므로 Source 체크로 변경
+        if (stat.Source == null)
             return;
         Stats.RemoveAll(s =>
             s.Type == stat.Type
-            && s.Source == stat.Source
-            && s.IncreaseType == stat.IncreaseType
-            && Math.Abs(s.Value - stat.Value) < float.Epsilon
+            && ReferenceEquals(s.Source, stat.Source)
+            && s.CalcType == stat.CalcType
+            && s.Value == stat.Value
         );
         Stats.Add(stat);
     }
 
-    public StatModifier GetStat(StatType statType) => Stats.FirstOrDefault(s => s.Type == statType);
-
-    public float GetStatValue(StatType statType) => GetStat(statType)?.Value ?? 0f;
+    public Stat? GetStat(StatType statType)
+    {
+        var result = Stats.FirstOrDefault(s => s.Type == statType);
+        return result.Source != null ? result : null;
+    }
 
     public void ClearStats() => Stats.Clear();
     #endregion
@@ -345,7 +347,7 @@ public class ItemStatRange
     public float minValue;
     public float maxValue;
     public float weight = 1f;
-    public CalcType increaseType = CalcType.Flat;
+    public CalcType increaseType = CalcType.Plus;
 }
 
 [Serializable]

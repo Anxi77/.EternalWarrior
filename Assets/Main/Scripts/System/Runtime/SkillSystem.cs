@@ -176,17 +176,6 @@ public class SkillSystem : MonoBehaviour, IInitializable
                     }
                 }
             }
-
-            if (playerStat != null)
-            {
-                float newMaxHp = playerStat.GetStat(StatType.MaxHp);
-                float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
-                playerStat.SetCurrentHp(newCurrentHp);
-                Logger.Log(
-                    typeof(SkillSystem),
-                    $"After AddOrUpgradeSkill - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})"
-                );
-            }
         }
         catch (Exception e)
         {
@@ -194,76 +183,6 @@ public class SkillSystem : MonoBehaviour, IInitializable
                 typeof(SkillSystem),
                 $"Error in AddOrUpgradeSkill: {e.Message}\n{e.StackTrace}"
             );
-        }
-    }
-
-    private void ReplaceSkillWithNewPrefab(
-        Skill existingSkill,
-        GameObject newPrefab,
-        SkillData skillData,
-        int targetLevel
-    )
-    {
-        Vector3 position = existingSkill.transform.position;
-        Quaternion rotation = existingSkill.transform.rotation;
-        Transform parent = existingSkill.transform.parent;
-
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<StatSystem>();
-        float currentHpRatio = 1f;
-        float currentHp = 0f;
-        float maxHp = 0f;
-
-        if (playerStat != null)
-        {
-            currentHp = playerStat.GetStat(StatType.CurrentHp);
-            maxHp = playerStat.GetStat(StatType.MaxHp);
-            currentHpRatio = currentHp / maxHp;
-            Logger.Log(
-                typeof(SkillSystem),
-                $"[SkillManager] Before replace - HP: {currentHp}/{maxHp} ({currentHpRatio:F2})"
-            );
-        }
-
-        if (existingSkill is PassiveSkill passiveSkill)
-        {
-            passiveSkill.RemoveEffectFromPlayer(GameManager.Instance.PlayerSystem.Player);
-        }
-
-        GameManager.Instance.PlayerSystem.Player.skills.Remove(existingSkill);
-        Destroy(existingSkill.gameObject);
-
-        var newObj = Instantiate(newPrefab, position, rotation, parent);
-        if (newObj.TryGetComponent<Skill>(out var newSkill))
-        {
-            newObj.transform.localPosition = Vector3.zero;
-            newObj.transform.localRotation = Quaternion.identity;
-            newObj.transform.localScale = Vector3.one;
-
-            skillData.GetSkillStats().baseStat.skillLevel = targetLevel;
-            newSkill.SetSkillData(skillData);
-
-            if (playerStat != null)
-            {
-                playerStat.SetCurrentHp(currentHp);
-            }
-
-            newSkill.Initialize();
-            GameManager.Instance.PlayerSystem.Player.skills.Add(newSkill);
-            Logger.Log(
-                typeof(SkillSystem),
-                $"Successfully replaced skill with level {targetLevel} prefab"
-            );
-
-            if (playerStat != null)
-            {
-                float finalMaxHp = playerStat.GetStat(StatType.MaxHp);
-                float finalCurrentHp = Mathf.Max(currentHp, finalMaxHp * currentHpRatio);
-                playerStat.SetCurrentHp(finalCurrentHp);
-                Logger.Log(
-                    typeof(SkillSystem),
-                    $"[SkillManager] After replace - HP: {finalCurrentHp}/{finalMaxHp} ({currentHpRatio:F2})"
-                );
-            }
         }
     }
 

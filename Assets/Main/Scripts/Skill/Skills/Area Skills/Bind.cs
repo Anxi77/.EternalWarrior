@@ -95,8 +95,8 @@ public class Bind : AreaSkills
 
     private void BindMonster(Monster monster, float duration)
     {
-        monster.ApplyStun(1, duration);
-        monster.ApplyDotDamage(Damage, 0.2f, duration);
+        monster.ApplyStun(duration);
+        monster.ApplyDotDamage(Damage, duration, 0.2f, this);
     }
 
     private void OnDrawGizmos()

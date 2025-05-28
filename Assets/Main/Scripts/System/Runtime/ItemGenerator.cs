@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -58,7 +59,7 @@ public class ItemGenerator : MonoBehaviour
             if (damageStat != null)
             {
                 float value = GenerateStatValue(damageStat);
-                item.AddStat(new StatModifier(damageStat.statType, item, CalcType.Flat, value));
+                item.AddStat(new Stat(damageStat.statType, item, CalcType.Plus, value));
             }
             availableStats.Remove(damageStat);
         }
@@ -68,7 +69,7 @@ public class ItemGenerator : MonoBehaviour
             if (defenseStat != null)
             {
                 float value = GenerateStatValue(defenseStat);
-                item.AddStat(new StatModifier(defenseStat.statType, item, CalcType.Flat, value));
+                item.AddStat(new Stat(defenseStat.statType, item, CalcType.Plus, value));
             }
             availableStats.Remove(defenseStat);
         }
@@ -79,7 +80,7 @@ public class ItemGenerator : MonoBehaviour
             if (selectedStat != null)
             {
                 float value = GenerateStatValue(selectedStat);
-                item.AddStat(new StatModifier(selectedStat.statType, item, CalcType.Flat, value));
+                item.AddStat(new Stat(selectedStat.statType, item, CalcType.Plus, value));
             }
         }
     }
@@ -183,23 +184,10 @@ public class ItemGenerator : MonoBehaviour
 
     private float GenerateStatValue(ItemStatRange statRange)
     {
-        float baseValue = (float)(
+        float value = (float)(
             Random.value * (statRange.maxValue - statRange.minValue) + statRange.minValue
         );
-
-        float finalValue = baseValue;
-
-        switch (statRange.increaseType)
-        {
-            case CalcType.Flat:
-                finalValue = Mathf.Round(finalValue);
-                break;
-            case CalcType.Multiply:
-                finalValue = Mathf.Round(finalValue * 100) / 100;
-                break;
-        }
-
-        return finalValue;
+        return value;
     }
 
     private float GenerateEffectValue(SubEffectRange effectRange)

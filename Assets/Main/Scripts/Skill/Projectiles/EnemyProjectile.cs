@@ -20,7 +20,7 @@ public class EnemyProjectile : Projectile
 
         if (other.TryGetComponent<Player>(out Player player))
         {
-            player.TakeDamage(damage);
+            player.TakeDamage(damage, this);
 
             if (impactParticle != null)
             {
@@ -38,11 +38,7 @@ public class EnemyProjectile : Projectile
 
             if (elementType != ElementType.None && elementalPower > 0)
             {
-                ElementalEffects.ApplyElementalEffect(
-                    elementType,
-                    elementalPower,
-                    other.gameObject
-                );
+                ElementalEffects.ApplyElementalEffect(elementType, elementalPower, this, player);
             }
 
             PoolManager.Instance.Despawn(this);

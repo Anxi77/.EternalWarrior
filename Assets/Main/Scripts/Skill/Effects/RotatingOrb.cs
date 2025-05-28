@@ -99,7 +99,7 @@ public class OrbDamage : MonoBehaviour
             Monster enemy = other.GetComponent<Monster>();
             if (enemy != null)
             {
-                enemy.TakeDamage(damage);
+                enemy.TakeDamage(damage, this);
             }
         }
     }

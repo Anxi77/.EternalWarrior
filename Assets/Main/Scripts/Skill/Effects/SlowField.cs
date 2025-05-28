@@ -51,8 +51,8 @@ public class SlowField : MonoBehaviour
         {
             if (collider.TryGetComponent<Monster>(out Monster enemy))
             {
-                enemy.TakeDamage(damage);
-                enemy.ApplySlowEffect(slowAmount, tickRate * 2f);
+                enemy.TakeDamage(damage, this);
+                enemy.ApplyDebuff(slowAmount, StatType.MoveSpeed, duration, this);
             }
         }
     }

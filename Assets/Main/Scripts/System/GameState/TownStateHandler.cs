@@ -10,7 +10,7 @@ public class TownStateHandler : BaseStateHandler
 
         if (
             Game.PlayerSystem.Player != null
-            && Game.PlayerSystem.Player.playerStatus == Player.Status.Dead
+            && Game.PlayerSystem.Player.UnitStatus == UnitStatus.Dead
         )
         {
             GameManager.Instance.RespawnPlayer();

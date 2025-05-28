@@ -217,7 +217,7 @@ public class GravityProjectile : Projectile
             {
                 if (enemy != null && enemy.gameObject.activeSelf)
                 {
-                    enemy.TakeDamage(damage / 10);
+                    enemy.TakeDamage(damage / 10, this);
                 }
             }
             damageTimer = 0f;
@@ -231,7 +231,7 @@ public class GravityProjectile : Projectile
         {
             if (collider.TryGetComponent<Monster>(out Monster enemy))
             {
-                enemy.TakeDamage(damage * _finalDamageMultiplier);
+                enemy.TakeDamage(damage * _finalDamageMultiplier, this);
             }
         }
     }

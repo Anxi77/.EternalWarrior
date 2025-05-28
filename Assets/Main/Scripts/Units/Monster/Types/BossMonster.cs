@@ -8,20 +8,6 @@ public class BossMonster : Monster
     public float enrageThreshold = 0.3f;
     public float enrageDamageMultiplier = 1.5f;
     public float enrageSpeedMultiplier = 1.3f;
-    private bool isEnraged = false;
-
-    public override void TakeDamage(float damage)
-    {
-        base.TakeDamage(damage);
-
-        if (
-            !isEnraged
-            && stat.GetStat(StatType.CurrentHp) <= stat.GetStat(StatType.MaxHp) * enrageThreshold
-        )
-        {
-            EnterEnragedState();
-        }
-    }
 
     protected override void PerformMeleeAttack()
     {
@@ -45,26 +31,10 @@ public class BossMonster : Monster
             particle.Play();
             Destroy(particle.gameObject, 0.3f);
         }
-        Target.GetComponent<Player>()?.TakeDamage(stat.GetStat(StatType.Damage));
+        Target.GetComponent<Player>()?.TakeDamage(stat.GetStat(StatType.Damage), this);
 
         yield return new WaitUntil(() => !isAttacking());
     }
-
-    private void EnterEnragedState()
-    {
-        isEnraged = true;
-        var damagemodifier = new StatModifier(
-            StatType.Damage,
-            this,
-            CalcType.Multiply,
-            enrageDamageMultiplier
-        );
-        stat.AddModifier(damagemodifier);
-
-        PlayEnrageEffect();
-    }
-
-    private void PlayEnrageEffect() { }
 
     public override void Die()
     {

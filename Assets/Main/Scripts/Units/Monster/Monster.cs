@@ -5,7 +5,7 @@ using UnityEngine;
 using MonsterAnimator = Assets.FantasyMonsters.Common.Scripts.Monster;
 using Random = UnityEngine.Random;
 
-public class Monster : MonoBehaviour
+public class Monster : Unit
 {
     [SerializeField]
     protected MonsterAnimator monsterAnimator;
@@ -19,10 +19,8 @@ public class Monster : MonoBehaviour
     public Collider2D enemyCollider;
     public PathFinder pathFinder;
     public MonsterAnimator MonsterAnimator => monsterAnimator;
-    public StatSystem stat;
     protected float lastAttackTime;
     public float preferredDistance = 1.0f;
-    public bool isStunned = false;
     public bool isInit = false;
     public Animator animator;
 
@@ -144,30 +142,8 @@ public class Monster : MonoBehaviour
     }
 
     #region Combat
-    public virtual void TakeDamage(float damage)
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
 
-        var defense = stat.GetStat(StatType.Defense);
-
-        float damageReduction = defense / (defense + 100f);
-        float finalDamage = damage * (1f - damageReduction);
-
-        stat.SetCurrentHp(stat.GetStat(StatType.CurrentHp) - finalDamage);
-
-        if (stat.GetStat(StatType.CurrentHp) <= 0)
-        {
-            if (dotDamageCoroutine != null)
-            {
-                StopCoroutine(dotDamageCoroutine);
-                dotDamageCoroutine = null;
-            }
-            Die();
-        }
-    }
-
-    public virtual void Die()
+    public override void Die()
     {
         if (monsterSetting.expParticlePrefab != null)
         {
@@ -244,163 +220,6 @@ public class Monster : MonoBehaviour
     protected virtual void PerformMeleeAttack() { }
 
     protected virtual void PerformRangedAttack() { }
-
-    public virtual void ApplyDefenseDebuff(float amount, float duration)
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
-
-        if (defenseDebuffCoroutine != null)
-        {
-            StopCoroutine(defenseDebuffCoroutine);
-        }
-
-        defenseDebuffCoroutine = StartCoroutine(DefenseDebuffCoroutine(amount, duration));
-    }
-
-    public virtual IEnumerator DefenseDebuffCoroutine(float amount, float duration)
-    {
-        float actualReduction = Mathf.Min(amount, stat.GetStat(StatType.MaxDefenseReduction));
-        actualReduction = -actualReduction;
-
-        var defenseDebuff = new StatModifier(
-            StatType.Defense,
-            this,
-            CalcType.Flat,
-            actualReduction
-        );
-
-        if (this != null && gameObject.activeInHierarchy)
-        {
-            stat.AddModifier(defenseDebuff);
-        }
-
-        yield return new WaitForSeconds(duration);
-
-        defenseDebuffCoroutine = null;
-
-        if (this != null && gameObject.activeInHierarchy)
-        {
-            stat.RemoveModifier(defenseDebuff);
-        }
-    }
-
-    public virtual void ApplySlowEffect(float amount, float duration)
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
-
-        if (slowEffectCoroutine != null)
-        {
-            StopCoroutine(slowEffectCoroutine);
-        }
-
-        slowEffectCoroutine = StartCoroutine(SlowEffectCoroutine(amount, duration));
-    }
-
-    protected virtual IEnumerator SlowEffectCoroutine(float amount, float duration)
-    {
-        float movespeedReduction;
-
-        var moveSpeed = stat.GetStat(StatType.MoveSpeed);
-        if (moveSpeed - amount > 0)
-        {
-            movespeedReduction = -amount;
-        }
-        else
-        {
-            movespeedReduction = -moveSpeed;
-        }
-
-        var moveSpeedDebuff = new StatModifier(
-            StatType.MoveSpeed,
-            this,
-            CalcType.Flat,
-            movespeedReduction
-        );
-
-        if (this != null && gameObject.activeInHierarchy)
-        {
-            stat.AddModifier(moveSpeedDebuff);
-        }
-
-        yield return new WaitForSeconds(duration);
-
-        if (this != null && gameObject.activeInHierarchy)
-        {
-            stat.RemoveModifier(moveSpeedDebuff);
-        }
-
-        slowEffectCoroutine = null;
-    }
-
-    public virtual void ApplyDotDamage(float damagePerTick, float tickInterval, float duration)
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
-
-        if (dotDamageCoroutine != null)
-        {
-            StopCoroutine(dotDamageCoroutine);
-        }
-
-        dotDamageCoroutine = StartCoroutine(
-            DotDamageCoroutine(damagePerTick, tickInterval, duration)
-        );
-    }
-
-    protected virtual IEnumerator DotDamageCoroutine(
-        float damagePerTick,
-        float tickInterval,
-        float duration
-    )
-    {
-        float endTime = Time.time + duration;
-
-        while (
-            Time.time < endTime
-            && stat.GetStat(StatType.CurrentHp) > 0
-            && gameObject.activeInHierarchy
-        )
-        {
-            if (this != null && gameObject.activeInHierarchy)
-            {
-                TakeDamage(damagePerTick);
-            }
-            yield return new WaitForSeconds(tickInterval);
-        }
-
-        dotDamageCoroutine = null;
-    }
-
-    public virtual void ApplyStun(float power, float duration)
-    {
-        if (!gameObject.activeInHierarchy)
-            return;
-
-        if (stunCoroutine != null)
-        {
-            StopCoroutine(stunCoroutine);
-        }
-
-        stunCoroutine = StartCoroutine(StunCoroutine(duration));
-    }
-
-    protected virtual IEnumerator StunCoroutine(float duration)
-    {
-        isStunned = true;
-        var moveSpeed = stat.GetStat(StatType.MoveSpeed);
-        var moveSpeedDebuff = new StatModifier(StatType.MoveSpeed, this, CalcType.Flat, -moveSpeed);
-
-        yield return new WaitForSeconds(duration);
-
-        if (this != null && gameObject.activeInHierarchy)
-        {
-            isStunned = false;
-            stat.RemoveModifier(moveSpeedDebuff);
-        }
-        stunCoroutine = null;
-    }
     #endregion
 
     #region Collision

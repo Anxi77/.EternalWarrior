@@ -44,7 +44,7 @@ public class DamageZone : MonoBehaviour
                 Monster enemy = other.GetComponent<Monster>();
                 if (enemy != null)
                 {
-                    enemy.TakeDamage(damage);
+                    enemy.TakeDamage(damage, this);
                 }
                 lastDamageTime[other.gameObject] = Time.time;
             }

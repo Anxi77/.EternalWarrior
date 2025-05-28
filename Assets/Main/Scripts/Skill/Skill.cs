@@ -3,6 +3,8 @@ using UnityEngine;
 
 public abstract class Skill : MonoBehaviour
 {
+    protected Unit owner;
+
     [SerializeField]
     public SkillData skillData;
     protected bool isInitialized = false;

@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class PassiveSkill : Skill
 {
     #region Runtime Stats
-    public List<StatModifier> statModifiers;
 
     [Header("Base Stats")]
     [SerializeField]
@@ -97,14 +97,11 @@ public class PassiveSkill : Skill
         var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<StatSystem>();
         if (playerStat != null)
         {
-            float currentHpRatio =
-                playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
+            float currentHpRatio = (
+                playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp)
+            ).ToFloat();
 
             InitializeSkillData();
-
-            float newMaxHp = playerStat.GetStat(StatType.MaxHp);
-            float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
-            playerStat.SetCurrentHp(newCurrentHp);
 
             if (skillData.GetSkillStats() is PassiveSkillStat passiveSkillStat)
             {
@@ -159,20 +156,19 @@ public class PassiveSkill : Skill
 
     protected virtual void ApplyPassiveEffect()
     {
-        Player player = GameManager.Instance.PlayerSystem.Player;
         if (_isPermanent)
         {
-            ApplyPermanentEffect(player);
+            ApplyPermanentEffect(owner);
         }
         else
         {
-            StartCoroutine(ApplyTemporaryEffects(player));
+            ApplyTemporaryEffects(owner).Forget();
         }
     }
 
-    protected void ApplyPermanentEffect(Player player)
+    protected void ApplyPermanentEffect(Unit owner)
     {
-        var playerStat = player.GetComponent<StatSystem>();
+        var playerStat = owner.GetComponent<StatSystem>();
         if (playerStat == null)
             return;
 
@@ -180,110 +176,74 @@ public class PassiveSkill : Skill
         ApplyStatModifier(playerStat, StatType.Defense, _defenseIncrease);
     }
 
-    protected IEnumerator ApplyTemporaryEffects(Player player)
+    protected async UniTask ApplyTemporaryEffects(Unit owner)
     {
-        var playerStat = player.GetComponent<StatSystem>();
-        if (playerStat == null)
-            yield break;
+        var stat = owner.GetComponent<StatSystem>();
+        if (stat == null)
+            return;
 
-        float currentHpRatio =
-            playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
         bool anyEffectApplied = false;
 
         if (_damageIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.Damage, _damageIncrease);
+            ApplyStatModifier(stat, StatType.Damage, _damageIncrease);
             anyEffectApplied = true;
         }
 
         if (_defenseIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.Defense, _defenseIncrease);
+            ApplyStatModifier(stat, StatType.Defense, _defenseIncrease);
             anyEffectApplied = true;
         }
 
         if (_expAreaIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.ExpCollectionRadius, _expAreaIncrease);
+            ApplyStatModifier(stat, StatType.ExpCollectionRadius, _expAreaIncrease);
             anyEffectApplied = true;
         }
 
         if (_homingActivate)
         {
-            player.ActivateHoming(true);
+            owner.ActivateHoming(true);
             anyEffectApplied = true;
         }
 
         if (_hpIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.MaxHp, _hpIncrease);
-            float newMaxHp = playerStat.GetStat(StatType.MaxHp);
-            float newCurrentHp = newMaxHp * currentHpRatio;
-            playerStat.SetCurrentHp(newCurrentHp);
+            ApplyStatModifier(stat, StatType.MaxHp, _hpIncrease);
             anyEffectApplied = true;
         }
 
         if (_moveSpeedIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.MoveSpeed, _moveSpeedIncrease);
+            ApplyStatModifier(stat, StatType.MoveSpeed, _moveSpeedIncrease);
             anyEffectApplied = true;
         }
 
         if (_attackSpeedIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.AttackSpeed, _attackSpeedIncrease);
+            ApplyStatModifier(stat, StatType.AttackSpeed, _attackSpeedIncrease);
             anyEffectApplied = true;
         }
 
         if (_attackRangeIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.AttackRange, _attackRangeIncrease);
+            ApplyStatModifier(stat, StatType.AttackRange, _attackRangeIncrease);
             anyEffectApplied = true;
         }
 
         if (_hpRegenIncrease > 0)
         {
-            ApplyStatModifier(playerStat, StatType.HpRegenRate, _hpRegenIncrease);
+            ApplyStatModifier(stat, StatType.HpRegenRate, _hpRegenIncrease);
             anyEffectApplied = true;
-        }
-
-        if (_homingActivate)
-        {
-            player.ActivateHoming(false);
         }
 
         if (anyEffectApplied)
         {
-            yield return new WaitForSeconds(_effectDuration);
+            await UniTask.WaitForSeconds(_effectDuration);
 
-            currentHpRatio =
-                playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-
-            foreach (var modifier in statModifiers)
-            {
-                playerStat.RemoveModifier(modifier);
-            }
-
-            if (_hpIncrease > 0)
-            {
-                float newMaxHp = playerStat.GetStat(StatType.MaxHp);
-                float newCurrentHp = newMaxHp * currentHpRatio;
-                playerStat.SetCurrentHp(newCurrentHp);
-            }
+            owner.stat.RemoveStatFromSource(this);
         }
-    }
-
-    public void RemoveEffectFromPlayer(Player player)
-    {
-        if (player == null)
-            return;
-
-        StatSystem playerStat = player.GetComponent<StatSystem>();
-        foreach (var modifier in statModifiers)
-        {
-            playerStat.RemoveModifier(modifier);
-        }
-        statModifiers.Clear();
     }
 
     protected override void UpdateSkillTypeStats(ISkillStat newStats)
@@ -305,20 +265,6 @@ public class PassiveSkill : Skill
             return;
         }
 
-        var playerStat = GameManager.Instance.PlayerSystem.Player.GetComponent<StatSystem>();
-        float currentHpRatio = 1f;
-        if (playerStat != null)
-        {
-            currentHpRatio =
-                playerStat.GetStat(StatType.CurrentHp) / playerStat.GetStat(StatType.MaxHp);
-            Logger.Log(
-                typeof(PassiveSkill),
-                $"Before UpdateInspectorValues - HP: {playerStat.GetStat(StatType.CurrentHp)}/{playerStat.GetStat(StatType.MaxHp)} ({currentHpRatio:F2})"
-            );
-        }
-
-        Logger.Log(typeof(PassiveSkill), $"[PassiveSkills] Before Update - Level: {currentLevel}");
-
         currentLevel = stats.baseStat.skillLevel;
         _damage = stats.baseStat.damage;
         _elementalPower = stats.baseStat.elementalPower;
@@ -334,19 +280,6 @@ public class PassiveSkill : Skill
         _attackSpeedIncrease = stats.attackSpeedIncrease;
         _attackRangeIncrease = stats.attackRangeIncrease;
         _hpRegenIncrease = stats.hpRegenIncrease;
-
-        Logger.Log(typeof(PassiveSkill), $"[PassiveSkills] After Update - Level: {currentLevel}");
-
-        if (playerStat != null)
-        {
-            float newMaxHp = playerStat.GetStat(StatType.MaxHp);
-            float newCurrentHp = Mathf.Max(1f, newMaxHp * currentHpRatio);
-            playerStat.SetCurrentHp(newCurrentHp);
-            Logger.Log(
-                typeof(PassiveSkill),
-                $"After UpdateInspectorValues - HP: {newCurrentHp}/{newMaxHp} ({currentHpRatio:F2})"
-            );
-        }
     }
 
     protected void ApplyStatModifier(
@@ -360,35 +293,31 @@ public class PassiveSkill : Skill
 
         float currentStat = playerStat.GetStat(statType);
         float increase = currentStat * (percentageIncrease / 100f);
-        StatModifier modifier = new StatModifier(statType, this, CalcType.Flat, increase);
-        playerStat.AddModifier(modifier);
-        statModifiers.Add(modifier);
+        playerStat.AddStat(statType, CalcType.Plus, increase, this);
         Logger.Log(
             typeof(PassiveSkill),
             $"Applied {statType} increase: Current({currentStat}) + {percentageIncrease}% = {currentStat + increase}"
         );
     }
 
-    protected virtual void OnDestroy()
+    protected virtual void OnDisable()
     {
         if (GameManager.Instance?.PlayerSystem?.Player != null)
         {
-            StopAllCoroutines();
             Player player = GameManager.Instance.PlayerSystem.Player;
             var playerStat = player.GetComponent<StatSystem>();
 
-            foreach (var modifier in statModifiers)
+            if (playerStat != null)
             {
-                playerStat.RemoveModifier(modifier);
+                playerStat.RemoveStatFromSource(this);
             }
-
-            if (_homingActivate)
-                player.ActivateHoming(false);
-
-            Logger.Log(
-                typeof(PassiveSkill),
-                $"Removed all effects for {skillData?.Name ?? "Unknown Skill"}"
-            );
+            else
+            {
+                Logger.LogError(
+                    typeof(PassiveSkill),
+                    $"PlayerStatSystem not found for {skillData.Name} on destroy"
+                );
+            }
         }
     }
 }

@@ -99,7 +99,6 @@ public enum ItemRarity
 [Serializable]
 public enum StatType
 {
-    #region Player
     None,
     MaxHp,
     CurrentHp,
@@ -116,21 +115,16 @@ public enum StatType
     Luck,
     DodgeChance,
     LifeSteal,
-    #endregion
-
-    #region Monster
-
     DropExp,
-    MaxDefenseReduction,
-    MaxMoveSpeedReduction,
-    #endregion
 }
 
 [Serializable]
 public enum CalcType
 {
-    Flat,
-    Multiply,
+    None,
+    Plus,
+    Minus,
+    Percent,
 }
 
 #endregion
@@ -191,4 +185,11 @@ public enum SlotType
     SecondaryRing,
     Necklace,
     Special,
+}
+
+public enum UnitStatus
+{
+    Alive = 1,
+    Dead,
+    Attacking,
 }
